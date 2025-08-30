@@ -1,0 +1,11 @@
+{
+  "variants": {
+    "connected=false": {
+      "model": "aewireless:block/wireless_transceiver"
+    },
+
+    "connected=true": {
+      "model": "aewireless:block/wireless_transceiver_light"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CBC",
+    "DAD",
+    "CEC"
+  ],
+  "key": {
+    "A":{
+      "item":"ae2:calculation_processor"
+    },
+    "B":{
+      "item":"ae2:wireless_receiver"
+    },
+    "C": {
+      "item": "ae2:charged_certus_quartz_crystal"
+    },
+    "D":{
+      "tag":"ae2:smart_cable"
+    },
+    "E": {
+      "item": "ae2:wireless_booster"
+    }
+  },
+  "result": {
+    "item": "aewireless:wireless_transceiver"
+  }
+}

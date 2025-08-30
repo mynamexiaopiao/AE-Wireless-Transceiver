@@ -1,0 +1,46 @@
+{
+  "$schema": "schema.json",
+  "includes": ["common/common.json", "common/player_inventory.json"],
+  "background": {
+    "texture": "guis/wireless.png",
+    "srcRect": [0, 0, 176, 199]
+  },
+  "slots": {
+
+  },
+  "text": {
+    "dialog_title": {
+      "text": {
+        "translate": "gui.aewireless.wireless"
+      },
+      "position": {
+        "left": 8,
+        "top": 6
+      }
+    }
+  },
+  "widgets": {
+    "scrollbar": {
+      "right": 29,
+      "top": 40
+    },
+    "input": {
+      "left": 17,
+      "top": 18,
+      "width": 90,
+      "height": 9
+    },
+    "add": {
+      "left": 110,
+      "top": 18
+    },
+    "remove": {
+      "left": 128,
+      "top": 18
+    },
+    "mode": {
+      "left": 146,
+      "top": 18
+    }
+  }
+}
