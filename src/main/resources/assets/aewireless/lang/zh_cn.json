@@ -1,5 +1,12 @@
 {
   "block.aewireless.wireless_transceiver": "AE 无线收发器",
   "gui.aewireless.wireless": "AE 无线收发器",
-  "gui.wireless.mode": "是否为发送端"
+  "gui.wireless.mode": "是否为发送端",
+  "gui.wireless.add": "添加",
+  "gui.wireless.remove": "删除",
+  "gui.wireless.mode.toggle": "模式",
+  "gui.wireless.mode.channel": "频道",
+  "gui.wireless.mode.disconnect": "断开",
+  "gui.wireless.mode.connect": "已连接"
+
 }

@@ -25,6 +25,10 @@ public class WirelessLink {
         update();
     }
 
+    public void realUnregister() {
+        frequency = null;
+    }
+
     public void update() {
         if (frequency == null || frequency.isEmpty()) {
             destroyConnection();

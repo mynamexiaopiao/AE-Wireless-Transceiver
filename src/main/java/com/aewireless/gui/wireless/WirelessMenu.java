@@ -56,7 +56,7 @@ public class WirelessMenu extends AEBaseMenu {
 
         if (blockEntity != null) {
             this.mode = blockEntity.isMode();
-            this.currentFrequency = blockEntity.getFrequency();
+            this.currentFrequency = blockEntity.getFrequency() ==  null ? "" : blockEntity.getFrequency();
         }
     }
 

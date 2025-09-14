@@ -4,6 +4,7 @@ import appeng.api.networking.*;
 import com.aewireless.gui.wireless.WirelessMenu;
 import com.aewireless.register.ModRegister;
 import com.aewireless.wireless.IWirelessEndpoint;
+import com.aewireless.wireless.WirelessData;
 import com.aewireless.wireless.WirelessLink;
 import com.aewireless.wireless.WirelessMasterLink;
 import net.minecraft.core.BlockPos;
@@ -98,7 +99,22 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     public void serverTick(Level level, BlockPos pos, BlockState state) {
 
         WirelessConnectBlockEntity blockEntity = (WirelessConnectBlockEntity)level.getBlockEntity(pos);
-        blockEntity.setFrequency(blockEntity.getFrequency());
+
+        //修复无法删除
+        if (WirelessData.DATA.containsKey(blockEntity.getFrequency())){
+            blockEntity.setFrequency(blockEntity.getFrequency());
+        }
+
+        //修复频道删除但保存问题
+        if (!WirelessData.DATA.containsKey(blockEntity.getFrequency())){
+            if (!blockEntity.mode){
+                blockEntity.slaveLink.destroyConnection();
+                blockEntity.slaveLink.realUnregister();
+            }
+
+            blockEntity.frequency = null;
+        }
+
         if (managedNode.isOnline()){
             BlockState blockState = state.setValue(WirelessConnectBlock.CONNECTED, true);
             level.setBlock(pos, blockState, Block.UPDATE_ALL );
