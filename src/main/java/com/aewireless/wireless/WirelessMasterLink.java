@@ -1,9 +1,5 @@
 package com.aewireless.wireless;
 
-import net.minecraft.server.level.ServerLevel;
-
-import java.util.Objects;
-
 public class WirelessMasterLink {
     private final IWirelessEndpoint host;
     private String  frequency;
@@ -46,5 +42,10 @@ public class WirelessMasterLink {
         if (!registered || frequency .isEmpty()) return;
         WirelessData.DATA.put(frequency, null);
         registered = false;
+    }
+
+    public void realUnregister() {
+        registered = false;
+        this.frequency = null;
     }
 }

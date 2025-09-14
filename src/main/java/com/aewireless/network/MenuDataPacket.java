@@ -2,53 +2,51 @@ package com.aewireless.network;
 
 import com.aewireless.gui.wireless.WirelessMenu;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
+public record MenuDataPacket(String frequency, Boolean mode) implements CustomPacketPayload {
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("aewireless", "menu_data");
 
-public class MenuDataPacket {
-    private String frequency;
-    private Boolean mode;
+    public static final Type<MenuDataPacket> TYPE = new Type<>(ID);
 
-    public MenuDataPacket(String frequency, Boolean mode) {
-        this.frequency = frequency;
-        this.mode = mode;
-    }
+    public static final StreamCodec<FriendlyByteBuf, MenuDataPacket> STREAM_CODEC =
+            StreamCodec.of((buf, packet) -> {
+                buf.writeUtf(packet.frequency == null ? "" : packet.frequency);
+                buf.writeBoolean(packet.mode);
+            }, buf -> {
+                String freq = buf.readUtf();
+                Boolean mode = buf.readBoolean();
+                return new MenuDataPacket(
+                        freq.isEmpty() ? "" : freq,
+                        mode
+                );
+            });
 
-    public void encode(FriendlyByteBuf buf){
-        buf.writeUtf(frequency == null ? "" : frequency);
-        buf.writeBoolean(mode);
-    }
 
-    public static MenuDataPacket decode(FriendlyByteBuf buf) {
-        String freq = buf.readUtf();
-        Boolean mode = buf.readBoolean();
-        return new MenuDataPacket(
-                freq.isEmpty() ? "" : freq,
-                mode
-        );
-    }
-
-    public void handle(Supplier<NetworkEvent.Context> context) {
-        NetworkEvent.Context ctx = context.get();
-        ctx.enqueueWork(() -> {
-            ServerPlayer player = ctx.getSender();
-            if (player != null) {
+    public static void handle(MenuDataPacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer player) {
                 AbstractContainerMenu menu = player.containerMenu;
                 if (menu instanceof WirelessMenu wirelessMenu) {
                     // 更新频率（如果提供了有效频率）
-                    if (frequency != null && !frequency.isEmpty()) {
-                        wirelessMenu.setFrequency(frequency);
+                    if (packet.frequency() != null) {
+                        wirelessMenu.setFrequency(packet.frequency());
                     }
 
                     // 更新模式
-                    wirelessMenu.setMode(mode);
-
+                    wirelessMenu.setMode(packet.mode());
                 }
             }
         });
-        ctx.setPacketHandled(true);
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

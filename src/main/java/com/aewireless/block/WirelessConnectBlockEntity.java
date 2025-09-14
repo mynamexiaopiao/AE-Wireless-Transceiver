@@ -1,13 +1,19 @@
 package com.aewireless.block;
 
-import appeng.api.networking.*;
+import appeng.api.networking.GridHelper;
+import appeng.api.networking.IGridNode;
+import appeng.api.networking.IInWorldGridNodeHost;
+import appeng.api.networking.IManagedGridNode;
+import appeng.api.util.AECableType;
 import com.aewireless.gui.wireless.WirelessMenu;
 import com.aewireless.register.ModRegister;
 import com.aewireless.wireless.IWirelessEndpoint;
+import com.aewireless.wireless.WirelessData;
 import com.aewireless.wireless.WirelessLink;
 import com.aewireless.wireless.WirelessMasterLink;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -22,11 +28,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.capabilities.ICapabilityProvider;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
 
-public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvider , IInWorldGridNodeHost , IWirelessEndpoint {
+public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvider , IInWorldGridNodeHost , IWirelessEndpoint  {
     private IManagedGridNode managedNode;
 
     private WirelessMasterLink masterLink;
@@ -39,7 +46,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         super(ModRegister.WIRELESS_TRANSCEIVER_ENTITY.get(), pos, blockState);
 
         this.managedNode = GridHelper.createManagedNode(this, (nodeOwner, node) -> {nodeOwner.setChanged();});
-        this.managedNode.setTagName("wireless");
+        this.managedNode.setTagName("wireless_connect");
         this.managedNode.setInWorldNode(true);
         this.managedNode.setExposedOnSides(EnumSet.allOf(Direction.class));
 
@@ -49,6 +56,12 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
     public String getFrequency() {
         return frequency;
+    }
+
+
+    @Override
+    public AECableType getCableConnectionType(Direction dir) {
+        return AECableType.DENSE_SMART;
     }
 
     public void setMasterMode(boolean masterMode){
@@ -62,12 +75,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
         this.mode = masterMode;
 
-
-        if (this.mode) {
-            masterLink.setFrequency( frequency);
-        } else {
-            slaveLink.setFrequency( frequency);
-        }
+        frequency = null;
 
         setChanged();
     }
@@ -95,10 +103,12 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         }
     }
 
+
     public void serverTick(Level level, BlockPos pos, BlockState state) {
 
         WirelessConnectBlockEntity blockEntity = (WirelessConnectBlockEntity)level.getBlockEntity(pos);
-        blockEntity.setFrequency(blockEntity.getFrequency());
+
+
         if (managedNode.isOnline()){
             BlockState blockState = state.setValue(WirelessConnectBlock.CONNECTED, true);
             level.setBlock(pos, blockState, Block.UPDATE_ALL );
@@ -107,6 +117,20 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
             level.setBlock(pos, blockState, Block.UPDATE_ALL );
         }
 
+        //修复无法删除
+        if (WirelessData.DATA.containsKey(blockEntity.getFrequency())){
+            blockEntity.setFrequency(blockEntity.getFrequency());
+        }
+
+        //修复频道删除但保存问题
+        if (!WirelessData.DATA.containsKey(blockEntity.getFrequency())){
+            if (!blockEntity.mode){
+                blockEntity.slaveLink.destroyConnection();
+                blockEntity.slaveLink.realUnregister();
+            }
+
+            blockEntity.frequency = null;
+        }
 
         if (!(level instanceof ServerLevel)) return;
 
@@ -157,13 +181,15 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         GridHelper.onFirstTick(this, be -> {
             be.managedNode.create(be.getLevel(), be.getBlockPos());
         });
+
+
     }
 
 
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag , registries);
         tag.putBoolean("mode", mode);
 
         tag.putString("frequency", frequency != null ? frequency : "");
@@ -171,11 +197,12 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         if (managedNode != null) {
             managedNode.saveToNBT(tag);
         }
+
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag ,registries);
         mode = tag.getBoolean("mode");
 
         frequency = tag.getString("frequency");
@@ -184,11 +211,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
             managedNode.loadFromNBT(tag);
         }
 
-        if (isMode()) {
-            masterLink.setFrequency(frequency);
-        } else {
-            slaveLink.setFrequency(frequency);
-        }
+        setFrequency( frequency);
 
     }
 
@@ -197,8 +220,8 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        return saveWithoutMetadata();
+    public CompoundTag getUpdateTag( HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
     @Override
     public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {

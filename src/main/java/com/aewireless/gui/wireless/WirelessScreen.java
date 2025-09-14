@@ -1,9 +1,9 @@
 package com.aewireless.gui.wireless;
 
 import appeng.client.gui.AEBaseScreen;
-import appeng.client.gui.Icon;
 import appeng.client.gui.style.ScreenStyle;
-import appeng.client.gui.widgets.*;
+import appeng.client.gui.widgets.AETextField;
+import appeng.client.gui.widgets.Scrollbar;
 import com.aewireless.ModIcon;
 import com.aewireless.ModIconButton;
 import com.aewireless.network.MenuDataPacket;
@@ -13,10 +13,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Inventory;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     Scrollbar scrollbar;
@@ -25,14 +26,12 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     //可见行数
     private final int visibleRows = 5;
     //每行的像素
-
     private final int rowHeight = 12;
     private final ArrayList<String> allDataRows = new ArrayList<>();
 
-
     private int highlightedRowIndex = -1;
-    private final int highlightColor = 0x3366CCFF; // 高亮背景色（淡蓝色）
-    private final int highlightBorderColor = 0xFF3399FF; // 高亮边框色（亮蓝色）
+    private final int highlightColor = 0x3300FF00; // 高亮背景色（淡蓝色）
+    private final int highlightBorderColor = 0xFF006600; // 高亮边框色（亮蓝色）
 
     private int listX;
     private int listY;
@@ -44,7 +43,6 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
 
     public WirelessScreen(WirelessMenu menu, Inventory playerInventory, Component title, ScreenStyle style) {
         super(menu, playerInventory, title, style);
-
 
         scrollbar = this.widgets.addScrollBar("scrollbar", Scrollbar.SMALL);
         input = this.widgets.addTextField("input");
@@ -62,8 +60,9 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         };
 
         Button mode = new ModIconButton(arg -> {
-            NetworkHandler.sendToServer(new MenuDataPacket(null, !this.getMenu().isMode()));
-            this.getMenu().setMode(!this.getMenu().isMode());
+            boolean newMode = !this.getMenu().isMode();
+            NetworkHandler.sendToServer(new MenuDataPacket(null, newMode));
+            this.getMenu().setMode(newMode);
         }) {
             @Override
             protected ModIcon getIcon() {
@@ -75,19 +74,15 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         this.widgets.add("remove", removeButton);
         this.widgets.add("mode", mode);
 
-
         refreshList();
-
-
     }
 
     @Override
     public void init() {
         super.init();
         listHeight = visibleRows * rowHeight;
-        listX = (this.width - listWidth) / 2  - 6;
+        listX = (this.width - listWidth) / 2 - 6;
         listY = this.height - this.topPos - listHeight - 100;
-
     }
 
     private void refreshList() {
@@ -100,7 +95,6 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         scrollbar.setRange(0, maxScroll, 1);
     }
 
-
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
@@ -111,8 +105,6 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         renderHighlightedRow(guiGraphics);
         renderListContent(guiGraphics);
         renderMode(guiGraphics);
-
-
     }
 
     private void updateData(){
@@ -133,8 +125,9 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         allDataRows.clear();
         allDataRows.addAll(keys);
 
-        this.highlightedRowIndex =  keys.indexOf(this.getMenu().getFrequency());
-
+        String currentFrequency = this.getMenu().getFrequency();
+        this.highlightedRowIndex = (currentFrequency != null && !currentFrequency.isEmpty()) ?
+                keys.indexOf(currentFrequency) : -1;
     }
 
     private void renderListBackground(GuiGraphics guiGraphics) {
@@ -208,17 +201,20 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         }
     }
 
-
     public void clearHighlight() {
         highlightedRowIndex = -1;
-        NetworkHandler.sendToServer(new MenuDataPacket(null, this.getMenu().isMode()));
+        String currentFrequency = this.getMenu().getFrequency();
+        NetworkHandler.sendToServer(new MenuDataPacket(
+                null,
+                this.getMenu().isMode()
+        ));
     }
 
     private void renderMode(GuiGraphics guiGraphics){
         boolean mode = this.menu.isMode();
         guiGraphics.drawString(
                 Minecraft.getInstance().font,
-                Component.translatable("gui.wireless.mode").append(": "+mode),
+                Component.translatable("gui.wireless.mode").append(": " + mode),
                 this.getGuiLeft() + 17,
                 this.getGuiTop() + 31,
                 0xFFFFFFFF,
@@ -233,10 +229,22 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
             int clickedRowIndex = (relativeY / rowHeight) + (int) scrollbar.getCurrentScroll();
 
             if (clickedRowIndex >= 0 && clickedRowIndex < allDataRows.size()) {
+                String selectedFrequency = this.allDataRows.get(clickedRowIndex);
+                NetworkHandler.sendToServer(new MenuDataPacket(selectedFrequency, this.getMenu().isMode()));
 
-                NetworkHandler.sendToServer(new MenuDataPacket(this.allDataRows.get(clickedRowIndex), this.getMenu().isMode()));
-                this.getMenu().setFrequency(this.allDataRows.get(clickedRowIndex));
+                if (this.getMenu().blockEntity.getLevel() != null) {
+                    this.getMenu().blockEntity.getLevel().playLocalSound(
+                            this.getMenu().blockEntity.getBlockPos(),
+                            SoundEvents.UI_BUTTON_CLICK.value(),
+                            SoundSource.MASTER,
+                            1.0f,
+                            1.0f,
+                            false
+                    );
+                }
 
+                this.getMenu().setFrequency(selectedFrequency);
+                this.highlightedRowIndex = clickedRowIndex;
                 return true;
             }
         }
@@ -261,8 +269,10 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     }
 
     public void removeDataRow(String data) {
-        allDataRows.remove(data);
         WirelessData.removeData(data);
+
+        allDataRows.remove(data);
+
         updateData();
         refreshList();
     }
