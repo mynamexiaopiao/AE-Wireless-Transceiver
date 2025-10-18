@@ -7,6 +7,6 @@
   "gui.wireless.mode.toggle": "模式",
   "gui.wireless.mode.channel": "频道",
   "gui.wireless.mode.disconnect": "断开",
-  "gui.wireless.mode.connect": "已连接"
-
+  "gui.wireless.mode.connect": "已连接",
+"gui.confirm_delete.message": "确认删除?"
 }

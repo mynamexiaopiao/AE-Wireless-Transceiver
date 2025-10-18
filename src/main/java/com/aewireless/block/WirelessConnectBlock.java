@@ -4,7 +4,9 @@ import appeng.menu.MenuOpener;
 import appeng.menu.locator.MenuLocators;
 import com.aewireless.gui.wireless.WirelessMenu;
 import com.aewireless.register.ModRegister;
+import com.aewireless.register.RegisterHandler;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -20,6 +22,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -34,6 +37,8 @@ public class WirelessConnectBlock extends Block implements EntityBlock {
                 .setValue(CONNECTED, false));
     }
 
+
+
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(CONNECTED);
@@ -41,15 +46,15 @@ public class WirelessConnectBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos arg, BlockState arg2) {
-        return new WirelessConnectBlockEntity(arg, arg2);
-    }
-
-    @Override
     public List<ItemStack> getDrops(BlockState arg, LootParams.Builder arg2) {
         List<ItemStack> drops = new ArrayList<>();
         drops.add(ModRegister.WIRELESS_TRANSCEIVER.get().asItem().getDefaultInstance());
         return drops ;
+    }
+
+    @Override
+    public @Nullable BlockEntity newBlockEntity(BlockPos arg, BlockState arg2) {
+        return new WirelessConnectBlockEntity(arg, arg2);
     }
 
     @Override
@@ -73,8 +78,9 @@ public class WirelessConnectBlock extends Block implements EntityBlock {
         if (!level.isClientSide){
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof WirelessConnectBlockEntity advanceShredderBlockEntity) {
-                MenuOpener.open(WirelessMenu.TYPE, player, MenuLocators.forBlockEntity(advanceShredderBlockEntity));
+//                MenuOpener.open(ModRegister.WIRELESS_MENU.get(), player, MenuLocators.forBlockEntity(advanceShredderBlockEntity));
 
+                NetworkHooks.openScreen((ServerPlayer) player, advanceShredderBlockEntity , pos);
                 return InteractionResult.SUCCESS;
             }else {
                 throw  new IllegalStateException("our container provider is missing");

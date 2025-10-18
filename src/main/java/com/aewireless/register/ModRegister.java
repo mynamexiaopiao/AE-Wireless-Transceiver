@@ -6,11 +6,14 @@ import com.aewireless.AeWireless;
 import com.aewireless.block.WirelessConnectBlock;
 import com.aewireless.block.WirelessConnectBlockEntity;
 import com.aewireless.gui.wireless.WirelessMenu;
+import net.minecraft.client.resources.model.Material;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -31,7 +34,9 @@ public class ModRegister {
             DeferredRegister.create(ForgeRegistries.MENU_TYPES, AeWireless.MOD_ID);
 
     public static final RegistryObject<Block> WIRELESS_TRANSCEIVER = registerBlock("wireless_transceiver",
-            () -> new WirelessConnectBlock(Block.Properties.of()));
+            () -> new WirelessConnectBlock(Block.Properties.of().strength(3f)
+                    .requiresCorrectToolForDrops()
+                    .sound(SoundType.METAL)));
 
     public static final RegistryObject<BlockEntityType<WirelessConnectBlockEntity>> WIRELESS_TRANSCEIVER_ENTITY = BLOCKS_ENTITY.register(
             "wireless_transceiver_block_entity",
@@ -43,7 +48,7 @@ public class ModRegister {
 
 
     public static final RegistryObject<MenuType<WirelessMenu>> WIRELESS_MENU =
-            MENU_TYPES.register("wireless_menu", () -> WirelessMenu.TYPE);
+            MENU_TYPES.register("wireless_menu", () -> IForgeMenuType.create(WirelessMenu::new));
 
 
     private static <C extends AEBaseMenu, I> RegistryObject<MenuType<C>> reg(

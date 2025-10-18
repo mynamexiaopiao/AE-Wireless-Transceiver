@@ -6,11 +6,12 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
+@SuppressWarnings("all")
 public class NetworkHandler {
     private static final String PROTOCOL_VERSION = "1";
     private static SimpleChannel CHANNEL;
     private static boolean registered = false;
-    @SuppressWarnings("all")
+
     public static SimpleChannel getChannel() {
         if (CHANNEL == null) {
             CHANNEL = NetworkRegistry.ChannelBuilder.named(
@@ -27,10 +28,16 @@ public class NetworkHandler {
         if (registered) return;
 
         int id = 0;
-        getChannel().messageBuilder(MenuDataPacket.class, id)
+        getChannel().messageBuilder(MenuDataPacket.class, id++)
                 .encoder(MenuDataPacket::encode)
                 .decoder(MenuDataPacket::decode)
                 .consumerMainThread(MenuDataPacket::handle)
+                .add();
+
+        getChannel().messageBuilder(WirelessDataSyncPacket.class, id++)
+                .encoder(WirelessDataSyncPacket::encode)
+                .decoder(WirelessDataSyncPacket::decode)
+                .consumerMainThread(WirelessDataSyncPacket::handle)
                 .add();
 
         registered = true;
@@ -40,7 +47,8 @@ public class NetworkHandler {
         getChannel().send(PacketDistributor.SERVER.noArg(), msg);
     }
 
-    public static void sendToAllClient(Object msg) {
-        getChannel().send(PacketDistributor.ALL.noArg(), msg);
+    public static void sendToClient(Object msg, PacketDistributor.PacketTarget target) {
+        getChannel().send(target, msg);
     }
 }
+

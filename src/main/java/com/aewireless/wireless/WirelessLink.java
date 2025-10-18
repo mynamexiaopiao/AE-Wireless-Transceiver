@@ -25,10 +25,6 @@ public class WirelessLink {
         update();
     }
 
-    public void realUnregister() {
-        frequency = null;
-    }
-
     public void update() {
         if (frequency == null || frequency.isEmpty()) {
             destroyConnection();
@@ -79,6 +75,10 @@ public class WirelessLink {
             // 记录错误日志
             destroyConnection();
         }
+    }
+
+    public void realUnregister() {
+        frequency = null;
     }
 
 //    public void update(){

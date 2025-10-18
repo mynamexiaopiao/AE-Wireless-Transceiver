@@ -1,6 +1,7 @@
 package com.aewireless.block;
 
 import appeng.api.networking.*;
+import appeng.api.util.AECableType;
 import com.aewireless.gui.wireless.WirelessMenu;
 import com.aewireless.register.ModRegister;
 import com.aewireless.wireless.IWirelessEndpoint;
@@ -19,6 +20,8 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -26,9 +29,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
+import java.util.Objects;
 
 public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvider , IInWorldGridNodeHost , IWirelessEndpoint {
     private IManagedGridNode managedNode;
+    protected final ContainerData data;
+
 
     private WirelessMasterLink masterLink;
     private WirelessLink slaveLink;
@@ -40,16 +46,53 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         super(ModRegister.WIRELESS_TRANSCEIVER_ENTITY.get(), pos, blockState);
 
         this.managedNode = GridHelper.createManagedNode(this, (nodeOwner, node) -> {nodeOwner.setChanged();});
-        this.managedNode.setTagName("wireless");
+        this.managedNode = GridHelper.createManagedNode(this, (nodeOwner, node) -> {nodeOwner.setChanged();}).setFlags(GridFlags.DENSE_CAPACITY);
+
+        this.managedNode.setTagName("wireless_connect");
         this.managedNode.setInWorldNode(true);
         this.managedNode.setExposedOnSides(EnumSet.allOf(Direction.class));
 
         masterLink = new WirelessMasterLink(this);
         slaveLink = new WirelessLink(this);
+
+        data = new ContainerData() {
+            @Override
+            public int get(int i) {
+                if (i == 0) {
+                    if (managedNode != null){
+                        return managedNode.isOnline() ? 1 : 0;
+                    }
+                }
+                return 0;
+            }
+
+            @Override
+            public void set(int i, int j) {
+            }
+
+            @Override
+            public int getCount() {
+                return 1;
+            }
+        };
     }
 
     public String getFrequency() {
         return frequency;
+    }
+
+
+    @Override
+    public AECableType getCableConnectionType(Direction dir) {
+        if (this.level == null) return AECableType.GLASS;
+        BlockPos relative = this.worldPosition.relative(dir);
+        if (!Objects.requireNonNull(this.getLevel()).hasChunkAt(relative) )return AECableType.GLASS;
+        IInWorldGridNodeHost nodeHost = GridHelper.getNodeHost(level, relative);
+        if (nodeHost != null){
+            AECableType s = nodeHost.getCableConnectionType(dir.getOpposite());
+            if (s != null) return s;
+        }
+        return AECableType.GLASS;
     }
 
     public void setMasterMode(boolean masterMode){
@@ -110,6 +153,8 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
             if (!blockEntity.mode){
                 blockEntity.slaveLink.destroyConnection();
                 blockEntity.slaveLink.realUnregister();
+            }else {
+//                blockEntity.masterLink.setNull();
             }
 
             blockEntity.frequency = null;
@@ -122,6 +167,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
             BlockState blockState = state.setValue(WirelessConnectBlock.CONNECTED, false);
             level.setBlock(pos, blockState, Block.UPDATE_ALL );
         }
+
 
 
         if (!(level instanceof ServerLevel)) return;
@@ -144,7 +190,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
     @Override
     public @Nullable AbstractContainerMenu createMenu(int i, Inventory arg, Player arg2) {
-        return new WirelessMenu(i, arg, this);
+        return new WirelessMenu(i, arg, this , data);
     }
 
     @Override
@@ -219,5 +265,9 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     @Override
     public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    public IManagedGridNode getManagedNode() {
+        return managedNode;
     }
 }
