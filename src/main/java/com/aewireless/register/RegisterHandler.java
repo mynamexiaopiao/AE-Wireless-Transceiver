@@ -1,17 +1,17 @@
 package com.aewireless.register;
 
 import appeng.init.client.InitScreens;
-import com.aewireless.AeWireless;
-import com.aewireless.gui.wireless.WirelessMenu;
 import com.aewireless.gui.wireless.WirelessScreen;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
-
 
 public class RegisterHandler {
+    public static final RegisterHandler INSTANCE = new RegisterHandler();
 
-    public static void reg(RegisterMenuScreensEvent event){
-        InitScreens.register(event , WirelessMenu.TYPE, WirelessScreen::new, "/screens/wireless.json");
+
+    public void init(){
+        registerGui();
+    }
+
+    public void registerGui() {
+        InitScreens.register(ModRegister.WIRELESS_MENU.get(), WirelessScreen::new, "/screens/wireless.json");
     }
 }

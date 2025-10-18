@@ -1,5 +1,10 @@
 package com.aewireless.wireless;
 
+import com.aewireless.gui.wireless.WirelessMenu;
+import net.minecraft.server.level.ServerLevel;
+
+import java.util.Objects;
+
 public class WirelessMasterLink {
     private final IWirelessEndpoint host;
     private String  frequency;
@@ -17,35 +22,33 @@ public class WirelessMasterLink {
         if (frequency == null)return;
 
         if (registered) {
-//            unregister();
-            if (!registered || frequency .isEmpty()) return;
-            WirelessData.DATA.put(this.frequency, null);
-            registered = false;
+            unregister();
         }
         this.frequency = frequency;
-        if (!frequency.isEmpty() && !host.isEndpointRemoved() && WirelessData.DATA.containsKey(frequency)) {
+        if (!frequency.isEmpty() && !host.isEndpointRemoved() && WirelessData.DATA.containsKey(frequency) ) {
             register();
         }
 
     }
 
 
+
     public boolean register() {
         if (frequency.isEmpty()) return false;
-        boolean is = WirelessData.addData(frequency, host);
-        this.registered = is;
-        return is;
+        if (WirelessData.DATA.containsKey(frequency)){
+            boolean is = WirelessData.addData(frequency, host);
+            this.registered = is;
+            return is;
+        }
+        return false;
     }
 
 
     public void unregister() {
-        if (!registered || frequency .isEmpty()) return;
-        WirelessData.DATA.put(frequency, null);
+        if (frequency != null && (!registered || frequency.isEmpty())) return;
+        if (WirelessData.DATA.containsKey(frequency)){
+            WirelessData.DATA.put(frequency, null);
+        }
         registered = false;
-    }
-
-    public void realUnregister() {
-        registered = false;
-        this.frequency = null;
     }
 }

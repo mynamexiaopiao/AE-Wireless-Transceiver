@@ -1,11 +1,11 @@
 package com.aewireless.register;
 
 import net.minecraft.world.item.CreativeModeTabs;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
-@EventBusSubscriber
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModTab {
     @SubscribeEvent
     public static void onCreativeModeTabBuildContents(BuildCreativeModeTabContentsEvent event) {

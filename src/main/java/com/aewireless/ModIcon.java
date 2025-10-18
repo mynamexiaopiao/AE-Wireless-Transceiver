@@ -1,8 +1,10 @@
 package com.aewireless;
 
 
-import appeng.client.gui.style.Blitter;
 import net.minecraft.resources.ResourceLocation;
+
+import appeng.client.gui.style.Blitter;
+import appeng.core.AppEng;
 
 public enum ModIcon {
 
@@ -17,7 +19,7 @@ public enum ModIcon {
 
     @SuppressWarnings("all")
 
-    public static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(AeWireless.MOD_ID, "textures/guis/nicons.png");
+    public static final ResourceLocation TEXTURE = new ResourceLocation(AeWireless.MOD_ID, "textures/guis/nicons.png");
     public static final int TEXTURE_WIDTH = 64;
     public static final int TEXTURE_HEIGHT = 64;
 

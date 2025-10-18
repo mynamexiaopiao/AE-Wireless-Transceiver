@@ -1,13 +1,17 @@
 package com.aewireless.wireless;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.util.*;
+
+/**
+ * 注册中心
+ */
 public class WirelessData {
     public WirelessData() {}
 
-    public static Map<String , IWirelessEndpoint> DATA = new HashMap<>();
+    public  static Map<String , IWirelessEndpoint> DATA = new HashMap<>();
 
     public static synchronized boolean addData(String s, IWirelessEndpoint endpoint){
         Objects.requireNonNull(endpoint, "endpoint");
