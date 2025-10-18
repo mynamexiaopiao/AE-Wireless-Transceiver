@@ -1,29 +1,35 @@
 package com.aewireless.network;
 
-
-import com.aewireless.wireless.WirelessData;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import com.aewireless.wireless.WirelessData;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Supplier;
 
-public class WirelessDataSyncPacket {
-    private Set<String> channels;
+// 使用 CustomPacketPayload 接口替代旧的 Packet 类
+public record WirelessDataSyncPacket(Set<String> channels) implements CustomPacketPayload {
 
-    public WirelessDataSyncPacket(Set<String> channels) {
-        this.channels = channels;
-    }
+    public static final Type<WirelessDataSyncPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath("aewireless", "wireless_data_sync"));
 
-    public void encode(FriendlyByteBuf buf) {
-        buf.writeInt(channels.size());
-        for (String channel : channels) {
+
+    public static final StreamCodec<FriendlyByteBuf, WirelessDataSyncPacket> STREAM_CODEC = StreamCodec.of(
+            WirelessDataSyncPacket::encode,
+            WirelessDataSyncPacket::decode
+    );
+
+
+    private static void encode(FriendlyByteBuf buf, WirelessDataSyncPacket packet) {
+        buf.writeInt(packet.channels.size());
+        for (String channel : packet.channels) {
             buf.writeUtf(channel);
         }
     }
 
-    public static WirelessDataSyncPacket decode(FriendlyByteBuf buf) {
+    private static WirelessDataSyncPacket decode(FriendlyByteBuf buf) {
         int size = buf.readInt();
         Set<String> channels = new HashSet<>();
         for (int i = 0; i < size; i++) {
@@ -32,14 +38,18 @@ public class WirelessDataSyncPacket {
         return new WirelessDataSyncPacket(channels);
     }
 
-    public void handle(Supplier<NetworkEvent.Context> context) {
-        NetworkEvent.Context ctx = context.get();
-        ctx.enqueueWork(() -> {
+    public static void handle(final WirelessDataSyncPacket payload, final IPayloadContext context) {
+        // 在游戏线程中执行
+        context.enqueueWork(() -> {
             WirelessData.DATA.clear();
-            for (String channel : channels) {
+            for (String channel : payload.channels()) {
                 WirelessData.DATA.put(channel, null);
             }
         });
-        ctx.setPacketHandled(true);
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return ID;
     }
 }

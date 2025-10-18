@@ -23,6 +23,7 @@
     }
   },
   "result": {
-    "item": "aewireless:wireless_transceiver"
+    "count": 1,
+    "id": "aewireless:wireless_transceiver"
   }
 }

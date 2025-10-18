@@ -1,12 +1,5 @@
 {
   "block.aewireless.wireless_transceiver": "AE Wireless Transceiver",
   "gui.aewireless.wireless": "AE Wireless Transceiver",
-  "gui.wireless.mode": "is the sender",
-  "gui.wireless.add": "add",
-  "gui.wireless.remove": "remove",
-  "gui.wireless.mode.toggle": "mode",
-  "gui.wireless.mode.channel": "channel",
-  "gui.wireless.mode.disconnect": "disconnect",
-  "gui.wireless.mode.connect": "connected",
-  "gui.confirm_delete.message": "Confirm the deletion?"
+  "gui.wireless.mode": "is the sender"
 }

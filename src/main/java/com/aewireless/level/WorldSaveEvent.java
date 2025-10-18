@@ -4,16 +4,15 @@ package com.aewireless.level;
 import com.aewireless.AeWireless;
 import com.aewireless.wireless.WirelessData;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.event.server.ServerStoppedEvent;
-import net.minecraftforge.event.server.ServerStoppingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@Mod.EventBusSubscriber(modid = AeWireless.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber
 public class WorldSaveEvent {
 
 
@@ -24,6 +23,7 @@ public class WorldSaveEvent {
 
             if (worldData != null && !worldData.data.isEmpty()){
                 WirelessData.DATA = worldData.data;
+
             }
         }
     }
@@ -41,11 +41,6 @@ public class WorldSaveEvent {
 
     @SubscribeEvent
     public static void onServerStopped(ServerStoppingEvent event) {
-        WirelessWorldData worldData = WirelessWorldData.get(event.getServer().getLevel(Level.OVERWORLD));
-        if (worldData != null) {
-            worldData.data = new HashMap<>(WirelessData.DATA);
-            worldData.setDirty();
-        }
         WirelessData.DATA.clear();
     }
 }

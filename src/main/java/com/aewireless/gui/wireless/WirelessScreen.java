@@ -1,13 +1,12 @@
 package com.aewireless.gui.wireless;
 
 import appeng.client.gui.AEBaseScreen;
-import appeng.client.gui.Icon;
 import appeng.client.gui.style.ScreenStyle;
-import appeng.client.gui.widgets.*;
-import appeng.core.AppEng;
+import appeng.client.gui.widgets.AETextField;
+import appeng.client.gui.widgets.Scrollbar;
 import com.aewireless.AeWireless;
-import com.aewireless.ModConfig;
-import com.aewireless.gui.RenderButton;
+import com.aewireless.ModIcon;
+import com.aewireless.ModIconButton;
 import com.aewireless.network.MenuDataPacket;
 import com.aewireless.network.NetworkHandler;
 import com.aewireless.wireless.WirelessData;
@@ -15,165 +14,76 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.common.Mod;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.List;
 
 public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     Scrollbar scrollbar;
     AETextField input;
 
     //可见行数
-    private final int visibleRows = 8;
+    private final int visibleRows = 5;
     //每行的像素
-    protected static final Button.CreateNarration DEFAULT_NARRATION = (supplier) -> (MutableComponent)supplier.get();
     private final int rowHeight = 12;
     private final ArrayList<String> allDataRows = new ArrayList<>();
 
-
     private int highlightedRowIndex = -1;
-    private int highlightColor = 0x3300FF00;
-    private int highlightBorderColor = 0xFF00CC00;
+    private final int highlightColor = 0x3300FF00; // 高亮背景色（淡蓝色）
+    private final int highlightBorderColor = 0xFF006600; // 高亮边框色（亮蓝色）
 
     private int listX;
     private int listY;
-    private final int listWidth = 80; //列表宽度
+    private final int listWidth = 130; //列表宽度
     private int listHeight; // 列表总高度
 
-    private final float fontScale = 1f;
+    // 字体缩放
+    private final float fontScale = 1f; // 字体缩放比例
 
-    private RenderButton addButton;
-    private RenderButton removeButton;
-    private RenderButton modeButton;
-    private RenderButton disconnect;
-
-    @SuppressWarnings("all")
-    public WirelessScreen(WirelessMenu menu, Inventory playerInventory, Component title, ScreenStyle style){
+    public WirelessScreen(WirelessMenu menu, Inventory playerInventory, Component title, ScreenStyle style) {
         super(menu, playerInventory, title, style);
 
-
-        try{
-            String highlightColor1 = ModConfig.highlightColor;
-            String highlightBorderColor1 = ModConfig.highlightBorderColor;
-            int i = parseHexColor(highlightColor1);
-            int i1 = parseHexColor(highlightBorderColor1);
-            highlightColor = i;
-            highlightBorderColor = i1;
-        }catch (Exception e){
-            e.printStackTrace();
-            highlightColor = 0x3300FF00;
-            highlightBorderColor = 0xFF00CC00;
-        }
-
-
-        scrollbar = this.widgets.addScrollBar("scrollbar", Scrollbar.Style.create(
-                AppEng.makeId("textures/guis/modes.png"),
-                3,
-                10,
-                242, 0,
-                249, 0));
+        scrollbar = this.widgets.addScrollBar("scrollbar", Scrollbar.SMALL);
         input = this.widgets.addTextField("input");
+        Button addButton = new ModIconButton(arg -> addDataRow(input.getValue())) {
+            @Override
+            protected ModIcon getIcon() {
+                return ModIcon.ADD;
+            }
+        };
+        Button removeButton = new ModIconButton(arg -> removeDataRow(input.getValue())) {
+            @Override
+            protected ModIcon getIcon() {
+                return ModIcon.SUBTRACT;
+            }
+        };
 
-        input.setFilter(s -> {
-            return Minecraft.getInstance().font.width(s) <= listWidth;
-        });
+        Button mode = new ModIconButton(arg -> {
+            boolean newMode = !this.getMenu().isMode();
+            NetworkHandler.sendToServer(new MenuDataPacket(null, newMode));
+            this.getMenu().setMode(newMode);
+        }) {
+            @Override
+            protected ModIcon getIcon() {
+                return ModIcon.CHANGE;
+            }
+        };
 
-
-        try {
-            Class<? extends AETextField> aClass = input.getClass();
-            Method setTextColor = aClass.getMethod("setNew", boolean.class);
-
-            setTextColor.invoke(input, true);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
-
-        addButton = new RenderButton(0, 0, 40, 15,
-                Component.translatable("gui.wireless.add"),
-                arg -> addDataRow(input.getValue()),
-                DEFAULT_NARRATION) ;
-
-        removeButton = new RenderButton(0, 0, 40, 15,
-                Component.translatable("gui.wireless.remove"),
-                arg ->{
-                    if (this.getMenu().getFrequency() != null && !this.getMenu().getFrequency().equals("")){
-                    removeDataRow(this.getMenu().getFrequency());
-                    }
-                },
-                DEFAULT_NARRATION) {};
-
-        modeButton = new RenderButton(0, 0, 40, 15,
-                Component.translatable("gui.wireless.mode.toggle"),
-                arg -> {
-                    NetworkHandler.sendToServer(new MenuDataPacket(null, !this.getMenu().isMode()));
-                    this.getMenu().setMode(!this.getMenu().isMode());
-                },
-                DEFAULT_NARRATION) {};
-
-        disconnect = new RenderButton(0, 0, 40, 15,
-                Component.translatable("gui.wireless.mode.disconnect"),
-                arg -> {
-                    NetworkHandler.sendToServer(new MenuDataPacket("", this.getMenu().isMode()));
-                },
-                DEFAULT_NARRATION) {};
+        this.widgets.add("add", addButton);
+        this.widgets.add("remove", removeButton);
+        this.widgets.add("mode", mode);
 
         refreshList();
-    }
-
-    private int parseHexColor(String hexColor) {
-        if (hexColor == null || hexColor.isEmpty()) {
-            throw new IllegalArgumentException("Color string cannot be null or empty");
-        }
-
-        // 移除可能存在的 "0x" 或 "#" 前缀
-        if (hexColor.startsWith("0x")) {
-            hexColor = hexColor.substring(2);
-        } else if (hexColor.startsWith("#")) {
-            hexColor = hexColor.substring(1);
-        }
-
-        // 验证字符串是否为有效的十六进制格式
-        if (!hexColor.matches("[0-9A-Fa-f]+")) {
-            throw new IllegalArgumentException("Invalid hex color format: " + hexColor);
-        }
-
-        // 解析十六进制字符串
-        return (int) Long.parseLong(hexColor, 16);
     }
 
     @Override
     public void init() {
         super.init();
         listHeight = visibleRows * rowHeight;
-        listX = (this.width - listWidth) /   2  -  50;
-        // 将整个框向下移一点
-        listY = this.height - this.topPos - listHeight - 35;
-
-        // 添加按钮到屏幕，调整到合适位置
-        int buttonY = this.getGuiTop() + 16;
-        modeButton.setPosition(this.getGuiLeft() + listWidth + 20, buttonY + 110);
-        addButton.setPosition(this.getGuiLeft()+listWidth + 20, buttonY + 90);
-        disconnect.setPosition(this.getGuiLeft() + listWidth + 65, buttonY + 110);
-        removeButton.setPosition(this.getGuiLeft() + listWidth + 65, buttonY + 90);
-
-        this.addRenderableWidget(addButton);
-        this.addRenderableWidget(removeButton);
-        this.addRenderableWidget(modeButton);
-        this.addRenderableWidget(disconnect);
+        listX = (this.width - listWidth) / 2 - 6;
+        listY = this.height - this.topPos - listHeight - 100;
     }
 
     private void refreshList() {
@@ -186,66 +96,16 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         scrollbar.setRange(0, maxScroll, 1);
     }
 
-
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         updateData();
         refreshList();
-        updateHoveredRow(mouseX, mouseY);
 
         renderListBackground(guiGraphics);
         renderHighlightedRow(guiGraphics);
-        renderHoveredRow(guiGraphics);
         renderListContent(guiGraphics);
-        renderScrollbarBackground(guiGraphics);
         renderMode(guiGraphics);
-    }
-
-    private int hoveredRowIndex = -1;
-
-    // 在类的末尾添加以下方法
-    private void updateHoveredRow(double mouseX, double mouseY) {
-        hoveredRowIndex = -1;
-
-        if (isMouseOverList(mouseX, mouseY)) {
-            int relativeY = (int) (mouseY - listY);
-            int hoveredIndex = (relativeY / rowHeight) + (int) scrollbar.getCurrentScroll();
-
-            if (hoveredIndex >= 0 && hoveredIndex < allDataRows.size()) {
-                hoveredRowIndex = hoveredIndex;
-            }
-        }
-    }
-
-    private void renderHoveredRow(GuiGraphics guiGraphics) {
-        if (hoveredRowIndex != -1 && hoveredRowIndex != highlightedRowIndex) {
-            final int scrollLevel = scrollbar.getCurrentScroll();
-
-            if (hoveredRowIndex >= scrollLevel && hoveredRowIndex < scrollLevel + visibleRows) {
-                int visibleIndex = hoveredRowIndex - scrollLevel;
-                int yPos = listY + (visibleIndex * rowHeight);
-
-                // 绘制半透明的悬停效果
-                guiGraphics.fill(listX + 1, yPos, listX + listWidth - 1, yPos + rowHeight, 0x33FFFFFF);
-            }
-        }
-    }
-
-
-    private void renderScrollbarBackground(GuiGraphics guiGraphics) {
-        // 滚动条背景框的位置和尺寸
-        int scrollbarX = listX + listWidth; // 滚动条在列表右侧
-        int scrollbarY = listY;
-        int scrollbarWidth = 3; // 滚动条宽度
-        int scrollbarHeight = listHeight;
-
-
-        // 绘制滚动条边框
-        guiGraphics.fill(scrollbarX, scrollbarY, scrollbarX + scrollbarWidth, scrollbarY + 1, 0xFFAAAAAA); // 上边框
-        guiGraphics.fill(scrollbarX, scrollbarY + scrollbarHeight - 1, scrollbarX + scrollbarWidth, scrollbarY + scrollbarHeight, 0xFFAAAAAA); // 下边框
-        guiGraphics.fill(scrollbarX + scrollbarWidth - 1, scrollbarY, scrollbarX + scrollbarWidth, scrollbarY + scrollbarHeight, 0xFFAAAAAA); // 右边框
-
     }
 
     private void updateData(){
@@ -266,24 +126,23 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         allDataRows.clear();
         allDataRows.addAll(keys);
 
-        this.highlightedRowIndex =  keys.indexOf(this.getMenu().getFrequency());
-
+        String currentFrequency = this.getMenu().getFrequency();
+        this.highlightedRowIndex = (currentFrequency != null && !currentFrequency.isEmpty()) ?
+                keys.indexOf(currentFrequency) : -1;
     }
 
     private void renderListBackground(GuiGraphics guiGraphics) {
-        // 使用更现代的半透明背景
-        guiGraphics.fill(listX, listY, listX + listWidth, listY + listHeight, 0x88000000);
+        guiGraphics.fill(listX, listY, listX + listWidth, listY + listHeight, 0x66000000);
 
-        // 改进边框颜色和样式
-        guiGraphics.fill(listX, listY, listX + listWidth, listY + 1, 0xFFAAAAAA); // 上边框
-        guiGraphics.fill(listX, listY + listHeight - 1, listX + listWidth, listY + listHeight, 0xFFAAAAAA); // 下边框
-        guiGraphics.fill(listX, listY, listX + 1, listY + listHeight, 0xFFAAAAAA); // 左边框
-        guiGraphics.fill(listX + listWidth - 1, listY, listX + listWidth, listY + listHeight, 0xFFAAAAAA); // 右边框
+        guiGraphics.fill(listX, listY, listX + listWidth, listY + 1, 0xFF555555); // 上边框
+        guiGraphics.fill(listX, listY + listHeight - 1, listX + listWidth, listY + listHeight, 0xFF555555); // 下边框
+        guiGraphics.fill(listX, listY, listX + 1, listY + listHeight, 0xFF555555); // 左边框
+        guiGraphics.fill(listX + listWidth - 1, listY, listX + listWidth, listY + listHeight, 0xFF555555); // 右边框
     }
 
     private void renderListContent(GuiGraphics guiGraphics) {
         final int scrollLevel = (int) scrollbar.getCurrentScroll();
-        final int fontColor = 0xE0E0E0; // 更亮的字体颜色
+        final int fontColor = 0xCCCCCC;
 
         guiGraphics.pose().pushPose();
 
@@ -291,24 +150,24 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
             int dataIndex = scrollLevel + i;
             if (dataIndex >= 0 && dataIndex < allDataRows.size()) {
                 String text = allDataRows.get(dataIndex);
+
                 int yPos = listY + (i * rowHeight);
 
                 guiGraphics.pose().pushPose();
                 guiGraphics.pose().scale(fontScale, fontScale, 1.0f);
 
-                float scaledX = (listX + 5) / fontScale; // 增加左边距
-                float scaledY = (yPos + 4) / fontScale;  // 调整垂直居中
+                float scaledX = (listX + 3) / fontScale;
+                float scaledY = (yPos + 3) / fontScale;
 
                 String displayText = Minecraft.getInstance().font.plainSubstrByWidth(
                         text,
-                        (int) ((listWidth - 10) / fontScale) // 减少可用宽度以适应边距
+                        (int) ((listWidth - 1) / fontScale)
                 );
 
                 if (!displayText.equals(text) && displayText.length() > 3) {
-                    displayText = displayText.substring(0, displayText.length() ) + "...";
+                    displayText = displayText.substring(0, displayText.length() - 3) + "...";
                 }
 
-                // 添加阴影效果的文本
                 guiGraphics.drawString(
                         Minecraft.getInstance().font,
                         Component.literal(displayText),
@@ -333,82 +192,36 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
                 int visibleIndex = highlightedRowIndex - scrollLevel;
                 int yPos = listY + (visibleIndex * rowHeight);
 
-                // 改进高亮效果，使用渐变色和更明显的边框
                 guiGraphics.fill(listX + 1, yPos, listX + listWidth - 1, yPos + rowHeight, highlightColor);
 
-                // 绘制更粗的边框
-                guiGraphics.fill(listX + 1, yPos, listX + listWidth - 1, yPos + 1, highlightBorderColor);
-                guiGraphics.fill(listX + 1, yPos + rowHeight - 1, listX + listWidth - 1, yPos + rowHeight, highlightBorderColor);
-                guiGraphics.fill(listX + 1, yPos, listX + 2, yPos + rowHeight, highlightBorderColor);
-                guiGraphics.fill(listX + listWidth - 2, yPos, listX + listWidth - 1, yPos + rowHeight, highlightBorderColor);
+                guiGraphics.fill(listX + 1, yPos, listX + listWidth - 1, yPos + 1, highlightBorderColor); // 上边框
+                guiGraphics.fill(listX + 1, yPos + rowHeight - 1, listX + listWidth - 1, yPos + rowHeight, highlightBorderColor); // 下边框
+                guiGraphics.fill(listX, yPos, listX + 1, yPos + rowHeight, highlightBorderColor); // 左边框
+                guiGraphics.fill(listX + listWidth - 1, yPos, listX + listWidth, yPos + rowHeight, highlightBorderColor); // 右边框
             }
         }
     }
 
-
     public void clearHighlight() {
         highlightedRowIndex = -1;
-        NetworkHandler.sendToServer(new MenuDataPacket(null, this.getMenu().isMode()));
+        String currentFrequency = this.getMenu().getFrequency();
+        NetworkHandler.sendToServer(new MenuDataPacket(
+                null,
+                this.getMenu().isMode()
+        ));
     }
 
     private void renderMode(GuiGraphics guiGraphics){
         boolean mode = this.menu.isMode();
-        boolean online = this.getMenu().isOnline();
-        String modeText = mode ? " true" : " false";
-        String modeText1 = online ? " true" : " false";
-
-
-
-        int baseX = this.getGuiLeft() + 100;
-        int baseY = this.getGuiTop() + 60;
-
         guiGraphics.drawString(
                 Minecraft.getInstance().font,
-                Component.translatable("gui.wireless.mode").append(":"),
-                baseX,
-                baseY,
-                0xFFFFFF,
-                false
-        );
-
-        // 用不同颜色显示模式状态
-        guiGraphics.drawString(
-                Minecraft.getInstance().font,
-                Component.literal(modeText),
-                baseX + Minecraft.getInstance().font.width(Component.translatable("gui.wireless.mode").append(":").getString()),
-                baseY,
-                mode ? 0x00FF00 : 0xFF0000,
-                false
-        );
-
-        guiGraphics.drawString(
-                Minecraft.getInstance().font,
-                Component.translatable("gui.wireless.mode.channel").append(": ").append(highlightedRowIndex == -1 ? "" : allDataRows.get(highlightedRowIndex)),
-                baseX,
-                baseY - 20,
-                0xFFFFFF,
-                false
-        );
-
-        guiGraphics.drawString(
-                Minecraft.getInstance().font,
-                Component.translatable("gui.wireless.mode.connect").append(": "),
-                baseX,
-                baseY + 20,
-                0xFFFFFF,
-                false
-        );
-
-        guiGraphics.drawString(
-                Minecraft.getInstance().font,
-                Component.literal(modeText1),
-                baseX + Minecraft.getInstance().font.width(Component.translatable("gui.wireless.mode.connect").append(":").getString()),
-                baseY + 20,
-                online ? 0x00FF00 : 0xFF0000,
+                Component.translatable("gui.wireless.mode").append(": " + mode),
+                this.getGuiLeft() + 17,
+                this.getGuiTop() + 31,
+                0xFFFFFFFF,
                 false
         );
     }
-
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -417,16 +230,13 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
             int clickedRowIndex = (relativeY / rowHeight) + (int) scrollbar.getCurrentScroll();
 
             if (clickedRowIndex >= 0 && clickedRowIndex < allDataRows.size()) {
-                // 添加视觉反馈
-                highlightedRowIndex = clickedRowIndex;
-
-                NetworkHandler.sendToServer(new MenuDataPacket(this.allDataRows.get(clickedRowIndex), this.getMenu().isMode()));
-                this.getMenu().setFrequency(this.allDataRows.get(clickedRowIndex));
+                String selectedFrequency = this.allDataRows.get(clickedRowIndex);
+                NetworkHandler.sendToServer(new MenuDataPacket(selectedFrequency, this.getMenu().isMode()));
 
                 if (this.getMenu().blockEntity.getLevel() != null) {
                     this.getMenu().blockEntity.getLevel().playLocalSound(
                             this.getMenu().blockEntity.getBlockPos(),
-                            SoundEvents.UI_BUTTON_CLICK.get(),
+                            SoundEvents.UI_BUTTON_CLICK.value(),
                             SoundSource.MASTER,
                             1.0f,
                             1.0f,
@@ -434,6 +244,8 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
                     );
                 }
 
+                this.getMenu().setFrequency(selectedFrequency);
+                this.highlightedRowIndex = clickedRowIndex;
                 return true;
             }
         }
@@ -450,36 +262,25 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         if (data.isEmpty() || allDataRows.contains(data)) return;
         allDataRows.add(data);
 
-
-        // 发送到服务端
-        if (isPlayingOnServer())NetworkHandler.sendToServer(new MenuDataPacket(data, MenuDataPacket.ActionType.ADD_CHANNEL));
-
         WirelessData.DATA.put(data, null);
+
+        if (AeWireless.isPlayingOnServer()) NetworkHandler.sendToServer(new MenuDataPacket(data, MenuDataPacket.ActionType.ADD_CHANNEL));
+
 
         updateData();
         refreshList();
     }
-    public void showConfirmDeleteScreen(String itemToDelete, Runnable onConfirm) {
-        Minecraft.getInstance().pushGuiLayer(new ConfirmDeleteScreen(this, itemToDelete, onConfirm));
-    }
 
     public void removeDataRow(String data) {
-        showConfirmDeleteScreen(data, () -> {
-            allDataRows.remove(data);
+        WirelessData.removeData(data);
 
-            // 发送到服务端
-            if (isPlayingOnServer()) NetworkHandler.sendToServer(new MenuDataPacket(data, MenuDataPacket.ActionType.REMOVE_CHANNEL));
+        allDataRows.remove(data);
 
-            WirelessData.removeData(data);
+        if (AeWireless.isPlayingOnServer()) NetworkHandler.sendToServer(new MenuDataPacket(data, MenuDataPacket.ActionType.REMOVE_CHANNEL));
 
-            updateData();
-            refreshList();
-        });
+
+        updateData();
+        refreshList();
     }
 
-    @OnlyIn(Dist.CLIENT)
-    public static boolean isPlayingOnServer() {
-        Minecraft mc = Minecraft.getInstance();
-        return mc.getSingleplayerServer() == null && mc.getCurrentServer() != null;
-    }
 }
