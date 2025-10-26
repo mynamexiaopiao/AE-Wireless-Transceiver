@@ -8,4 +8,6 @@ public interface IWirelessEndpoint {
     IGridNode getGridNode();
 
     boolean isEndpointRemoved();
+
+    BlockPos getBlockPos();
 }

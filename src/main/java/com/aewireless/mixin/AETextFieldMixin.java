@@ -16,8 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(AETextField.class)
 public class AETextFieldMixin {
-    @Mutable
-    @Shadow  private static Blitter BLITTER;
+    @Mutable @Shadow  private static Blitter BLITTER;
     boolean isNew = false;
 
 

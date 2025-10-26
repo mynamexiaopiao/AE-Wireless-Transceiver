@@ -16,7 +16,17 @@ loom {
     forge {
         mixinConfig 'aewireless.mixins.json'
     }
+
+    runs {
+        client {
+            client()
+            name "Client"
+            runDir "run/client"
+            programArgs "--username", "Player1"
+        }
+    }
 }
+
 
 repositories {
     flatDir {
@@ -49,6 +59,8 @@ repositories {
         }
     }
     maven { url "https://repo.spongepowered.org/maven" }
+    maven { url = "https://api.modrinth.com/maven" }
+
 }
 
 dependencies {
@@ -98,6 +110,9 @@ dependencies {
 //    modRuntimeOnly "curse.maven:curios-309927:${curios_version}"
     //extendedAE
     modImplementation files('libs/ExtendedAE-1.20-1.4.2-forge.jar')
+
+//    modImplementation "maven.modrinth:jade:11.13.2+forge"
+
 
 }
 

@@ -38,7 +38,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
     private WirelessMasterLink masterLink;
     private WirelessLink slaveLink;
-    private String frequency;
+    private String frequency = null;
 
     private boolean mode = false;
 
@@ -46,8 +46,12 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         super(ModRegister.WIRELESS_TRANSCEIVER_ENTITY.get(), pos, blockState);
 
         this.managedNode = GridHelper.createManagedNode(this, (nodeOwner, node) -> {nodeOwner.setChanged();});
-        this.managedNode = GridHelper.createManagedNode(this, (nodeOwner, node) -> {nodeOwner.setChanged();}).setFlags(GridFlags.DENSE_CAPACITY);
+        this.managedNode = GridHelper.createManagedNode(this, (nodeOwner, node) -> {nodeOwner.setChanged();})
+                .setFlags(GridFlags.DENSE_CAPACITY);
 
+
+
+        this.managedNode.setVisualRepresentation(ModRegister.WIRELESS_TRANSCEIVER.get());
         this.managedNode.setTagName("wireless_connect");
         this.managedNode.setInWorldNode(true);
         this.managedNode.setExposedOnSides(EnumSet.allOf(Direction.class));
@@ -253,6 +257,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         }
 
     }
+
 
     public boolean isMode() {
         return mode;
