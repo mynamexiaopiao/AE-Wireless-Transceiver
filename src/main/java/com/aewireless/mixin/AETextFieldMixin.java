@@ -28,7 +28,6 @@ public class AETextFieldMixin {
         }
     }
 
-
     public void setNew(boolean aNew) {
         isNew = aNew;
     }

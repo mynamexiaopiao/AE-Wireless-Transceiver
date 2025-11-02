@@ -78,7 +78,7 @@ public enum AEWirelessTransceiverProvider implements IServerDataProvider<BlockAc
                         data.putLong("masterPos", pos.asLong());
                     }
 
-                    data.putString("masterDim", blockEntity.getLevel().dimension().location().toLanguageKey());
+                    data.putString("masterDim", master.getDimension().location().toLanguageKey());
 
                 }
             }

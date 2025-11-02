@@ -15,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -117,6 +118,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
             slaveLink.setFrequency( frequency);
         }
 
+        this.frequency = null;
         setChanged();
     }
 
@@ -258,6 +260,10 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
     }
 
+    @Override
+    public ResourceKey<Level> getDimension() {
+        return this.getLevel().dimension();
+    }
 
     public boolean isMode() {
         return mode;
@@ -275,4 +281,6 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     public IManagedGridNode getManagedNode() {
         return managedNode;
     }
+
+
 }
