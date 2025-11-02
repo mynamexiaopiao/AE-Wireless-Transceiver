@@ -6,6 +6,7 @@ import com.aewireless.network.NetworkHandler;
 import com.aewireless.register.ModRegister;
 import com.aewireless.register.RegisterHandler;
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
@@ -30,8 +31,14 @@ public class AeWireless {
 
         ModRegister.MENU_TYPES.register(modEventBus);
 
-        modEventBus.addListener(RegisterHandler::reg);
+        modContainer.registerConfig(net.neoforged.fml.config.ModConfig.Type.COMMON , ModConfig.CONFIG);
+
+
         modEventBus.addListener(this::registerCapabilities);
+    }
+
+    public static ResourceLocation makeId(String id) {
+        return ResourceLocation.fromNamespaceAndPath(MOD_ID, id);
     }
 
     private void registerCapabilities(RegisterCapabilitiesEvent event) {
@@ -42,17 +49,7 @@ public class AeWireless {
         );
     }
 
-    public static boolean isPlayingOnServer() {
-        if (FMLEnvironment.dist.isClient()) {
-            try {
-                net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
-                return mc.getConnection() != null && mc.getSingleplayerServer() == null;
-            } catch (Throwable t) {
-                return false;
-            }
-        }
-        return false;
-    }
+
 
 
 }

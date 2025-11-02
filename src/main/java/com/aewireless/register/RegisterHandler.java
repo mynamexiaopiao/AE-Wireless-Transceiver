@@ -9,9 +9,10 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 
+@EventBusSubscriber
 public class RegisterHandler {
-
+    @SubscribeEvent
     public static void reg(RegisterMenuScreensEvent event){
-        InitScreens.register(event , WirelessMenu.TYPE, WirelessScreen::new, "/screens/wireless.json");
+        InitScreens.register(event , ModRegister.WIRELESS_MENU.get(), WirelessScreen::new, "/screens/wireless.json");
     }
 }

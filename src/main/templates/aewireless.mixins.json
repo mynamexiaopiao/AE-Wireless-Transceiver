@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "com.aewireless.mixin",
+  "mixins": [
+  ],
+  "client": [
+    "AETextFieldMixin"
+  ],
+  "server": [
+  ],
+  "compatibilityLevel": "JAVA_21",
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

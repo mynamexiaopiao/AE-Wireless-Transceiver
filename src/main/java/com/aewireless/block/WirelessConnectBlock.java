@@ -107,9 +107,10 @@ public class WirelessConnectBlock extends Block implements EntityBlock {
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (!level.isClientSide){
             BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof WirelessConnectBlockEntity advanceShredderBlockEntity) {
-                MenuOpener.open(WirelessMenu.TYPE, player, MenuLocators.forBlockEntity(advanceShredderBlockEntity));
+            if (blockEntity instanceof WirelessConnectBlockEntity wirelessConnectBlockEntity) {
+//                MenuOpener.open(WirelessMenu.TYPE, player, MenuLocators.forBlockEntity(wirelessConnectBlockEntity));
 
+                player.openMenu(wirelessConnectBlockEntity ,  pos);
                 return ItemInteractionResult.SUCCESS;
             }else {
                 throw  new IllegalStateException("our container provider is missing");

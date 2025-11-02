@@ -32,7 +32,6 @@ public class WirelessMasterLink {
     }
 
 
-
     public boolean register() {
         if (frequency.isEmpty()) return false;
         if (WirelessData.DATA.containsKey(frequency)){

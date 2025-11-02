@@ -1,9 +1,9 @@
 {
   "$schema": "schema.json",
-  "includes": ["common/common.json", "common/player_inventory.json"],
+  "includes": ["common/common.json"],
   "background": {
     "texture": "guis/wireless.png",
-    "srcRect": [0, 0, 176, 199]
+    "srcRect": [0, 0, 200, 179]
   },
   "slots": {
 
@@ -21,25 +21,25 @@
   },
   "widgets": {
     "scrollbar": {
-      "right": 29,
-      "top": 40
+      "left": 90,
+      "top": 48
     },
     "input": {
-      "left": 17,
-      "top": 18,
-      "width": 90,
-      "height": 9
+      "left": 10,
+      "top": 20,
+      "width": 83,
+      "height": 12
     },
     "add": {
-      "left": 110,
+      "left": 102,
       "top": 18
     },
     "remove": {
-      "left": 128,
+      "left": 120,
       "top": 18
     },
     "mode": {
-      "left": 146,
+      "left": 138,
       "top": 18
     }
   }

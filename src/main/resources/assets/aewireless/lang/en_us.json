@@ -1,5 +1,26 @@
 {
   "block.aewireless.wireless_transceiver": "AE Wireless Transceiver",
   "gui.aewireless.wireless": "AE Wireless Transceiver",
-  "gui.wireless.mode": "is the sender"
+  "gui.wireless.mode": "is the sender",
+  "gui.wireless.add": "add",
+  "gui.wireless.remove": "remove",
+  "gui.wireless.mode.toggle": "mode",
+  "gui.wireless.mode.channel": "channel",
+  "gui.wireless.mode.disconnect": "disconnect",
+  "gui.wireless.mode.connect": "connected",
+  "gui.confirm_delete.message": "Confirm the deletion?",
+  "aewireless.tooltip.channel_name": "Channel Name: %d",
+  "aewireless.tooltip.master": "Mode: %s",
+  "aewireless.tooltip.channels": "Channel: %s",
+  "aewireless.tooltip.channels_of": "Channel: %d / %d",
+  "config.jade.plugin_aewireless.wireless_tooltip": "AE Wireless Transceiver Info",
+
+  "aewireless.jade.tooltip.masterpos": "Master Node Position",
+  "aewireless.jade.tooltip.dimension": "Dimension",
+  "aewireless.jade.tooltip.masternode": "Master Node",
+  "aewireless.jade.tooltip.mastermode": "Master Mode",
+  "aewireless.jade.tooltip.mode": "Slave Mode",
+  "aewireless.jade.tooltip.deviceoff": "Device Offline",
+  "aewireless.jade.tooltip.deviceon": "Device Online"
+
 }

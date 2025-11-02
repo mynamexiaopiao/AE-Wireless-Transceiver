@@ -1,5 +1,27 @@
 {
   "block.aewireless.wireless_transceiver": "AE 无线收发器",
   "gui.aewireless.wireless": "AE 无线收发器",
-  "gui.wireless.mode": "是否为发送端"
+  "gui.wireless.mode": "是否为发送端",
+  "gui.wireless.add": "添加",
+  "gui.wireless.remove": "删除",
+  "gui.wireless.mode.toggle": "模式",
+  "gui.wireless.mode.channel": "频道",
+  "gui.wireless.mode.disconnect": "断开",
+  "gui.wireless.mode.connect": "已连接",
+  "gui.confirm_delete.message": "确认删除?",
+
+
+  "aewireless.tooltip.channel_name": "频道名称: %d",
+  "aewireless.tooltip.master": "模式: %s",
+  "aewireless.tooltip.channels": "频道: %s",
+  "aewireless.tooltip.channels_of": "频道: %d / %d",
+  "config.jade.plugin_aewireless.wireless_tooltip": "无线收发器信息",
+
+  "aewireless.jade.tooltip.masterpos": "主节点位置",
+  "aewireless.jade.tooltip.dimension": "维度",
+  "aewireless.jade.tooltip.masternode": "主节点",
+  "aewireless.jade.tooltip.mastermode":"主模式",
+  "aewireless.jade.tooltip.mode" : "从模式",
+  "aewireless.jade.tooltip.deviceoff": "设备离线",
+  "aewireless.jade.tooltip.deviceon": "设备在线"
 }

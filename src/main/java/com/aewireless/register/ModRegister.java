@@ -31,6 +31,9 @@ public class ModRegister {
 
     public static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(Registries.MENU, AeWireless.MOD_ID);
 
+    public static final DeferredHolder<MenuType<?>, MenuType<WirelessMenu>> WIRELESS_MENU =
+            MENU_TYPES.register("wireless_menu", () -> IMenuTypeExtension.create(WirelessMenu::new));
+
 
     public static final DeferredBlock<Block> WIRELESS_TRANSCEIVER = registerBlock("wireless_transceiver",
             () -> new WirelessConnectBlock(Block.Properties.of().strength(3f)
@@ -42,19 +45,7 @@ public class ModRegister {
             () -> BlockEntityType.Builder.of(WirelessConnectBlockEntity::new, WIRELESS_TRANSCEIVER.get()).build(null)
     );
 
-//    public static final RegistryObject<BlockEntityType<WirelessConnectBlockEntity>> WIRELESS_TRANSCEIVER_ENTITY = reg(
-//            "wireless_block_entity" , ModRegister.WIRELESS_TRANSCEIVER  , WirelessConnectBlockEntity::new  , WirelessConnectBlockEntity.class);
 
-
-    public static final DeferredHolder<MenuType<?>, MenuType<WirelessMenu>> WIRELESS_MENU =
-            MENU_TYPES.register("ae_wireless_menu", () -> WirelessMenu.TYPE);
-
-
-
-    private  static <T extends AbstractContainerMenu> DeferredHolder<MenuType<?>, MenuType<T>>
-    register(String name, IContainerFactory factory) {
-        return MENU_TYPES.register(name, () -> IMenuTypeExtension.create(factory));
-    }
     public static DeferredBlock<Block> registerBlock(String name, Supplier<Block> blockSupplier){
         DeferredBlock<Block> deff = BLOCKS.register(name, blockSupplier);
         ITEMS.register(name,()-> new BlockItem(deff.get(),new Item.Properties()));

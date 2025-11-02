@@ -153,6 +153,9 @@ dependencies {
 
     implementation "org.appliedenergistics:appliedenergistics2:19.2.8"
     implementation "org.appliedenergistics:guideme:2.5.1"
+
+
+    implementation "curse.maven:jade-324717:6853386"
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
