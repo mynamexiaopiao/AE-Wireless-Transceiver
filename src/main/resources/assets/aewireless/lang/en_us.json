@@ -4,6 +4,8 @@
   "gui.wireless.mode": "is the sender",
   "gui.wireless.add": "add",
   "gui.wireless.remove": "remove",
+  "gui.input_channel_name_screen.placeholder": "Enter channel name",
+  "gui.wireless.input.placeholder": "search...",
   "gui.wireless.mode.toggle": "mode",
   "gui.wireless.mode.channel": "channel",
   "gui.wireless.mode.disconnect": "disconnect",

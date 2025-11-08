@@ -9,6 +9,8 @@
   "gui.wireless.mode.disconnect": "断开",
   "gui.wireless.mode.connect": "已连接",
   "gui.confirm_delete.message": "确认删除?",
+  "gui.input_channel_name_screen.placeholder": "输入频道名称",
+  "gui.wireless.input.placeholder": "搜索...",
 
 
   "aewireless.tooltip.channel_name": "频道名称: %d",
