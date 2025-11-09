@@ -14,6 +14,8 @@
   "aewireless.tooltip.channels": "Channel: %s",
   "aewireless.tooltip.channels_of": "Channel: %d / %d",
   "config.jade.plugin_aewireless.wireless_tooltip": "AE Wireless Transceiver Info",
+  "gui.input_channel_name_screen.placeholder": "Enter channel name",
+  "gui.wireless.input.placeholder": "search...",
 
   "aewireless.jade.tooltip.masterpos": "Master Node Position",
   "aewireless.jade.tooltip.dimension": "Dimension",

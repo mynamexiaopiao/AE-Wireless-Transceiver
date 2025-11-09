@@ -38,6 +38,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     protected static final Button.CreateNarration DEFAULT_NARRATION = (supplier) -> (MutableComponent)supplier.get();
     private final int rowHeight = 12;
     private final ArrayList<String> allDataRows = new ArrayList<>();
+    private final ArrayList<String> filteredDataRows = new ArrayList<>(); // 新增：用于存储过滤后的数据
 
 
     private int highlightedRowIndex = -1;
@@ -77,12 +78,15 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
 
         scrollbar = this.widgets.addScrollBar("scrollbar", Scrollbar.Style.create(
                 AeWireless.makeId("modes")
-            ,AeWireless.makeId("modes")));
+                ,AeWireless.makeId("modes")));
         input = this.widgets.addTextField("input");
 
         input.setFilter(s -> {
             return Minecraft.getInstance().font.width(s) <= listWidth;
         });
+
+        input.setPlaceholder(Component.translatable("gui.wireless.input.placeholder"));
+        input.setResponder(this::onInputChanged);
 
 
         try {
@@ -100,7 +104,9 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
 
         addButton = new RenderButton(0, 0, 40, 15,
                 Component.translatable("gui.wireless.add"),
-                arg -> addDataRow(input.getValue()),
+                arg -> {
+                    showInputScreen();
+                },
                 DEFAULT_NARRATION) ;
 
         removeButton = new RenderButton(0, 0, 40, 15,
@@ -178,7 +184,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
 
     private void resetScrollbar() {
         scrollbar.setHeight(listHeight);
-        int maxScroll = Math.max(0, allDataRows.size() - visibleRows);
+        int maxScroll = Math.max(0, filteredDataRows.size() - visibleRows);
         scrollbar.setRange(0, maxScroll, 1);
     }
 
@@ -200,7 +206,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
 
     private int hoveredRowIndex = -1;
 
-    // 在类的末尾添加以下方法
+
     private void updateHoveredRow(double mouseX, double mouseY) {
         hoveredRowIndex = -1;
 
@@ -208,22 +214,35 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
             int relativeY = (int) (mouseY - listY);
             int hoveredIndex = (relativeY / rowHeight) + (int) scrollbar.getCurrentScroll();
 
-            if (hoveredIndex >= 0 && hoveredIndex < allDataRows.size()) {
-                hoveredRowIndex = hoveredIndex;
+            // 使用过滤后的列表而不是原始列表
+            if (hoveredIndex >= 0 && hoveredIndex < filteredDataRows.size()) {
+                // 我们需要找到在原始列表中的索引位置
+                String hoveredItem = filteredDataRows.get(hoveredIndex);
+                hoveredRowIndex = allDataRows.indexOf(hoveredItem);
             }
         }
     }
 
+
+    // 修改：渲染悬停行的方法
     private void renderHoveredRow(GuiGraphics guiGraphics) {
         if (hoveredRowIndex != -1 && hoveredRowIndex != highlightedRowIndex) {
-            final int scrollLevel = scrollbar.getCurrentScroll();
+            // 查找悬停项在过滤列表中的位置
+            if (hoveredRowIndex < allDataRows.size()) {
+                String hoveredItem = allDataRows.get(hoveredRowIndex);
+                int filteredIndex = filteredDataRows.indexOf(hoveredItem);
 
-            if (hoveredRowIndex >= scrollLevel && hoveredRowIndex < scrollLevel + visibleRows) {
-                int visibleIndex = hoveredRowIndex - scrollLevel;
-                int yPos = listY + (visibleIndex * rowHeight);
+                if (filteredIndex != -1) {
+                    final int scrollLevel = scrollbar.getCurrentScroll();
 
-                // 绘制半透明的悬停效果
-                guiGraphics.fill(listX + 1, yPos, listX + listWidth - 1, yPos + rowHeight, 0x33FFFFFF);
+                    if (filteredIndex >= scrollLevel && filteredIndex < scrollLevel + visibleRows) {
+                        int visibleIndex = filteredIndex - scrollLevel;
+                        int yPos = listY + (visibleIndex * rowHeight);
+
+                        // 绘制半透明的悬停效果
+                        guiGraphics.fill(listX + 1, yPos, listX + listWidth - 1, yPos + rowHeight, 0x33FFFFFF);
+                    }
+                }
             }
         }
     }
@@ -262,6 +281,10 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         allDataRows.clear();
         allDataRows.addAll(keys);
 
+
+        // 更新过滤后的列表
+        filterDataRows(input.getValue());
+
         this.highlightedRowIndex =  keys.indexOf(this.getMenu().getFrequency());
 
     }
@@ -285,8 +308,9 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
 
         for (int i = 0; i < visibleRows; i++) {
             int dataIndex = scrollLevel + i;
-            if (dataIndex >= 0 && dataIndex < allDataRows.size()) {
-                String text = allDataRows.get(dataIndex);
+            // 使用过滤后的列表而不是原始列表
+            if (dataIndex >= 0 && dataIndex < filteredDataRows.size()) {
+                String text = filteredDataRows.get(dataIndex);
                 int yPos = listY + (i * rowHeight);
 
                 guiGraphics.pose().pushPose();
@@ -321,22 +345,30 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         guiGraphics.pose().popPose();
     }
 
+
+    // 修改：渲染高亮行的方法
     private void renderHighlightedRow(GuiGraphics guiGraphics) {
-        if (highlightedRowIndex != -1) {
-            final int scrollLevel = scrollbar.getCurrentScroll();
+        if (highlightedRowIndex != -1 && allDataRows.size() > highlightedRowIndex) {
+            // 查找高亮项在过滤列表中的位置
+            String highlightedItem = allDataRows.get(highlightedRowIndex);
+            int filteredIndex = filteredDataRows.indexOf(highlightedItem);
 
-            if (highlightedRowIndex >= scrollLevel && highlightedRowIndex < scrollLevel + visibleRows) {
-                int visibleIndex = highlightedRowIndex - scrollLevel;
-                int yPos = listY + (visibleIndex * rowHeight);
+            if (filteredIndex != -1) {
+                final int scrollLevel = scrollbar.getCurrentScroll();
 
+                if (filteredIndex >= scrollLevel && filteredIndex < scrollLevel + visibleRows) {
+                    int visibleIndex = filteredIndex - scrollLevel;
+                    int yPos = listY + (visibleIndex * rowHeight);
 
-                guiGraphics.fill(listX + 1, yPos, listX + listWidth - 1, yPos + rowHeight, highlightColor);
+                    // 改进高亮效果，使用渐变色和更明显的边框
+                    guiGraphics.fill(listX + 1, yPos, listX + listWidth - 1, yPos + rowHeight, highlightColor);
 
-                // 绘制更粗的边框
-                guiGraphics.fill(listX + 1, yPos, listX + listWidth - 1, yPos + 1, highlightBorderColor);
-                guiGraphics.fill(listX + 1, yPos + rowHeight - 1, listX + listWidth - 1, yPos + rowHeight, highlightBorderColor);
-                guiGraphics.fill(listX + 1, yPos, listX + 2, yPos + rowHeight, highlightBorderColor);
-                guiGraphics.fill(listX + listWidth - 2, yPos, listX + listWidth - 1, yPos + rowHeight, highlightBorderColor);
+                    // 绘制更粗的边框
+                    guiGraphics.fill(listX + 1, yPos, listX + listWidth - 1, yPos + 1, highlightBorderColor);
+                    guiGraphics.fill(listX + 1, yPos + rowHeight - 1, listX + listWidth - 1, yPos + rowHeight, highlightBorderColor);
+                    guiGraphics.fill(listX + 1, yPos, listX + 2, yPos + rowHeight, highlightBorderColor);
+                    guiGraphics.fill(listX + listWidth - 2, yPos, listX + listWidth - 1, yPos + rowHeight, highlightBorderColor);
+                }
             }
         }
     }
@@ -406,18 +438,22 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     }
 
 
+    // 修改：鼠标点击处理方法
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (isMouseOverList(mouseX, mouseY)) {
             int relativeY = (int) (mouseY - listY);
             int clickedRowIndex = (relativeY / rowHeight) + (int) scrollbar.getCurrentScroll();
 
-            if (clickedRowIndex >= 0 && clickedRowIndex < allDataRows.size()) {
+            // 使用过滤后的列表而不是原始列表
+            if (clickedRowIndex >= 0 && clickedRowIndex < filteredDataRows.size()) {
                 // 添加视觉反馈
-                highlightedRowIndex = clickedRowIndex;
+                // 注意：我们需要找到在原始列表中的索引位置
+                String clickedItem = filteredDataRows.get(clickedRowIndex);
+                highlightedRowIndex = allDataRows.indexOf(clickedItem);
 
-                NetworkHandler.sendToServer(new MenuDataPacket(this.allDataRows.get(clickedRowIndex), this.getMenu().isMode()));
-                this.getMenu().setFrequency(this.allDataRows.get(clickedRowIndex));
+                NetworkHandler.sendToServer(new MenuDataPacket(clickedItem, this.getMenu().isMode()));
+                this.getMenu().setFrequency(clickedItem);
 
                 if (this.getMenu().blockEntity.getLevel() != null) {
                     this.getMenu().blockEntity.getLevel().playLocalSound(
@@ -442,7 +478,6 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
                 mouseY >= listY && mouseY <= listY + listHeight;
     }
 
-
     public void addDataRow(String data) {
         if (data.isEmpty() || allDataRows.contains(data)) return;
         allDataRows.add(data);
@@ -457,7 +492,11 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         refreshList();
     }
     public void showConfirmDeleteScreen(String itemToDelete, Runnable onConfirm) {
-        Minecraft.getInstance().pushGuiLayer(new ConfirmDeleteScreen(this, itemToDelete, onConfirm));
+        Minecraft.getInstance().pushGuiLayer(new ConfirmDeleteScreen(itemToDelete, onConfirm));
+    }
+
+    public void showInputScreen() {
+        Minecraft.getInstance().pushGuiLayer(new InputChannelNameScreen(this));
     }
 
     public void removeDataRow(String data) {
@@ -472,6 +511,31 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
             updateData();
             refreshList();
         });
+    }
+
+    private void onInputChanged(String text) {
+        filterDataRows(text);
+    }
+
+    // 新增：根据搜索文本过滤数据行
+    private void filterDataRows(String searchText) {
+        filteredDataRows.clear();
+
+        if (searchText == null || searchText.isEmpty() || searchText.trim().isEmpty()) {
+            // 如果搜索文本为空，则显示所有行
+            filteredDataRows.addAll(allDataRows);
+        } else {
+            // 根据搜索文本过滤行
+            String lowerSearchText = searchText.toLowerCase();
+            for (String row : allDataRows) {
+                if (row.toLowerCase().contains(lowerSearchText)) {
+                    filteredDataRows.add(row);
+                }
+            }
+        }
+
+        // 重置滚动条以适应新的列表大小
+        resetScrollbar();
     }
 
     @OnlyIn(Dist.CLIENT)
