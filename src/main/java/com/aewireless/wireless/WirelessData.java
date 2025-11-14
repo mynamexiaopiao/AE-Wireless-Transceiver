@@ -11,27 +11,50 @@ import java.util.*;
 public class WirelessData {
     public WirelessData() {}
 
-    public  static Map<String , IWirelessEndpoint> DATA = new HashMap<>();
+    private static Map<Key , IWirelessEndpoint> DATA = new HashMap<>();
 
-    public static synchronized boolean addData(String s, IWirelessEndpoint endpoint){
-        Objects.requireNonNull(endpoint, "endpoint");
+    public static synchronized void setDATAMap(Map<Key , IWirelessEndpoint> map){
+        DATA = map;
+    }
+
+    public static synchronized Map<Key , IWirelessEndpoint> getDATAMap(){
+        return DATA;
+    }
+
+    public static synchronized boolean addData(String s , UUID uuid ,  IWirelessEndpoint endpoint){
         if (s.isEmpty())return false;
-        if (endpoint.isEndpointRemoved())return false;
-        DATA.put(s, endpoint);
+        if (endpoint != null){
+            if (endpoint.isEndpointRemoved())return false;
+        }
+        DATA.put(new Key(s, uuid), endpoint);
         return true;
     }
 
-    public static synchronized void removeData(String s){
+    public static synchronized ArrayList<Key> getKeys(){
+        return new ArrayList<>(DATA.keySet());
+    }
+
+    public static synchronized void clearData(){
+        DATA.clear();
+    }
+
+    public static synchronized boolean containsData(String s , UUID uuid){
+        return DATA.containsKey(new Key(s, uuid));
+    }
+
+    public static synchronized void removeData(String s , UUID uuid){
         if (s.isEmpty())return;
-        DATA.remove(s);
+        DATA.remove(new Key(s, uuid));
     }
 
-    public static synchronized IWirelessEndpoint getData(String s){
+
+
+    public static synchronized IWirelessEndpoint getData(String s , UUID uuid){
         if (s.isEmpty())return null;
-        return DATA.get(s);
+        return DATA.get(new Key(s, uuid));
     }
 
-
+    public record Key(String string , UUID uuid){}
 
 
 }

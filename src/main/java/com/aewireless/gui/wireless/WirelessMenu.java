@@ -24,6 +24,7 @@ import net.minecraftforge.network.PacketDistributor;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 public class WirelessMenu extends AEBaseMenu {
 //    public static final MenuType<WirelessMenu> TYPE = MenuTypeBuilder.create((WirelessMenu::new), WirelessConnectBlockEntity.class).build("wireless");
@@ -35,6 +36,9 @@ public class WirelessMenu extends AEBaseMenu {
 
     @GuiSync(0)
     private boolean mode;
+
+    @GuiSync(2)
+    private String uuid;
 
     private final ContainerData data;
 
@@ -51,6 +55,7 @@ public class WirelessMenu extends AEBaseMenu {
 
         this.currentFrequency = host.getFrequency();
         this.mode = host.isMode();
+        this.uuid = host.getPlacerId().toString();
 
         this.data = data;
 
@@ -64,6 +69,10 @@ public class WirelessMenu extends AEBaseMenu {
 
     public String getFrequency() {
         return currentFrequency;
+    }
+
+    public String getUUID() {
+        return uuid;
     }
 
     public void setFrequency(String frequency) {
@@ -93,12 +102,6 @@ public class WirelessMenu extends AEBaseMenu {
             this.mode = blockEntity.isMode();
             this.currentFrequency = blockEntity.getFrequency() ==  null ? "" : blockEntity.getFrequency();
         }
-//        // 同步频道数据到客户端
-//        if (getPlayerInventory().player instanceof ServerPlayer serverPlayer) {
-//            Set<String> channels = new HashSet<>(WirelessData.DATA.keySet());
-//            NetworkHandler.sendToClient(new WirelessDataSyncPacket(channels),
-//                    PacketDistributor.PLAYER.with(() -> serverPlayer));
-//        }
 
     }
 

@@ -9,6 +9,7 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 public class MenuDataPacket {
@@ -16,6 +17,7 @@ public class MenuDataPacket {
     private Boolean mode;
     private Set<String> channels;
     private ActionType action;
+    private UUID uuid;
 
     public enum ActionType {
         SET_FREQUENCY_MODE,
@@ -23,21 +25,24 @@ public class MenuDataPacket {
         REMOVE_CHANNEL
     }
 
-    public MenuDataPacket(String frequency, Boolean mode) {
+    public MenuDataPacket(String frequency, Boolean mode , UUID uuid) {
         this.frequency = frequency;
         this.mode = mode;
         this.action = ActionType.SET_FREQUENCY_MODE;
+        this.uuid = uuid;
     }
 
-    public MenuDataPacket(String channel, ActionType action) {
+    public MenuDataPacket(String channel, ActionType action , UUID uuid) {
         this.channels = new HashSet<>();
         this.channels.add(channel);
         this.action = action;
+        this.uuid = uuid;
     }
 
-    public MenuDataPacket(Set<String> channels, ActionType action) {
+    public MenuDataPacket(Set<String> channels, ActionType action , UUID uuid) {
         this.channels = channels;
         this.action = action;
+        this.uuid = uuid;
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -47,6 +52,7 @@ public class MenuDataPacket {
             case SET_FREQUENCY_MODE:
                 buf.writeUtf(frequency == null ? "" : frequency);
                 buf.writeBoolean(mode != null && mode);
+                buf.writeUUID(uuid);
                 break;
             case ADD_CHANNEL:
             case REMOVE_CHANNEL:
@@ -54,6 +60,7 @@ public class MenuDataPacket {
                 for (String channel : channels) {
                     buf.writeUtf(channel == null ? "" : channel);
                 }
+                buf.writeUUID(uuid);
                 break;
         }
     }
@@ -65,7 +72,8 @@ public class MenuDataPacket {
             case SET_FREQUENCY_MODE:
                 String freq = buf.readUtf();
                 Boolean mode = buf.readBoolean();
-                return new MenuDataPacket(freq, mode);
+                UUID uuid = buf.readUUID();
+                return new MenuDataPacket(freq, mode , uuid);
             case ADD_CHANNEL:
             case REMOVE_CHANNEL:
                 int size = buf.readInt();
@@ -76,9 +84,10 @@ public class MenuDataPacket {
                         channels.add(channel);
                     }
                 }
-                return new MenuDataPacket(channels, action);
+                UUID uuid1 = buf.readUUID();
+                return new MenuDataPacket(channels, action ,uuid1);
             default:
-                return new MenuDataPacket("", false);
+                return new MenuDataPacket("", false , null);
         }
     }
 
@@ -104,8 +113,8 @@ public class MenuDataPacket {
                         if (channels != null && !channels.isEmpty()) {
                             for (String channel : channels) {
                                 if (channel != null && !channel.isEmpty() &&
-                                        !WirelessData.DATA.containsKey(channel)) {
-                                    WirelessData.DATA.put(channel, null);
+                                        !WirelessData.containsData(channel , uuid)) {
+                                    WirelessData.addData(channel, uuid,null);
                                 }
                             }
                         }
@@ -115,7 +124,7 @@ public class MenuDataPacket {
                         if (channels != null && !channels.isEmpty()) {
                             for (String channel : channels) {
                                 if (channel != null && !channel.isEmpty()) {
-                                    WirelessData.DATA.remove(channel);
+                                    WirelessData.removeData(channel , uuid);
                                 }
                             }
                         }

@@ -6,8 +6,10 @@ import com.aewireless.AeWireless;
 import com.aewireless.block.WirelessConnectBlockEntity;
 import com.aewireless.wireless.IWirelessEndpoint;
 import com.aewireless.wireless.WirelessData;
+import com.aewireless.wireless.WirelessTeamUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IServerDataProvider;
@@ -62,13 +64,23 @@ public enum AEWirelessTransceiverProvider implements IServerDataProvider<BlockAc
             data.putInt("usedChannels", usedChannels);
             data.putInt("maxChannels", maxChannels);
 
+            // 添加所有者信息（有FTBTeams时显示团队，否则显示玩家）
+            var placerId = blockEntity.getPlacerId();
+            if (placerId != null) {
+                data.putUUID("placerId", placerId);
+                var level = blockEntity.getServerLevel();
+                if (level != null) {
+                    // 使用WirelessTeamUtil自动判断显示团队或玩家名称
+                    Component ownerName = WirelessTeamUtil.getNetworkOwnerName(level , placerId);
+                    data.putString("ownerName", ownerName.getString());
+                }
+            }
 
-            // 如果是从模式，查询主节点位置与维度
             if (!blockEntity.isMode() && blockEntity.getFrequency() != null) {
                 var level = blockEntity.getLevel();
                 String freq = blockEntity.getFrequency();
 
-                IWirelessEndpoint master = WirelessData.getData(freq);
+                IWirelessEndpoint master = WirelessData.getData(freq ,  placerId);
                 if (master != null && !master.isEndpointRemoved()) {
 //                    if (master instanceof WirelessConnectBlockEntity masterBlockEntity && masterBlockEntity.getCustomName() != null) {
 //                        data.putString("customName", masterBlockEntity.getCustomName().getString());

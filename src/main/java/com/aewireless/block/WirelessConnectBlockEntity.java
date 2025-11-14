@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
 import java.util.Objects;
+import java.util.UUID;
 
 public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvider , IInWorldGridNodeHost , IWirelessEndpoint {
     private IManagedGridNode managedNode;
@@ -40,13 +41,14 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     private WirelessMasterLink masterLink;
     private WirelessLink slaveLink;
     private String frequency = null;
+    private UUID placerId; // 放置者UUID
+    private String placerName;
 
     private boolean mode = false;
 
     public WirelessConnectBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModRegister.WIRELESS_TRANSCEIVER_ENTITY.get(), pos, blockState);
 
-        this.managedNode = GridHelper.createManagedNode(this, (nodeOwner, node) -> {nodeOwner.setChanged();});
         this.managedNode = GridHelper.createManagedNode(this, (nodeOwner, node) -> {nodeOwner.setChanged();})
                 .setFlags(GridFlags.DENSE_CAPACITY);
 
@@ -56,6 +58,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         this.managedNode.setTagName("wireless_connect");
         this.managedNode.setInWorldNode(true);
         this.managedNode.setExposedOnSides(EnumSet.allOf(Direction.class));
+//        this.managedNode.setIdlePowerUsage()
 
         masterLink = new WirelessMasterLink(this);
         slaveLink = new WirelessLink(this);
@@ -113,7 +116,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
 
         if (this.mode) {
-            masterLink.setFrequency( frequency);
+            masterLink.setFrequency( frequency , placerId);
         } else {
             slaveLink.setFrequency( frequency);
         }
@@ -126,13 +129,28 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     public void setFrequency(String frequency) {
         this.frequency = frequency;
         if (isMode()) {
-            masterLink.setFrequency(frequency);
+            masterLink.setFrequency(frequency , placerId);
         } else {
             slaveLink.setFrequency(frequency);
         }
         setChanged();
     }
 
+    public void setPlacerId(@Nullable UUID placerId, @Nullable String placerName) {
+        if (this.placerId != null && !this.placerId.equals(placerId)) {
+            // 如果所有者改变，需要重新注册
+            if (this.mode) {
+                masterLink.unregister();
+            } else {
+                slaveLink.destroyConnection();
+            }
+        }
+        this.placerId = placerId;
+        this.placerName = placerName;
+        this.masterLink.setUuid(placerId);
+        this.slaveLink.setUuid(placerId);
+        setChanged();
+    }
 
     public void onRemoved() {
         if (this.mode) {
@@ -150,12 +168,12 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         WirelessConnectBlockEntity blockEntity = (WirelessConnectBlockEntity)level.getBlockEntity(pos);
 
         //修复无法删除
-        if (WirelessData.DATA.containsKey(blockEntity.getFrequency())){
+        if (WirelessData.containsData(blockEntity.getFrequency() , placerId)){
             blockEntity.setFrequency(blockEntity.getFrequency());
         }
 
         //修复频道删除但保存问题
-        if (!WirelessData.DATA.containsKey(blockEntity.getFrequency())){
+        if (!WirelessData.containsData(blockEntity.getFrequency() , placerId)){
             if (!blockEntity.mode){
                 blockEntity.slaveLink.destroyConnection();
                 blockEntity.slaveLink.realUnregister();
@@ -236,10 +254,15 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
         tag.putString("frequency", frequency != null ? frequency : "");
 
+        if (placerId != null){
+            tag.putUUID("placerId", placerId);
+        }
+
         if (managedNode != null) {
             managedNode.saveToNBT(tag);
         }
     }
+
 
     @Override
     public void load(CompoundTag tag) {
@@ -248,12 +271,19 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
         frequency = tag.getString("frequency");
 
+        if (tag.hasUUID("placerId")){
+            placerId = tag.getUUID("placerId");
+            this.masterLink.setUuid(this.placerId);
+            this.slaveLink.setUuid(this.placerId);
+
+        }
+
         if (managedNode != null) {
             managedNode.loadFromNBT(tag);
         }
 
         if (isMode()) {
-            masterLink.setFrequency(frequency);
+            masterLink.setFrequency(frequency , placerId);
         } else {
             slaveLink.setFrequency(frequency);
         }
@@ -265,10 +295,19 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         return this.getLevel().dimension();
     }
 
+    public UUID getPlacerId() {
+        return placerId;
+    }
+
     public boolean isMode() {
         return mode;
     }
 
+    @Override
+    public ServerLevel getServerLevel() {
+        Level lvl = super.getLevel();
+        return lvl instanceof ServerLevel sl ? sl : null;
+    }
     @Override
     public CompoundTag getUpdateTag() {
         return saveWithoutMetadata();

@@ -6,33 +6,42 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.UUID;
 
 public class WirelessWorldData extends SavedData {
-    Map<String, IWirelessEndpoint> data;
+    Map<WirelessData.Key, IWirelessEndpoint> data;
 
-    public WirelessWorldData(Map<String, IWirelessEndpoint> data){
+    public WirelessWorldData(Map<WirelessData.Key, IWirelessEndpoint> data){
         this.data = data;
     }
 
-    public WirelessWorldData(){
 
-    }
     @Override
-    public CompoundTag save(CompoundTag arg) {
+    public @NotNull CompoundTag save(CompoundTag arg) {
         // 保存端点数据
         CompoundTag endpointsTag = new CompoundTag();
 
-        int i = 0;
-        for (Map.Entry<String, IWirelessEndpoint> entry : data.entrySet()) {
+        CompoundTag uuidTag = new CompoundTag();
 
-            endpointsTag.putString("" + i, entry.getKey());
+
+        int i = 0;
+        for (Map.Entry<WirelessData.Key, IWirelessEndpoint> entry : data.entrySet()) {
+
+            //待考虑的优化
+//            if (data.get(entry.getKey()) != null) continue;
+
+            endpointsTag.putString("string" + i, entry.getKey().string());
+            uuidTag.putUUID("uuid" + i, entry.getKey().uuid());
 
             i++;
         }
 
         arg.put("wirelessString" , endpointsTag);
+        arg.put("wirelessUUID" , uuidTag);
         return arg;
     }
 
@@ -40,21 +49,36 @@ public class WirelessWorldData extends SavedData {
     public void loadFromNBT(CompoundTag tag) {
         data.clear();
 
-        if (tag.contains("wirelessString")) {
+        if (tag.contains("wirelessString") && tag.contains("wirelessUUID")) {
             CompoundTag endpointsTag = tag.getCompound("wirelessString");
+            CompoundTag uuidTag = tag.getCompound("wirelessUUID");
+
+            ArrayList<WirelessData.Key> keys = new ArrayList<>();
+            ArrayList<String> strings = new ArrayList<>();
+
 
             // 遍历所有保存的键值
             for (String key : endpointsTag.getAllKeys()) {
                 try {
                     String frequencyString = endpointsTag.getString(key);
+//                    UUID uuid = uuidTag.getUUID(key);
                     if (frequencyString != null && !frequencyString.isEmpty()) {
 
-                        data.put(frequencyString, null);
+                        strings.add(frequencyString);
+//                        data.put(new WirelessData.Key(frequencyString, uuid), null);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
+
+            for (int i = 0 ; i<uuidTag.size() ; i ++){
+                UUID uuid = uuidTag.getUUID(uuidTag.getAllKeys().toArray()[i].toString());
+                if (uuid != null) {
+                    data.put(new WirelessData.Key(strings.get( i), uuid), null);
+                }
+            }
+
         }
     }
 
@@ -62,11 +86,11 @@ public class WirelessWorldData extends SavedData {
         if (level instanceof ServerLevel serverLevel) {
             return serverLevel.getDataStorage().computeIfAbsent(
                     (tag) -> {
-                        WirelessWorldData data = new WirelessWorldData(WirelessData.DATA);
+                        WirelessWorldData data = new WirelessWorldData(WirelessData.getDATAMap());
                         data.loadFromNBT(tag);
                         return data;
                     },
-                    () -> new WirelessWorldData(WirelessData.DATA),
+                    () -> new WirelessWorldData(WirelessData.getDATAMap()),
                     "wireless_world_data"
             );
         }

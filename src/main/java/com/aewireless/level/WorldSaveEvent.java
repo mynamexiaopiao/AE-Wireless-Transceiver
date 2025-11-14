@@ -23,7 +23,7 @@ public class WorldSaveEvent {
             WirelessWorldData worldData = WirelessWorldData.get(event.getLevel().getServer().getLevel(Level.OVERWORLD));
 
             if (worldData != null && !worldData.data.isEmpty()){
-                WirelessData.DATA = worldData.data;
+                WirelessData.setDATAMap(worldData.data);
             }
         }
     }
@@ -32,8 +32,8 @@ public class WorldSaveEvent {
     public static void onWorldSave(LevelEvent.Save event) {
         if (!event.getLevel().isClientSide()) {
             WirelessWorldData worldData = WirelessWorldData.get(event.getLevel().getServer().getLevel(Level.OVERWORLD));
-            if (worldData != null) {
-                worldData.data = new HashMap<>(WirelessData.DATA);
+            if (worldData != null && !worldData.data.isEmpty()) {
+                worldData.data = WirelessData.getDATAMap();
                 worldData.setDirty();
             }
         }
@@ -43,9 +43,9 @@ public class WorldSaveEvent {
     public static void onServerStopped(ServerStoppingEvent event) {
         WirelessWorldData worldData = WirelessWorldData.get(event.getServer().getLevel(Level.OVERWORLD));
         if (worldData != null) {
-            worldData.data = new HashMap<>(WirelessData.DATA);
+            worldData.data = new HashMap<>(WirelessData.getDATAMap());
             worldData.setDirty();
         }
-        WirelessData.DATA.clear();
+        WirelessData.clearData();
     }
 }

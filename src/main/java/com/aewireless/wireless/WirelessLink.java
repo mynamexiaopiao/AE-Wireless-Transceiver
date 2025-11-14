@@ -6,15 +6,21 @@ import appeng.api.networking.IGridNode;
 import appeng.me.service.helpers.ConnectionWrapper;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class WirelessLink {
     private final IWirelessEndpoint host;
     private String frequency ;
+    private UUID uuid;
 
     private ConnectionWrapper connection = new ConnectionWrapper( null);
 
     public WirelessLink(IWirelessEndpoint host) {
         this.host = host;
+    }
+
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
     }
 
     public void setFrequency(String frequency) {
@@ -36,7 +42,7 @@ public class WirelessLink {
             return;
         }
 
-        IWirelessEndpoint master = WirelessData.getData(frequency);
+        IWirelessEndpoint master = WirelessData.getData(frequency, uuid);
         if (master == null || master.isEndpointRemoved()) {
             destroyConnection();
             return;
@@ -80,46 +86,6 @@ public class WirelessLink {
     public void realUnregister() {
         frequency = null;
     }
-
-//    public void update(){
-//        if (frequency == null)return;
-//
-//        if (host.isEndpointRemoved()){
-//            destroyConnection();
-//            return;
-//        }
-//        if (frequency.isEmpty()){
-//            destroyConnection();
-//            return;
-//        }
-//
-//        IWirelessEndpoint master = WirelessData.getData(frequency);
-//
-//        if (master != null && !master.isEndpointRemoved() ){
-//            // 保持/建立连接
-//            try {
-//                IGridConnection connection1 = connection.getConnection();
-//                IGridNode a = host.getGridNode(); //从
-//                IGridNode b = master.getGridNode();  //主
-//                if (!(a == null || b == null)){
-//                    if (connection1 != null) {
-//                        IGridNode a1 = connection1.a();
-//                        IGridNode b1 = connection1.b();
-//                        if ((a1 == a || b1 == a) && (a1 == b || b1 == b)) return;
-//
-//                        // 否则先断开，再重建
-//                        connection1.destroy();
-//                        connection = new ConnectionWrapper(null);
-//                    }
-//                    connection = new ConnectionWrapper(GridHelper.createConnection(a, b));
-//                    return;
-//                }
-//            }catch (IllegalStateException ignore){
-//
-//            }
-//        }
-//        destroyConnection();
-//    }
 
     public void destroyConnection() {
         var current = connection.getConnection();

@@ -112,7 +112,11 @@ dependencies {
     modImplementation files('libs/ExtendedAE-1.20-1.4.2-forge.jar')
 
 //    modImplementation "maven.modrinth:jade:11.13.2+forge"
-
+    //ftbteams
+    modCompileOnly "curse.maven:ftb-teams-forge-404468:6130786"
+    modCompileOnly "curse.maven:ftb-library-forge-404465:6807424"
+    modRuntimeOnly "curse.maven:ftb-teams-forge-404468:6130786"
+    modRuntimeOnly "curse.maven:ftb-library-forge-404465:6807424"
 
 }
 

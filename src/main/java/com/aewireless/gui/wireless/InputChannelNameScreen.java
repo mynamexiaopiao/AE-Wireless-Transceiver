@@ -14,6 +14,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.UUID;
+
 /**
  * 创建一个二级窗口
  * 由于此窗口不需要确认获取Screen的信息从而执行操作，故继承Screen
@@ -74,7 +76,8 @@ public class InputChannelNameScreen extends Screen {
                 Component.translatable("gui.yes"),
                 (button) -> {
                     String value = this.channelNameField.getValue();
-                    screen.addDataRow( value);
+
+                    screen.addDataRow( value , UUID.fromString(screen.getMenu().getUUID()));
                     Minecraft.getInstance().popGuiLayer();
                 },
                 DEFAULT_NARRATION

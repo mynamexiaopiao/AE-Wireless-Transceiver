@@ -15,6 +15,13 @@
   "aewireless.tooltip.master": "Mode: %s",
   "aewireless.tooltip.channels": "Channel: %s",
   "aewireless.tooltip.channels_of": "Channel: %d / %d",
+  "aewireless.tooltip.owner": "Owner: %s",
+  "aewireless.tooltip.owner.unset": "Owner: Unset",
+  "aewireless.tooltip.owner.public": "Owner: Public",
+
+  "aewireless.tooltip.failopen": "This is %s's wireless transceiver, you don't have permission to open it.",
+
+
   "config.jade.plugin_aewireless.wireless_tooltip": "AE Wireless Transceiver Info",
 
   "aewireless.jade.tooltip.masterpos": "Master Node Position",

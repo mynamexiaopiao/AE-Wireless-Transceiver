@@ -7,37 +7,42 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 public class WirelessDataSyncPacket {
     private Set<String> channels;
+    private UUID uuid;
 
-    public WirelessDataSyncPacket(Set<String> channels) {
+    public WirelessDataSyncPacket(Set<String> channels , UUID uuid) {
+        this.uuid = uuid;
         this.channels = channels;
     }
 
-    public void encode(FriendlyByteBuf buf) {
+    public void encode(FriendlyByteBuf buf ) {
         buf.writeInt(channels.size());
         for (String channel : channels) {
             buf.writeUtf(channel);
         }
+        buf.writeUUID(uuid);
     }
 
-    public static WirelessDataSyncPacket decode(FriendlyByteBuf buf) {
+    public static WirelessDataSyncPacket decode(FriendlyByteBuf buf  ) {
         int size = buf.readInt();
         Set<String> channels = new HashSet<>();
         for (int i = 0; i < size; i++) {
             channels.add(buf.readUtf());
         }
-        return new WirelessDataSyncPacket(channels);
+        UUID uuid = buf.readUUID();
+        return new WirelessDataSyncPacket(channels , uuid);
     }
 
     public void handle(Supplier<NetworkEvent.Context> context) {
         NetworkEvent.Context ctx = context.get();
         ctx.enqueueWork(() -> {
-            WirelessData.DATA.clear();
+            WirelessData.clearData();
             for (String channel : channels) {
-                WirelessData.DATA.put(channel, null);
+                WirelessData.addData(channel, uuid,null);
             }
         });
         ctx.setPacketHandled(true);

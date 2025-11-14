@@ -14,4 +14,6 @@ public interface IWirelessEndpoint {
     BlockPos getBlockPos();
 
     ResourceKey<Level> getDimension();
+
+    ServerLevel getServerLevel();
 }

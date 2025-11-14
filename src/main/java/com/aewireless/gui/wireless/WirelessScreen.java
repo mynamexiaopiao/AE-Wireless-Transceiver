@@ -28,6 +28,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     Scrollbar scrollbar;
@@ -53,6 +54,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
 
     private final float fontScale = 1f;
 
+    private UUID uuid;
     private RenderButton addButton;
     private RenderButton removeButton;
     private RenderButton modeButton;
@@ -62,6 +64,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     public WirelessScreen(WirelessMenu menu, Inventory playerInventory, Component title, ScreenStyle style){
         super(menu, playerInventory, title, style);
 
+        uuid  = UUID.fromString(this.getMenu().getUUID());
 
         try{
             String highlightColor1 = ModConfig.highlightColor;
@@ -117,7 +120,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
                 Component.translatable("gui.wireless.remove"),
                 arg ->{
                     if (this.getMenu().getFrequency() != null && !this.getMenu().getFrequency().equals("")){
-                    removeDataRow(this.getMenu().getFrequency());
+                    removeDataRow(this.getMenu().getFrequency() , uuid);
                     }
                 },
                 DEFAULT_NARRATION) {};
@@ -125,7 +128,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         modeButton = new RenderButton(0, 0, 40, 15,
                 Component.translatable("gui.wireless.mode.toggle"),
                 arg -> {
-                    NetworkHandler.sendToServer(new MenuDataPacket(null, !this.getMenu().isMode()));
+                    NetworkHandler.sendToServer(new MenuDataPacket(null, !this.getMenu().isMode() , uuid));
                     this.getMenu().setMode(!this.getMenu().isMode());
                 },
                 DEFAULT_NARRATION) {};
@@ -133,7 +136,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         disconnect = new RenderButton(0, 0, 40, 15,
                 Component.translatable("gui.wireless.mode.disconnect"),
                 arg -> {
-                    NetworkHandler.sendToServer(new MenuDataPacket("", this.getMenu().isMode()));
+                    NetworkHandler.sendToServer(new MenuDataPacket("", this.getMenu().isMode() , uuid));
                 },
                 DEFAULT_NARRATION) {};
 
@@ -268,7 +271,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     }
 
     private void updateData(){
-        ArrayList<String> keys = new ArrayList<>(WirelessData.DATA.keySet());
+        List<String> keys = WirelessData.getKeys().stream().filter(key -> key.uuid().equals(uuid)).map(WirelessData.Key::string).toList();
 
         if (highlightedRowIndex != -1) {
             if (highlightedRowIndex >= keys.size()) {
@@ -380,7 +383,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
 
     public void clearHighlight() {
         highlightedRowIndex = -1;
-        NetworkHandler.sendToServer(new MenuDataPacket(null, this.getMenu().isMode()));
+        NetworkHandler.sendToServer(new MenuDataPacket(null, this.getMenu().isMode() , uuid));
     }
 
     private void renderMode(GuiGraphics guiGraphics){
@@ -456,7 +459,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
                 String clickedItem = filteredDataRows.get(clickedRowIndex);
                 highlightedRowIndex = allDataRows.indexOf(clickedItem);
 
-                NetworkHandler.sendToServer(new MenuDataPacket(clickedItem, this.getMenu().isMode()));
+                NetworkHandler.sendToServer(new MenuDataPacket(clickedItem, this.getMenu().isMode() , uuid));
                 this.getMenu().setFrequency(clickedItem);
 
                 if (this.getMenu().blockEntity.getLevel() != null) {
@@ -482,35 +485,35 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
                 mouseY >= listY && mouseY <= listY + listHeight;
     }
 
-    public void addDataRow(String data) {
+    public void addDataRow(String data , UUID uuid) {
         if (data.isEmpty() || allDataRows.contains(data)) return;
         allDataRows.add(data);
 
 
         // 发送到服务端
-        if (isPlayingOnServer())NetworkHandler.sendToServer(new MenuDataPacket(data, MenuDataPacket.ActionType.ADD_CHANNEL));
+        if (isPlayingOnServer())NetworkHandler.sendToServer(new MenuDataPacket(data, MenuDataPacket.ActionType.ADD_CHANNEL , uuid));
 
-        WirelessData.DATA.put(data, null);
+        WirelessData.addData(data ,uuid,null);
 
         updateData();
         refreshList();
     }
-    public void showConfirmDeleteScreen(String itemToDelete, Runnable onConfirm) {
-        Minecraft.getInstance().pushGuiLayer(new ConfirmDeleteScreen(itemToDelete, onConfirm));
+    public void showConfirmDeleteScreen( Runnable onConfirm) {
+        Minecraft.getInstance().pushGuiLayer(new ConfirmDeleteScreen(onConfirm));
     }
 
     public void showInputScreen() {
         Minecraft.getInstance().pushGuiLayer(new InputChannelNameScreen(this));
     }
 
-    public void removeDataRow(String data) {
-        showConfirmDeleteScreen(data, () -> {
+    public void removeDataRow(String data , UUID uuid) {
+        showConfirmDeleteScreen(() -> {
             allDataRows.remove(data);
 
             // 发送到服务端
-            if (isPlayingOnServer()) NetworkHandler.sendToServer(new MenuDataPacket(data, MenuDataPacket.ActionType.REMOVE_CHANNEL));
+            if (isPlayingOnServer()) NetworkHandler.sendToServer(new MenuDataPacket(data, MenuDataPacket.ActionType.REMOVE_CHANNEL, uuid));
 
-            WirelessData.removeData(data);
+            WirelessData.removeData(data , uuid);
 
             updateData();
             refreshList();

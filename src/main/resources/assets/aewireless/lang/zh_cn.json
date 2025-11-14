@@ -12,11 +12,15 @@
   "gui.input_channel_name_screen.placeholder": "输入频道名称",
   "gui.wireless.input.placeholder": "搜索...",
 
+  "aewireless.tooltip.failopen": "这是属于 %s 的无线收发器，您无权打开。",
 
   "aewireless.tooltip.channel_name": "频道名称: %d",
   "aewireless.tooltip.master": "模式: %s",
   "aewireless.tooltip.channels": "频道: %s",
   "aewireless.tooltip.channels_of": "频道: %d / %d",
+  "aewireless.tooltip.owner": "所有者: %s",
+  "aewireless.tooltip.owner.unset": "所有者: 未设置",
+  "aewireless.tooltip.owner.public": "所有者: 公共",
   "config.jade.plugin_aewireless.wireless_tooltip": "无线收发器信息",
 
   "aewireless.jade.tooltip.masterpos": "主节点位置",
