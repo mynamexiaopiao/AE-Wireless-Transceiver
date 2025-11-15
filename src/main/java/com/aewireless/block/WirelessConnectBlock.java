@@ -1,10 +1,6 @@
 package com.aewireless.block;
 
-import appeng.menu.MenuOpener;
-import appeng.menu.locator.MenuLocators;
-import com.aewireless.gui.wireless.WirelessMenu;
 import com.aewireless.register.ModRegister;
-import com.aewireless.register.RegisterHandler;
 import com.aewireless.wireless.WirelessTeamUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -30,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class WirelessConnectBlock extends Block implements EntityBlock {
     public static final BooleanProperty CONNECTED = BooleanProperty.create("connected");
@@ -47,6 +42,7 @@ public class WirelessConnectBlock extends Block implements EntityBlock {
         if (!level.isClientSide && placer instanceof Player player) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof WirelessConnectBlockEntity te) {
+                // 设置放置者信息，用于队伍隔离
                 te.setPlacerId(player.getUUID(), player.getName().getString());
             }
         }
@@ -92,7 +88,8 @@ public class WirelessConnectBlock extends Block implements EntityBlock {
             BlockEntity blockEntity = level.getBlockEntity(pos);
 
             if (blockEntity instanceof WirelessConnectBlockEntity wirelessConnectBlockEntity) {
-                if (player.getUUID().equals(wirelessConnectBlockEntity.getPlacerId())){
+                //判断打开界面玩家团队和放置者团队是否一致
+                if (WirelessTeamUtil.getNetworkOwnerUUID(player.getUUID()).equals(WirelessTeamUtil.getNetworkOwnerUUID(wirelessConnectBlockEntity.getPlacerId()))){
                     NetworkHooks.openScreen((ServerPlayer) player, wirelessConnectBlockEntity , pos);
                     return InteractionResult.SUCCESS;
                 }else {

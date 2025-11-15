@@ -1,7 +1,12 @@
 package com.aewireless.wireless;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import com.aewireless.network.NetworkHandler;
+import com.aewireless.network.packet.WirelessDataUpdatePacket;
+import net.minecraft.client.Minecraft;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerList;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.*;
 
@@ -27,6 +32,11 @@ public class WirelessData {
             if (endpoint.isEndpointRemoved())return false;
         }
         DATA.put(new Key(s, uuid), endpoint);
+
+        // 通知所有相关客户端
+        //判断是否为客户端环境，避免在服务端调用客户端代码
+        notifyClients(uuid, s, true); // 修正：使用参数s而不是未定义的data变量
+
         return true;
     }
 
@@ -45,6 +55,12 @@ public class WirelessData {
     public static synchronized void removeData(String s , UUID uuid){
         if (s.isEmpty())return;
         DATA.remove(new Key(s, uuid));
+
+
+
+            // 通知所有相关客户端
+            notifyClients(uuid, s, false);
+
     }
 
 
@@ -56,5 +72,29 @@ public class WirelessData {
 
     public record Key(String string , UUID uuid){}
 
+    // 添加通知客户端的方法
+    private static void notifyClients(UUID teamId, String data, boolean isAdd) {
+        // 获取服务器实例和玩家列表
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        if (server != null) {
+            PlayerList playerList = server.getPlayerList();
+            if (playerList != null) {
+                for (ServerPlayer player : playerList.getPlayers()) {
+                    UUID playerTeamId = WirelessTeamUtil.getNetworkOwnerUUID(player.getUUID());
+                    if (playerTeamId.equals(teamId)) {
+                        NetworkHandler.sendToPlayer(
+                                new WirelessDataUpdatePacket(data, isAdd),
+                                player
+                        );
+                    }
+                }
+            }
+        }
+    }
 
+
+    // 添加判断是否为客户端的辅助方法
+    private static boolean isClientSide() {
+        return Minecraft.getInstance() != null;
+    }
 }

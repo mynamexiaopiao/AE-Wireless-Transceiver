@@ -8,26 +8,37 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+/**
+ * 参考exap模组的代码，用于获取玩家所属的队伍名称
+ */
 public class WirelessTeamUtil {
 
     private static final boolean IS_FTB_TEAMS_LOADED = ModList.get().isLoaded("ftbteams");
 
-
-    public static UUID getID(UUID playerID) {
-        if (playerID == null) return null;
-
-        if (!IS_FTB_TEAMS_LOADED)return playerID;
-
-        try {
-            return getTeamUUID(playerID);
-        }catch (Exception e){
-            return playerID;
+    /**
+     * 获取用于无线网络隔离的UUID
+     * - 如果安装了FTBTeams且玩家在队伍中，返回队伍UUID（同队玩家共享）
+     * - 否则返回玩家自己的UUID（独立网络）
+     *
+     * @param playerUUID 玩家UUID
+     * @return 网络所有者UUID
+     */
+    public static UUID getNetworkOwnerUUID(UUID playerUUID) {
+        if (playerUUID == null) {
+            return null;
         }
 
+        if (!IS_FTB_TEAMS_LOADED) {
+            return playerUUID;
+        }
 
+        try {
+            return getTeamUUID( playerUUID);
+        } catch (Exception e) {
+            // 如果FTBTeams API调用失败，回退到玩家UUID
+            return playerUUID;
+        }
     }
-
-    // ==================== FTBTeams 集成（通过反射调用避免硬依赖）====================
 
     private static UUID getTeamUUID(UUID playerUUID) {
         try {
@@ -117,6 +128,7 @@ public class WirelessTeamUtil {
 
         return Component.literal(playerUUID.toString());
     }
+
 
     private static boolean hasTeamOwner(ServerLevel level, UUID playerUUID) {
         try {

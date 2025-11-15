@@ -1,30 +1,16 @@
 package com.aewireless.gui.wireless;
 
-import appeng.api.config.YesNo;
-import appeng.helpers.patternprovider.PatternProviderLogicHost;
 import appeng.menu.AEBaseMenu;
 import appeng.menu.guisync.GuiSync;
-import appeng.menu.implementations.MenuTypeBuilder;
 import com.aewireless.block.WirelessConnectBlockEntity;
-import com.aewireless.network.MenuDataPacket;
-import com.aewireless.network.NetworkHandler;
-import com.aewireless.network.WirelessDataSyncPacket;
 import com.aewireless.register.ModRegister;
-import com.aewireless.wireless.WirelessData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.PacketDistributor;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 
 public class WirelessMenu extends AEBaseMenu {
 //    public static final MenuType<WirelessMenu> TYPE = MenuTypeBuilder.create((WirelessMenu::new), WirelessConnectBlockEntity.class).build("wireless");

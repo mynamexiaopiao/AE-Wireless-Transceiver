@@ -1,6 +1,7 @@
 package com.aewireless.network;
 
 import com.aewireless.AeWireless;
+import com.aewireless.network.packet.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
@@ -34,21 +35,41 @@ public class NetworkHandler {
                 .consumerMainThread(MenuDataPacket::handle)
                 .add();
 
-        getChannel().messageBuilder(WirelessDataSyncPacket.class, id++)
-                .encoder(WirelessDataSyncPacket::encode)
-                .decoder(WirelessDataSyncPacket::decode)
-                .consumerMainThread(WirelessDataSyncPacket::handle)
+        // 注册客户端 -> 服务端的请求包
+        getChannel().messageBuilder(RequestWirelessDataPacket.class, id++)
+                .encoder(RequestWirelessDataPacket::encode)
+                .decoder(RequestWirelessDataPacket::decode)
+                .consumerMainThread(RequestWirelessDataPacket::handle)
+                .add();
+
+        // 注册服务端 -> 客户端的同步包
+        getChannel().messageBuilder(SyncWirelessDataPacket.class, id++)
+                .encoder(SyncWirelessDataPacket::encode)
+                .decoder(SyncWirelessDataPacket::decode)
+                .consumerMainThread(SyncWirelessDataPacket::handle)
+                .add();
+
+
+
+        // 添加新的数据更新包注册
+        getChannel().messageBuilder(WirelessDataUpdatePacket.class, id++)
+                .encoder(WirelessDataUpdatePacket::encode)
+                .decoder(WirelessDataUpdatePacket::decode)
+                .consumerMainThread(WirelessDataUpdatePacket::handle)
                 .add();
 
         registered = true;
     }
-
     public static void sendToServer(Object msg) {
         getChannel().send(PacketDistributor.SERVER.noArg(), msg);
     }
 
     public static void sendToClient(Object msg, PacketDistributor.PacketTarget target) {
         getChannel().send(target, msg);
+    }
+
+    public static void sendToPlayer(Object msg, net.minecraft.server.level.ServerPlayer player) {
+        getChannel().send(PacketDistributor.PLAYER.with(() -> player), msg);
     }
 }
 

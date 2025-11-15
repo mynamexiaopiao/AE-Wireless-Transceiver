@@ -1,7 +1,8 @@
-package com.aewireless.network;
+package com.aewireless.network.packet;
 
 import com.aewireless.gui.wireless.WirelessMenu;
 import com.aewireless.wireless.WirelessData;
+import com.aewireless.wireless.WirelessTeamUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -111,10 +112,12 @@ public class MenuDataPacket {
                     case ADD_CHANNEL:
                         // 在服务端添加频道
                         if (channels != null && !channels.isEmpty()) {
+                            // 使用服务端计算出的队伍/网络拥有者 UUID，拒绝信任客户端发来的 uuid 字段
+                            UUID teamId = WirelessTeamUtil.getNetworkOwnerUUID(player.getUUID());
                             for (String channel : channels) {
                                 if (channel != null && !channel.isEmpty() &&
-                                        !WirelessData.containsData(channel , uuid)) {
-                                    WirelessData.addData(channel, uuid,null);
+                                        !WirelessData.containsData(channel , teamId)) {
+                                    WirelessData.addData(channel, teamId, null);
                                 }
                             }
                         }
@@ -122,9 +125,11 @@ public class MenuDataPacket {
                     case REMOVE_CHANNEL:
                         // 在服务端删除频道
                         if (channels != null && !channels.isEmpty()) {
+                            // 使用服务端计算出的队伍/网络拥有者 UUID
+                            UUID teamId = WirelessTeamUtil.getNetworkOwnerUUID(player.getUUID());
                             for (String channel : channels) {
                                 if (channel != null && !channel.isEmpty()) {
-                                    WirelessData.removeData(channel , uuid);
+                                    WirelessData.removeData(channel , teamId);
                                 }
                             }
                         }

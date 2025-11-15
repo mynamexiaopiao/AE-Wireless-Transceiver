@@ -1,28 +1,26 @@
 package com.aewireless.gui.wireless;
 
 import appeng.client.gui.AEBaseScreen;
-import appeng.client.gui.Icon;
 import appeng.client.gui.style.ScreenStyle;
 import appeng.client.gui.widgets.*;
 import appeng.core.AppEng;
-import com.aewireless.AeWireless;
 import com.aewireless.ModConfig;
 import com.aewireless.gui.RenderButton;
-import com.aewireless.network.MenuDataPacket;
+import com.aewireless.network.packet.MenuDataPacket;
 import com.aewireless.network.NetworkHandler;
+import com.aewireless.network.packet.RequestWirelessDataPacket;
 import com.aewireless.wireless.WirelessData;
+import com.aewireless.wireless.WirelessTeamUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.common.Mod;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -32,14 +30,14 @@ import java.util.UUID;
 
 public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     Scrollbar scrollbar;
-    AETextField input;
+    public AETextField input;
 
     //可见行数
     private final int visibleRows = 8;
     //每行的像素
     protected static final Button.CreateNarration DEFAULT_NARRATION = (supplier) -> (MutableComponent)supplier.get();
     private final int rowHeight = 12;
-    private final ArrayList<String> allDataRows = new ArrayList<>();
+    public final ArrayList<String> allDataRows = new ArrayList<>();
     private final ArrayList<String> filteredDataRows = new ArrayList<>(); // 新增：用于存储过滤后的数据
 
 
@@ -54,7 +52,9 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
 
     private final float fontScale = 1f;
 
+    //放置玩家的uuid
     private UUID uuid;
+
     private RenderButton addButton;
     private RenderButton removeButton;
     private RenderButton modeButton;
@@ -64,7 +64,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     public WirelessScreen(WirelessMenu menu, Inventory playerInventory, Component title, ScreenStyle style){
         super(menu, playerInventory, title, style);
 
-        uuid  = UUID.fromString(this.getMenu().getUUID());
+        uuid  = WirelessTeamUtil.getNetworkOwnerUUID(this.getMenu().getPlayer().getUUID());
 
         try{
             String highlightColor1 = ModConfig.highlightColor;
@@ -120,7 +120,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
                 Component.translatable("gui.wireless.remove"),
                 arg ->{
                     if (this.getMenu().getFrequency() != null && !this.getMenu().getFrequency().equals("")){
-                    removeDataRow(this.getMenu().getFrequency() , uuid);
+                    removeDataRow(this.getMenu().getFrequency() );
                     }
                 },
                 DEFAULT_NARRATION) {};
@@ -142,6 +142,8 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
 
         refreshList();
     }
+
+
 
     private int parseHexColor(String hexColor) {
         if (hexColor == null || hexColor.isEmpty()) {
@@ -167,6 +169,12 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     @Override
     public void init() {
         super.init();
+
+        // 向服务器请求当前数据快照
+        NetworkHandler.sendToServer(new RequestWirelessDataPacket());
+
+
+
         listHeight = visibleRows * rowHeight;
         listX = (this.width - listWidth) /   2  -  50;
         // 将整个框向下移一点
@@ -189,11 +197,12 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         resetScrollbar();
     }
 
-    private void resetScrollbar() {
+    public void resetScrollbar() {
         scrollbar.setHeight(listHeight);
         int maxScroll = Math.max(0, filteredDataRows.size() - visibleRows);
         scrollbar.setRange(0, maxScroll, 1);
     }
+
 
 
     @Override
@@ -271,8 +280,12 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     }
 
     private void updateData(){
-        List<String> keys = WirelessData.getKeys().stream().filter(key -> key.uuid().equals(uuid)).map(WirelessData.Key::string).toList();
+//        List<String> keys = WirelessData.getKeys().stream().filter(key -> key.uuid().equals(
+//                WirelessTeamUtil.getNetworkOwnerUUID(this.getMenu().getPlayer().getUUID()))).map(WirelessData.Key::string).toList();
 
+//        List<String> keys = WirelessData.getKeys().stream().map(WirelessData.Key::string).toList();
+
+        List<String> keys = new ArrayList<>(allDataRows);
         if (highlightedRowIndex != -1) {
             if (highlightedRowIndex >= keys.size()) {
                 clearHighlight();
@@ -285,8 +298,8 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
             }
         }
 
-        allDataRows.clear();
-        allDataRows.addAll(keys);
+//        allDataRows.clear();
+//        allDataRows.addAll(keys);
 
 
         // 更新过滤后的列表
@@ -485,18 +498,11 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
                 mouseY >= listY && mouseY <= listY + listHeight;
     }
 
-    public void addDataRow(String data , UUID uuid) {
+    public void addDataRow(String data ) {
         if (data.isEmpty() || allDataRows.contains(data)) return;
-        allDataRows.add(data);
-
-
-        // 发送到服务端
-        if (isPlayingOnServer())NetworkHandler.sendToServer(new MenuDataPacket(data, MenuDataPacket.ActionType.ADD_CHANNEL , uuid));
-
-        WirelessData.addData(data ,uuid,null);
-
-        updateData();
-        refreshList();
+        // 发送到服务端，不在客户端直接更新本地列表，等待服务器下发同步或增量更新
+        NetworkHandler.sendToServer(new MenuDataPacket(data, MenuDataPacket.ActionType.ADD_CHANNEL , uuid));
+        // 可视化反馈（可选）：暂时高亮新项，但不入库，最终以服务器回包为准
     }
     public void showConfirmDeleteScreen( Runnable onConfirm) {
         Minecraft.getInstance().pushGuiLayer(new ConfirmDeleteScreen(onConfirm));
@@ -506,26 +512,19 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         Minecraft.getInstance().pushGuiLayer(new InputChannelNameScreen(this));
     }
 
-    public void removeDataRow(String data , UUID uuid) {
+    public void removeDataRow(String data ) {
         showConfirmDeleteScreen(() -> {
-            allDataRows.remove(data);
-
-            // 发送到服务端
-            if (isPlayingOnServer()) NetworkHandler.sendToServer(new MenuDataPacket(data, MenuDataPacket.ActionType.REMOVE_CHANNEL, uuid));
-
-            WirelessData.removeData(data , uuid);
-
-            updateData();
-            refreshList();
-        });
-    }
+            // 发送到服务端删除请求，客户端等待服务端下发同步或增量更新
+            NetworkHandler.sendToServer(new MenuDataPacket(data, MenuDataPacket.ActionType.REMOVE_CHANNEL, uuid));
+         });
+     }
 
     private void onInputChanged(String text) {
         filterDataRows(text);
     }
 
     // 新增：根据搜索文本过滤数据行
-    private void filterDataRows(String searchText) {
+    public void filterDataRows(String searchText) {
         filteredDataRows.clear();
 
         if (searchText == null || searchText.isEmpty() || searchText.trim().isEmpty()) {
@@ -543,6 +542,33 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
 
         // 重置滚动条以适应新的列表大小
         resetScrollbar();
+    }
+
+    // 在 WirelessScreen 类中添加以下方法
+    public void receiveServerDataIncremental(String data, boolean isAdd) {
+        if (isAdd) {
+            // 添加数据
+            if (!this.allDataRows.contains(data)) {
+                this.allDataRows.add(data);
+            }
+        } else {
+            // 删除数据
+            this.allDataRows.remove(data);
+        }
+
+        // 更新过滤后的列表和滚动条
+        this.filterDataRows(this.input.getValue());
+        this.resetScrollbar();
+    }
+
+    public void receiveServerData(java.util.List<String> keys) {
+        // 只有当数据实际发生变化时才更新UI
+        if (!this.allDataRows.equals(keys)) {
+            this.allDataRows.clear();
+            this.allDataRows.addAll(keys);
+            this.filterDataRows(this.input.getValue());
+            this.resetScrollbar();
+        }
     }
 
     @OnlyIn(Dist.CLIENT)

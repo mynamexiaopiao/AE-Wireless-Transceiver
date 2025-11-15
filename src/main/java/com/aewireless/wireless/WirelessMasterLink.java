@@ -1,9 +1,5 @@
 package com.aewireless.wireless;
 
-import com.aewireless.gui.wireless.WirelessMenu;
-import net.minecraft.server.level.ServerLevel;
-
-import java.util.Objects;
 import java.util.UUID;
 
 public class WirelessMasterLink {
@@ -11,13 +7,15 @@ public class WirelessMasterLink {
     private String  frequency;
     private boolean registered;
     private UUID uuid;
+    public static final UUID PUBLIC_NETWORK_UUID = new UUID(0, 0);
 
     public WirelessMasterLink(IWirelessEndpoint host) {
         this.host = host;
     }
 
     public void setUuid(UUID uuid) {
-        this.uuid = uuid;
+        // 设置网络所有者UUID
+        this.uuid = uuid != null ?WirelessTeamUtil.getNetworkOwnerUUID(uuid) : PUBLIC_NETWORK_UUID;
     }
 
     public String getFrequency() {
@@ -31,7 +29,11 @@ public class WirelessMasterLink {
             unregister();
         }
         this.frequency = frequency;
-        if (!frequency.isEmpty() && !host.isEndpointRemoved() && WirelessData.containsData(frequency , uuid) ) {
+
+        uuid = uuid != null ? WirelessTeamUtil.getNetworkOwnerUUID(uuid) : PUBLIC_NETWORK_UUID;
+
+        if (!frequency.isEmpty() && !host.isEndpointRemoved() &&
+                WirelessData.containsData(frequency , uuid) ) {
             register();
         }
 

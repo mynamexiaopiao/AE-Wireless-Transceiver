@@ -20,7 +20,7 @@ public class WirelessLink {
     }
 
     public void setUuid(UUID uuid) {
-        this.uuid = uuid;
+        this.uuid = uuid == null ? WirelessMasterLink.PUBLIC_NETWORK_UUID : WirelessTeamUtil.getNetworkOwnerUUID(uuid);
     }
 
     public void setFrequency(String frequency) {

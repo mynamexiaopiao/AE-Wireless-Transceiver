@@ -4,10 +4,7 @@ import appeng.api.networking.*;
 import appeng.api.util.AECableType;
 import com.aewireless.gui.wireless.WirelessMenu;
 import com.aewireless.register.ModRegister;
-import com.aewireless.wireless.IWirelessEndpoint;
-import com.aewireless.wireless.WirelessData;
-import com.aewireless.wireless.WirelessLink;
-import com.aewireless.wireless.WirelessMasterLink;
+import com.aewireless.wireless.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -22,7 +19,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -42,6 +38,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     private WirelessLink slaveLink;
     private String frequency = null;
     private UUID placerId; // 放置者UUID
+    private UUID playerId;
     private String placerName;
 
     private boolean mode = false;
@@ -136,7 +133,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         setChanged();
     }
 
-    public void setPlacerId(@Nullable UUID placerId, @Nullable String placerName) {
+    public void setPlacerId(@Nullable UUID placerId,@Nullable String placerName) {
         if (this.placerId != null && !this.placerId.equals(placerId)) {
             // 如果所有者改变，需要重新注册
             if (this.mode) {
@@ -166,14 +163,15 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     public void serverTick(Level level, BlockPos pos, BlockState state) {
 
         WirelessConnectBlockEntity blockEntity = (WirelessConnectBlockEntity)level.getBlockEntity(pos);
+        UUID id = WirelessTeamUtil.getNetworkOwnerUUID(placerId);
 
         //修复无法删除
-        if (WirelessData.containsData(blockEntity.getFrequency() , placerId)){
+        if (WirelessData.containsData(blockEntity.getFrequency() , id)){
             blockEntity.setFrequency(blockEntity.getFrequency());
         }
 
         //修复频道删除但保存问题
-        if (!WirelessData.containsData(blockEntity.getFrequency() , placerId)){
+        if (!WirelessData.containsData(blockEntity.getFrequency() , id)){
             if (!blockEntity.mode){
                 blockEntity.slaveLink.destroyConnection();
                 blockEntity.slaveLink.realUnregister();
@@ -295,6 +293,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         return this.getLevel().dimension();
     }
 
+
     public UUID getPlacerId() {
         return placerId;
     }
@@ -302,6 +301,8 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     public boolean isMode() {
         return mode;
     }
+
+
 
     @Override
     public ServerLevel getServerLevel() {

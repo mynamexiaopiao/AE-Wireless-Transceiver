@@ -4,6 +4,7 @@ package com.aewireless.gui.wireless;
 import com.aewireless.AeWireless;
 import com.aewireless.gui.RenderButton;
 import com.aewireless.gui.weights.CustomMaterialTextField;
+import com.aewireless.wireless.WirelessTeamUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -13,8 +14,6 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
-
-import java.util.UUID;
 
 /**
  * 创建一个二级窗口
@@ -77,7 +76,8 @@ public class InputChannelNameScreen extends Screen {
                 (button) -> {
                     String value = this.channelNameField.getValue();
 
-                    screen.addDataRow( value , UUID.fromString(screen.getMenu().getUUID()));
+                    //以团队uuid为输入标识存储数据
+                    screen.addDataRow(value);
                     Minecraft.getInstance().popGuiLayer();
                 },
                 DEFAULT_NARRATION
