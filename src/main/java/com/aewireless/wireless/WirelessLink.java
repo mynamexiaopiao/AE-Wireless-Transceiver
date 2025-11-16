@@ -41,8 +41,9 @@ public class WirelessLink {
             destroyConnection();
             return;
         }
+        UUID uuid1 = WirelessTeamUtil.getNetworkOwnerUUID(uuid);
 
-        IWirelessEndpoint master = WirelessData.getData(frequency, uuid);
+        IWirelessEndpoint master = WirelessData.getData(frequency, uuid1);
         if (master == null || master.isEndpointRemoved()) {
             destroyConnection();
             return;
