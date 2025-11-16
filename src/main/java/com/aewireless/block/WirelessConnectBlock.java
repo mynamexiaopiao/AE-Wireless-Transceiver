@@ -89,13 +89,20 @@ public class WirelessConnectBlock extends Block implements EntityBlock {
 
             if (blockEntity instanceof WirelessConnectBlockEntity wirelessConnectBlockEntity) {
                 //判断打开界面玩家团队和放置者团队是否一致
-                if (WirelessTeamUtil.getNetworkOwnerUUID(player.getUUID()).equals(WirelessTeamUtil.getNetworkOwnerUUID(wirelessConnectBlockEntity.getPlacerId()))){
+                if (wirelessConnectBlockEntity.getPlacerId() != null){
+                    if ( WirelessTeamUtil.getNetworkOwnerUUID(
+                            player.getUUID()).equals(WirelessTeamUtil.getNetworkOwnerUUID(wirelessConnectBlockEntity.getPlacerId())) ) {
+                        NetworkHooks.openScreen((ServerPlayer) player, wirelessConnectBlockEntity , pos);
+                        return InteractionResult.SUCCESS;
+                    } else {
+                        player.displayClientMessage(Component.translatable("aewireless.tooltip.failopen" ,
+                                WirelessTeamUtil.getNetworkOwnerName(wirelessConnectBlockEntity.getServerLevel() ,wirelessConnectBlockEntity.getPlacerId())), true);
+                        return InteractionResult.CONSUME;
+                    }
+                }else {
+                    wirelessConnectBlockEntity.setPlacerId(player.getUUID(), player.getName().getString());
                     NetworkHooks.openScreen((ServerPlayer) player, wirelessConnectBlockEntity , pos);
                     return InteractionResult.SUCCESS;
-                }else {
-                    player.displayClientMessage(Component.translatable("aewireless.tooltip.failopen" ,
-                            WirelessTeamUtil.getNetworkOwnerName(wirelessConnectBlockEntity.getServerLevel() ,wirelessConnectBlockEntity.getPlacerId())), true);
-                    return InteractionResult.CONSUME;
                 }
 
 

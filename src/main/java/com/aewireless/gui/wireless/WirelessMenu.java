@@ -23,8 +23,7 @@ public class WirelessMenu extends AEBaseMenu {
     @GuiSync(0)
     private boolean mode;
 
-    @GuiSync(2)
-    private String uuid;
+
 
     private final ContainerData data;
 
@@ -41,7 +40,6 @@ public class WirelessMenu extends AEBaseMenu {
 
         this.currentFrequency = host.getFrequency();
         this.mode = host.isMode();
-        this.uuid = host.getPlacerId().toString();
 
         this.data = data;
 
@@ -57,9 +55,6 @@ public class WirelessMenu extends AEBaseMenu {
         return currentFrequency;
     }
 
-    public String getUUID() {
-        return uuid;
-    }
 
     public void setFrequency(String frequency) {
         this.blockEntity.setFrequency(frequency);

@@ -46,6 +46,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     public WirelessConnectBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModRegister.WIRELESS_TRANSCEIVER_ENTITY.get(), pos, blockState);
 
+
         this.managedNode = GridHelper.createManagedNode(this, (nodeOwner, node) -> {nodeOwner.setChanged();})
                 .setFlags(GridFlags.DENSE_CAPACITY);
 
@@ -163,7 +164,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     public void serverTick(Level level, BlockPos pos, BlockState state) {
 
         WirelessConnectBlockEntity blockEntity = (WirelessConnectBlockEntity)level.getBlockEntity(pos);
-        UUID id = WirelessTeamUtil.getNetworkOwnerUUID(placerId);
+        UUID id = placerId == null ? WirelessMasterLink.PUBLIC_NETWORK_UUID :WirelessTeamUtil.getNetworkOwnerUUID(placerId);
 
         //修复无法删除
         if (WirelessData.containsData(blockEntity.getFrequency() , id)){
