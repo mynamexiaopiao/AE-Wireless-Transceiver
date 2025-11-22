@@ -13,7 +13,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class WirelessMenu extends AEBaseMenu {
-//    public static final MenuType<WirelessMenu> TYPE = MenuTypeBuilder.create((WirelessMenu::new), WirelessConnectBlockEntity.class).build("wireless");
 
     WirelessConnectBlockEntity blockEntity;
 
@@ -22,8 +21,6 @@ public class WirelessMenu extends AEBaseMenu {
 
     @GuiSync(0)
     private boolean mode;
-
-
 
     private final ContainerData data;
 
@@ -34,7 +31,6 @@ public class WirelessMenu extends AEBaseMenu {
     public WirelessMenu( int id, Inventory playerInventory, WirelessConnectBlockEntity host, ContainerData data) {
         super(ModRegister.WIRELESS_MENU.get(), id, playerInventory, host);
 
-//        this.createPlayerInventorySlots(playerInventory);
 
         this.blockEntity = host;
 

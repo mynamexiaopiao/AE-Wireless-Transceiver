@@ -4,6 +4,7 @@ import appeng.api.networking.GridHelper;
 import appeng.api.networking.IGridConnection;
 import appeng.api.networking.IGridNode;
 import appeng.me.service.helpers.ConnectionWrapper;
+import com.aewireless.AeWireless;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -20,7 +21,11 @@ public class WirelessLink {
     }
 
     public void setUuid(UUID uuid) {
-        this.uuid = uuid == null ? WirelessMasterLink.PUBLIC_NETWORK_UUID : WirelessTeamUtil.getNetworkOwnerUUID(uuid);
+        this.uuid = uuid == null ? AeWireless.PUBLIC_NETWORK_UUID : WirelessTeamUtil.getNetworkOwnerUUID(uuid);
+
+        if (!AeWireless.IS_FTB_TEAMS_LOADED){
+            this.uuid  = AeWireless.PUBLIC_NETWORK_UUID;
+        }
     }
 
     public void setFrequency(String frequency) {
@@ -41,7 +46,7 @@ public class WirelessLink {
             destroyConnection();
             return;
         }
-        UUID uuid1 = uuid == null ?WirelessMasterLink.PUBLIC_NETWORK_UUID :WirelessTeamUtil.getNetworkOwnerUUID(uuid);
+        UUID uuid1 = uuid == null ? AeWireless.PUBLIC_NETWORK_UUID :WirelessTeamUtil.getNetworkOwnerUUID(uuid);
 
         IWirelessEndpoint master = WirelessData.getData(frequency, uuid1);
         if (master == null || master.isEndpointRemoved()) {

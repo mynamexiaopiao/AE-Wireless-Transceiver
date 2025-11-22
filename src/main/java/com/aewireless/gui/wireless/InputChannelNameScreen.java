@@ -2,9 +2,8 @@
 package com.aewireless.gui.wireless;
 
 import com.aewireless.AeWireless;
-import com.aewireless.gui.RenderButton;
+import com.aewireless.gui.weights.RenderButton;
 import com.aewireless.gui.weights.CustomMaterialTextField;
-import com.aewireless.wireless.WirelessTeamUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -35,7 +34,6 @@ public class InputChannelNameScreen extends Screen {
     protected InputChannelNameScreen(WirelessScreen screen) {
         super(Component.translatable("gui.input_channel_name_screen.title"));
         this.screen = screen;
-
     }
 
     @Override
@@ -58,14 +56,10 @@ public class InputChannelNameScreen extends Screen {
         // 设置占位符文本
         channelNameField.setPlaceholder(Component.translatable("gui.input_channel_name_screen.placeholder"));
 
-
-
         // 设置最大字符数
         channelNameField.setMaxLength(10);
 
         this.addRenderableWidget(channelNameField);
-
-
 
         this.addRenderableWidget(new RenderButton(
                 windowX + 30,
@@ -76,7 +70,6 @@ public class InputChannelNameScreen extends Screen {
                 (button) -> {
                     String value = this.channelNameField.getValue();
 
-                    //以团队uuid为输入标识存储数据
                     screen.addDataRow(value);
                     Minecraft.getInstance().popGuiLayer();
                 },

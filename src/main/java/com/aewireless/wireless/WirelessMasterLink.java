@@ -1,5 +1,7 @@
 package com.aewireless.wireless;
 
+import com.aewireless.AeWireless;
+
 import java.util.UUID;
 
 public class WirelessMasterLink {
@@ -7,7 +9,6 @@ public class WirelessMasterLink {
     private String  frequency;
     private boolean registered;
     private UUID uuid;
-    public static final UUID PUBLIC_NETWORK_UUID = new UUID(0, 0);
 
     public WirelessMasterLink(IWirelessEndpoint host) {
         this.host = host;
@@ -15,7 +16,11 @@ public class WirelessMasterLink {
 
     public void setUuid(UUID uuid) {
         // 设置网络所有者UUID
-        this.uuid = uuid != null ?WirelessTeamUtil.getNetworkOwnerUUID(uuid) : PUBLIC_NETWORK_UUID;
+        this.uuid = uuid != null ?WirelessTeamUtil.getNetworkOwnerUUID(uuid) : AeWireless.PUBLIC_NETWORK_UUID;
+
+        if (!AeWireless.IS_FTB_TEAMS_LOADED){
+            this.uuid  = AeWireless.PUBLIC_NETWORK_UUID;
+        }
     }
 
     public String getFrequency() {
@@ -30,7 +35,11 @@ public class WirelessMasterLink {
         }
         this.frequency = frequency;
 
-        uuid = uuid != null ? WirelessTeamUtil.getNetworkOwnerUUID(uuid) : PUBLIC_NETWORK_UUID;
+        uuid = uuid != null ? WirelessTeamUtil.getNetworkOwnerUUID(uuid) : AeWireless.PUBLIC_NETWORK_UUID;
+
+        if (!AeWireless.IS_FTB_TEAMS_LOADED){
+            uuid  = AeWireless.PUBLIC_NETWORK_UUID;
+        }
 
         if (!frequency.isEmpty() && !host.isEndpointRemoved() &&
                 WirelessData.containsData(frequency , uuid) ) {

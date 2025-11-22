@@ -1,5 +1,6 @@
 package com.aewireless.network.packet;
 
+import com.aewireless.AeWireless;
 import com.aewireless.gui.wireless.WirelessMenu;
 import com.aewireless.wireless.WirelessData;
 import com.aewireless.wireless.WirelessTeamUtil;
@@ -113,7 +114,7 @@ public class MenuDataPacket {
                         // 在服务端添加频道
                         if (channels != null && !channels.isEmpty()) {
                             // 使用服务端计算出的队伍/网络拥有者 UUID，拒绝信任客户端发来的 uuid 字段
-                            UUID teamId = WirelessTeamUtil.getNetworkOwnerUUID(player.getUUID());
+                            UUID teamId = AeWireless.IS_FTB_TEAMS_LOADED ? WirelessTeamUtil.getNetworkOwnerUUID(player.getUUID()) :AeWireless.PUBLIC_NETWORK_UUID;
                             for (String channel : channels) {
                                 if (channel != null && !channel.isEmpty() &&
                                         !WirelessData.containsData(channel , teamId)) {
@@ -126,7 +127,7 @@ public class MenuDataPacket {
                         // 在服务端删除频道
                         if (channels != null && !channels.isEmpty()) {
                             // 使用服务端计算出的队伍/网络拥有者 UUID
-                            UUID teamId = WirelessTeamUtil.getNetworkOwnerUUID(player.getUUID());
+                            UUID teamId = AeWireless.IS_FTB_TEAMS_LOADED ? WirelessTeamUtil.getNetworkOwnerUUID(player.getUUID()) :AeWireless.PUBLIC_NETWORK_UUID;
                             for (String channel : channels) {
                                 if (channel != null && !channel.isEmpty()) {
                                     WirelessData.removeData(channel , teamId);

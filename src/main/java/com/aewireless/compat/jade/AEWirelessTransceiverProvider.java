@@ -66,10 +66,10 @@ public enum AEWirelessTransceiverProvider implements IServerDataProvider<BlockAc
 
             // 添加所有者信息（有FTBTeams时显示团队，否则显示玩家）
             var placerId = blockEntity.getPlacerId();
-            if (placerId != null) {
+            if (placerId != null && AeWireless.IS_FTB_TEAMS_LOADED && !placerId.equals(AeWireless.PUBLIC_NETWORK_UUID)) {
                 data.putUUID("placerId", placerId);
                 var level = blockEntity.getServerLevel();
-                if (level != null) {
+                if (level != null ) {
                     // 使用WirelessTeamUtil自动判断显示团队或玩家名称
                     Component ownerName = WirelessTeamUtil.getNetworkOwnerName(level , placerId);
                     data.putString("ownerName", ownerName.getString());

@@ -1,5 +1,6 @@
 package com.aewireless.wireless;
 
+import com.aewireless.AeWireless;
 import com.aewireless.network.NetworkHandler;
 import com.aewireless.network.packet.WirelessDataUpdatePacket;
 import net.minecraft.client.Minecraft;
@@ -56,13 +57,10 @@ public class WirelessData {
         if (s.isEmpty())return;
         DATA.remove(new Key(s, uuid));
 
-
-
             // 通知所有相关客户端
             notifyClients(uuid, s, false);
 
     }
-
 
 
     public static synchronized IWirelessEndpoint getData(String s , UUID uuid){
@@ -80,12 +78,19 @@ public class WirelessData {
             PlayerList playerList = server.getPlayerList();
             if (playerList != null) {
                 for (ServerPlayer player : playerList.getPlayers()) {
-                    UUID playerTeamId = WirelessTeamUtil.getNetworkOwnerUUID(player.getUUID());
-                    if (playerTeamId.equals(teamId)) {
+                    if (AeWireless.IS_FTB_TEAMS_LOADED){
+                        UUID playerTeamId = WirelessTeamUtil.getNetworkOwnerUUID(player.getUUID());
+                        if (playerTeamId.equals(teamId) ) {
+                            NetworkHandler.sendToPlayer(
+                                    new WirelessDataUpdatePacket(data, isAdd),
+                                    player
+                            );
+                        }
+                    }else {
                         NetworkHandler.sendToPlayer(
                                 new WirelessDataUpdatePacket(data, isAdd),
-                                player
-                        );
+                                player);
+
                     }
                 }
             }

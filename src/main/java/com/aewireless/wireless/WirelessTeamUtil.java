@@ -1,5 +1,6 @@
 package com.aewireless.wireless;
 
+import com.aewireless.AeWireless;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,7 +14,6 @@ import java.util.UUID;
  */
 public class WirelessTeamUtil {
 
-    private static final boolean IS_FTB_TEAMS_LOADED = ModList.get().isLoaded("ftbteams");
 
     /**
      * 获取用于无线网络隔离的UUID
@@ -28,7 +28,7 @@ public class WirelessTeamUtil {
             return null;
         }
 
-        if (!IS_FTB_TEAMS_LOADED) {
+        if (!AeWireless.IS_FTB_TEAMS_LOADED) {
             return playerUUID;
         }
 
@@ -170,7 +170,7 @@ public class WirelessTeamUtil {
      * @return 显示名称
      */
     public static Component getNetworkOwnerName(@Nullable ServerLevel level, UUID playerUUID) {
-        if (IS_FTB_TEAMS_LOADED ) {
+        if (AeWireless.IS_FTB_TEAMS_LOADED ) {
             try {
                 return getTeamName(level, playerUUID);
             } catch (Exception ignored) {

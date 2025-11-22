@@ -4,29 +4,27 @@ import appeng.client.gui.AEBaseScreen;
 import appeng.client.gui.style.ScreenStyle;
 import appeng.client.gui.widgets.*;
 import appeng.core.AppEng;
+import com.aewireless.AeWireless;
 import com.aewireless.ModConfig;
-import com.aewireless.gui.RenderButton;
+import com.aewireless.gui.weights.RenderButton;
 import com.aewireless.network.packet.MenuDataPacket;
 import com.aewireless.network.NetworkHandler;
 import com.aewireless.network.packet.RequestWirelessDataPacket;
-import com.aewireless.wireless.WirelessData;
 import com.aewireless.wireless.WirelessTeamUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     Scrollbar scrollbar;
@@ -35,7 +33,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     //可见行数
     private final int visibleRows = 8;
     //每行的像素
-    protected static final Button.CreateNarration DEFAULT_NARRATION = (supplier) -> (MutableComponent)supplier.get();
+    protected static final Button.CreateNarration DEFAULT_NARRATION = Supplier::get;
     private final int rowHeight = 12;
     public final ArrayList<String> allDataRows = new ArrayList<>();
     private final ArrayList<String> filteredDataRows = new ArrayList<>(); // 新增：用于存储过滤后的数据
@@ -50,21 +48,20 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     private final int listWidth = 80; //列表宽度
     private int listHeight; // 列表总高度
 
-    private final float fontScale = 1f;
-
     //放置玩家的uuid
-    private UUID uuid;
+    private final UUID uuid;
 
-    private RenderButton addButton;
-    private RenderButton removeButton;
-    private RenderButton modeButton;
-    private RenderButton disconnect;
+    private final RenderButton addButton;
+    private final RenderButton removeButton;
+    private final RenderButton modeButton;
+    private final RenderButton disconnect;
 
     @SuppressWarnings("all")
     public WirelessScreen(WirelessMenu menu, Inventory playerInventory, Component title, ScreenStyle style){
         super(menu, playerInventory, title, style);
 
-        uuid  = WirelessTeamUtil.getNetworkOwnerUUID(this.getMenu().getPlayer().getUUID());
+        // 统一通过 WirelessTeamUtil 获取网络拥有者 UUID（当未加载 FTB Teams 时会回退为玩家 UUID）
+        uuid = AeWireless.IS_FTB_TEAMS_LOADED ? WirelessTeamUtil.getNetworkOwnerUUID(this.getMenu().getPlayer().getUUID()) : AeWireless.PUBLIC_NETWORK_UUID;
 
         try{
             String highlightColor1 = ModConfig.highlightColor;
@@ -78,6 +75,8 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
             highlightColor = 0x3300FF00;
             highlightBorderColor = 0xFF00CC00;
         }
+
+
 
 
         scrollbar = this.widgets.addScrollBar("scrollbar", Scrollbar.Style.create(
@@ -166,13 +165,15 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         return (int) Long.parseLong(hexColor, 16);
     }
 
+
     @Override
     public void init() {
         super.init();
 
+
+
         // 向服务器请求当前数据快照
         NetworkHandler.sendToServer(new RequestWirelessDataPacket());
-
 
 
         listHeight = visibleRows * rowHeight;
@@ -228,7 +229,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
 
         if (isMouseOverList(mouseX, mouseY)) {
             int relativeY = (int) (mouseY - listY);
-            int hoveredIndex = (relativeY / rowHeight) + (int) scrollbar.getCurrentScroll();
+            int hoveredIndex = (relativeY / rowHeight) + scrollbar.getCurrentScroll();
 
             // 使用过滤后的列表而不是原始列表
             if (hoveredIndex >= 0 && hoveredIndex < filteredDataRows.size()) {
@@ -298,11 +299,6 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
             }
         }
 
-//        allDataRows.clear();
-//        allDataRows.addAll(keys);
-
-
-        // 更新过滤后的列表
         filterDataRows(input.getValue());
 
         this.highlightedRowIndex =  keys.indexOf(this.getMenu().getFrequency());
@@ -321,7 +317,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     }
 
     private void renderListContent(GuiGraphics guiGraphics) {
-        final int scrollLevel = (int) scrollbar.getCurrentScroll();
+        final int scrollLevel = scrollbar.getCurrentScroll();
         final int fontColor = 0xE0E0E0; // 更亮的字体颜色
 
         guiGraphics.pose().pushPose();
@@ -334,6 +330,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
                 int yPos = listY + (i * rowHeight);
 
                 guiGraphics.pose().pushPose();
+                float fontScale = 1f;
                 guiGraphics.pose().scale(fontScale, fontScale, 1.0f);
 
                 float scaledX = (listX + 5) / fontScale; // 增加左边距
@@ -345,7 +342,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
                 );
 
                 if (!displayText.equals(text) && displayText.length() > 3) {
-                    displayText = displayText.substring(0, displayText.length() ) + "...";
+                    displayText = displayText + "...";
                 }
 
                 // 添加阴影效果的文本
@@ -463,7 +460,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (isMouseOverList(mouseX, mouseY)) {
             int relativeY = (int) (mouseY - listY);
-            int clickedRowIndex = (relativeY / rowHeight) + (int) scrollbar.getCurrentScroll();
+            int clickedRowIndex = (relativeY / rowHeight) + scrollbar.getCurrentScroll();
 
             // 使用过滤后的列表而不是原始列表
             if (clickedRowIndex >= 0 && clickedRowIndex < filteredDataRows.size()) {
@@ -502,7 +499,6 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         if (data.isEmpty() || allDataRows.contains(data)) return;
         // 发送到服务端，不在客户端直接更新本地列表，等待服务器下发同步或增量更新
         NetworkHandler.sendToServer(new MenuDataPacket(data, MenuDataPacket.ActionType.ADD_CHANNEL , uuid));
-        // 可视化反馈（可选）：暂时高亮新项，但不入库，最终以服务器回包为准
     }
     public void showConfirmDeleteScreen( Runnable onConfirm) {
         Minecraft.getInstance().pushGuiLayer(new ConfirmDeleteScreen(onConfirm));
@@ -569,11 +565,5 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
             this.filterDataRows(this.input.getValue());
             this.resetScrollbar();
         }
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static boolean isPlayingOnServer() {
-        Minecraft mc = Minecraft.getInstance();
-        return mc.getSingleplayerServer() == null && mc.getCurrentServer() != null;
     }
 }

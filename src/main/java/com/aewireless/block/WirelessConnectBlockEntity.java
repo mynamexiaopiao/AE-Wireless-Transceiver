@@ -2,6 +2,7 @@ package com.aewireless.block;
 
 import appeng.api.networking.*;
 import appeng.api.util.AECableType;
+import com.aewireless.AeWireless;
 import com.aewireless.gui.wireless.WirelessMenu;
 import com.aewireless.register.ModRegister;
 import com.aewireless.wireless.*;
@@ -164,7 +165,11 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     public void serverTick(Level level, BlockPos pos, BlockState state) {
 
         WirelessConnectBlockEntity blockEntity = (WirelessConnectBlockEntity)level.getBlockEntity(pos);
-        UUID id = placerId == null ? WirelessMasterLink.PUBLIC_NETWORK_UUID :WirelessTeamUtil.getNetworkOwnerUUID(placerId);
+        UUID id = placerId == null ? AeWireless.PUBLIC_NETWORK_UUID :WirelessTeamUtil.getNetworkOwnerUUID(placerId);
+
+        if (!AeWireless.IS_FTB_TEAMS_LOADED){
+            id= AeWireless.PUBLIC_NETWORK_UUID;
+        }
 
         //修复无法删除
         if (WirelessData.containsData(blockEntity.getFrequency() , id)){
@@ -176,8 +181,6 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
             if (!blockEntity.mode){
                 blockEntity.slaveLink.destroyConnection();
                 blockEntity.slaveLink.realUnregister();
-            }else {
-//                blockEntity.masterLink.setNull();
             }
 
             blockEntity.frequency = null;

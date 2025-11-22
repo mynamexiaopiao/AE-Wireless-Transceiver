@@ -5,6 +5,7 @@ import com.aewireless.register.ModRegister;
 import com.aewireless.register.RegisterHandler;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -12,9 +13,15 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
+import java.util.UUID;
+
 @Mod(AeWireless.MOD_ID)
 public class AeWireless {
     public static final String MOD_ID = "aewireless";
+
+    public static final UUID PUBLIC_NETWORK_UUID = new UUID(0, 0);
+
+    public static final boolean IS_FTB_TEAMS_LOADED = ModList.get().isLoaded("ftbteams");
 
     @SuppressWarnings("all")
     public AeWireless() {
