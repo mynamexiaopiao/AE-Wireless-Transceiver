@@ -62,6 +62,17 @@ public enum WirelessConnectComponents implements IBlockComponentProvider {
                     tooltip.add(Component.translatable("aewireless.tooltip.channels_of", usedChannels, maxChannels));
                 }
             }
+            if (data.contains("ownerName")) {
+                String ownerName = data.getString("ownerName");
+                tooltip.add(Component.translatable("aewireless.tooltip.owner", ownerName));
+            } else if (data.contains("placerId")) {
+                // 有placerId但没有名称，显示UUID
+                java.util.UUID placerId = data.getUUID("placerId");
+                tooltip.add(Component.translatable("aewireless.tooltip.owner", placerId.toString().substring(0, 8) + "..."));
+            } else {
+                // 没有所有者信息（公共收发器）
+                tooltip.add(Component.translatable("aewireless.tooltip.owner.public"));
+            }
         }
     };
 

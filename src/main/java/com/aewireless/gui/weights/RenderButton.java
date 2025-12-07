@@ -1,6 +1,5 @@
-package com.aewireless.gui;
+package com.aewireless.gui.weights;
 
-import appeng.core.AppEng;
 import com.aewireless.AeWireless;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;

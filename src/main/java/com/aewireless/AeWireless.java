@@ -10,15 +10,23 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
+import java.util.UUID;
+
 @Mod(AeWireless.MOD_ID)
 public class AeWireless {
     public static final String MOD_ID = "aewireless";
+
+    public static final UUID PUBLIC_NETWORK_UUID = new UUID(0, 0);
+
+    public static final boolean IS_FTB_TEAMS_LOADED = ModList.get().isLoaded("ftbteams");
+
 
     @SuppressWarnings("all")
     public AeWireless(IEventBus modEventBus, ModContainer modContainer) {

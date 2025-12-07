@@ -4,51 +4,54 @@ import com.aewireless.wireless.IWirelessEndpoint;
 import com.aewireless.wireless.WirelessData;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.UUID;
 
 public class WirelessWorldData extends SavedData {
-    Map<String, IWirelessEndpoint> data;
+    Map<WirelessData.Key, IWirelessEndpoint> data;
 
-    public WirelessWorldData(Map<String, IWirelessEndpoint> data){
+    public WirelessWorldData(Map<WirelessData.Key, IWirelessEndpoint> data){
         this.data = data;
     }
 
-    public WirelessWorldData(){
-        // 默认构造函数
-    }
-
     @Override
-    public CompoundTag save(CompoundTag arg, HolderLookup.Provider status) {
+    public CompoundTag save(CompoundTag tag, HolderLookup.Provider provider) {
         // 保存端点数据
-        CompoundTag endpointsTag = new CompoundTag();
+        ListTag endpointsList = new ListTag();
 
-        int i = 0;
-        for (Map.Entry<String, IWirelessEndpoint> entry : data.entrySet()) {
-            endpointsTag.putString("" + i, entry.getKey());
-            i++;
+        for (Map.Entry<WirelessData.Key, IWirelessEndpoint> entry : data.entrySet()) {
+            CompoundTag entryTag = new CompoundTag();
+            entryTag.putString("string", entry.getKey().string());
+            entryTag.putUUID("uuid", entry.getKey().uuid());
+            endpointsList.add(entryTag);
         }
 
-        arg.put("wirelessString" , endpointsTag);
-        return arg;
+        tag.put("endpoints", endpointsList);
+        return tag;
     }
 
-    public void loadFromNBT(CompoundTag tag) {
+    public void loadFromNBT(CompoundTag tag, HolderLookup.Provider provider) {
         data.clear();
 
-        if (tag.contains("wirelessString")) {
-            CompoundTag endpointsTag = tag.getCompound("wirelessString");
+        if (tag.contains("endpoints", Tag.TAG_LIST)) {
+            ListTag endpointsList = tag.getList("endpoints", Tag.TAG_COMPOUND);
 
-            // 遍历所有保存的键值
-            for (String key : endpointsTag.getAllKeys()) {
+            for (int i = 0; i < endpointsList.size(); i++) {
+                CompoundTag entryTag = endpointsList.getCompound(i);
                 try {
-                    String frequencyString = endpointsTag.getString(key);
-                    if (frequencyString != null && !frequencyString.isEmpty()) {
-                        data.put(frequencyString, null);
+                    String frequencyString = entryTag.getString("string");
+                    UUID uuid = entryTag.getUUID("uuid");
+
+                    if (!frequencyString.isEmpty()) {
+                        data.put(new WirelessData.Key(frequencyString, uuid), null);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -62,13 +65,12 @@ public class WirelessWorldData extends SavedData {
             DimensionDataStorage storage = serverLevel.getDataStorage();
             return storage.computeIfAbsent(
                     new SavedData.Factory<>(
-                            () -> new WirelessWorldData(WirelessData.DATA),
-                            (tag , provider) -> {
-                                WirelessWorldData data = new WirelessWorldData(WirelessData.DATA);
-                                data.loadFromNBT(tag);
+                            () -> new WirelessWorldData(WirelessData.getDATAMap()),
+                            (tag, provider) -> {
+                                WirelessWorldData data = new WirelessWorldData(WirelessData.getDATAMap());
+                                data.loadFromNBT(tag, provider);
                                 return data;
-                            },
-                            null
+                            }
                     ),
                     "wireless_world_data"
             );

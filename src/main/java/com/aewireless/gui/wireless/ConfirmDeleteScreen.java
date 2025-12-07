@@ -1,19 +1,16 @@
 package com.aewireless.gui.wireless;
 
 import com.aewireless.AeWireless;
-import com.aewireless.gui.RenderButton;
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.aewireless.gui.weights.RenderButton;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 
 public class ConfirmDeleteScreen extends Screen {
-    private final String itemToDelete;
     private final Runnable onConfirm;
     protected static final Button.CreateNarration DEFAULT_NARRATION = (supplier) -> (MutableComponent)supplier.get();
 
@@ -25,9 +22,8 @@ public class ConfirmDeleteScreen extends Screen {
     private final int buttonWidth = 40;
     private final int buttonHeight = 15;
 
-    protected ConfirmDeleteScreen( String itemToDelete, Runnable onConfirm) {
+    protected ConfirmDeleteScreen(Runnable onConfirm) {
         super(Component.translatable("gui.confirm_delete.title"));
-        this.itemToDelete = itemToDelete;
         this.onConfirm = onConfirm;
     }
 
@@ -77,7 +73,7 @@ public class ConfirmDeleteScreen extends Screen {
         int windowX = (this.width - windowWidth) / 2;
         int windowY = (this.height - windowHeight) / 2;
 
-        Component title = Component.translatable("gui.confirm_delete.message", itemToDelete);
+        Component title = Component.translatable("gui.confirm_delete.message");
         int textWidth = this.font.width(title);
         guiGraphics.drawString(
                 this.font,

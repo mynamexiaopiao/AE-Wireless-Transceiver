@@ -2,8 +2,10 @@
   "required": true,
   "package": "com.aewireless.mixin",
   "mixins": [
+    "VerticalButtonBarMixin"
   ],
   "client": [
+    "AEBaseScreenMixin",
     "AETextFieldMixin"
   ],
   "server": [

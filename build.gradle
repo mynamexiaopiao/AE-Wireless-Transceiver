@@ -151,11 +151,16 @@ configurations {
 
 dependencies {
 
-    implementation "org.appliedenergistics:appliedenergistics2:19.2.8"
+    implementation "org.appliedenergistics:appliedenergistics2:19.2.13"
     implementation "org.appliedenergistics:guideme:2.5.1"
 
 
     implementation "curse.maven:jade-324717:6853386"
+
+
+    implementation "curse.maven:ftb-teams-forge-404468:7209616"
+    implementation "curse.maven:architectury-api-419699:5786327"
+    implementation "curse.maven:ftb-library-forge-404465:7260617"
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"

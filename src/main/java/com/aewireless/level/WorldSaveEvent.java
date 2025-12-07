@@ -22,8 +22,7 @@ public class WorldSaveEvent {
             WirelessWorldData worldData = WirelessWorldData.get(event.getLevel().getServer().getLevel(Level.OVERWORLD));
 
             if (worldData != null && !worldData.data.isEmpty()){
-                WirelessData.DATA = worldData.data;
-
+                WirelessData.setDATAMap(worldData.data);
             }
         }
     }
@@ -41,6 +40,11 @@ public class WorldSaveEvent {
 
     @SubscribeEvent
     public static void onServerStopped(ServerStoppingEvent event) {
-        WirelessData.DATA.clear();
+        WirelessWorldData worldData = WirelessWorldData.get(event.getServer().getLevel(Level.OVERWORLD));
+        if (worldData != null) {
+            worldData.data = new HashMap<>(WirelessData.getDATAMap());
+            worldData.setDirty();
+        }
+        WirelessData.clearData();
     }
 }

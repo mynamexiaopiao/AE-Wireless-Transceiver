@@ -2,7 +2,7 @@
 package com.aewireless.gui.wireless;
 
 import com.aewireless.AeWireless;
-import com.aewireless.gui.RenderButton;
+import com.aewireless.gui.weights.RenderButton;
 import com.aewireless.gui.weights.CustomMaterialTextField;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;

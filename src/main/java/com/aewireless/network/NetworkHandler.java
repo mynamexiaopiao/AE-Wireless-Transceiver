@@ -1,9 +1,11 @@
 package com.aewireless.network;
 
-import com.aewireless.AeWireless;
-import net.minecraft.resources.ResourceLocation;
+import com.aewireless.network.packet.MenuDataPacket;
+import com.aewireless.network.packet.RequestWirelessDataPacket;
+import com.aewireless.network.packet.SyncWirelessDataPacket;
+import com.aewireless.network.packet.WirelessDataUpdatePacket;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -24,18 +26,35 @@ public class NetworkHandler {
                 MenuDataPacket::handle
         );
 
-        registrar.playToClient(
-                WirelessDataSyncPacket.ID,
-                WirelessDataSyncPacket.STREAM_CODEC,
-                WirelessDataSyncPacket::handle
+
+
+        registrar.playToServer(
+                RequestWirelessDataPacket.TYPE,
+                RequestWirelessDataPacket.STREAM_CODEC,
+                RequestWirelessDataPacket::handle
         );
+
+        registrar.playToClient(
+                SyncWirelessDataPacket.TYPE,
+                SyncWirelessDataPacket.STREAM_CODEC,
+                SyncWirelessDataPacket::handle
+        );
+
+        registrar.playToClient(
+                WirelessDataUpdatePacket.TYPE,
+                WirelessDataUpdatePacket.STREAM_CODEC,
+                WirelessDataUpdatePacket::handle
+        );
+
+
     }
 
-    public static void sendToServer(MenuDataPacket msg) {
+    public static void sendToServer(CustomPacketPayload msg) {
         PacketDistributor.sendToServer(msg);
     }
 
-    public static void sendToClient(WirelessDataSyncPacket msg, ServerPlayer player) {
-        PacketDistributor.sendToPlayer( player,msg);
+
+    public static void sendToPlayer(CustomPacketPayload packet, ServerPlayer sender) {
+        PacketDistributor.sendToPlayer(sender,packet);
     }
 }

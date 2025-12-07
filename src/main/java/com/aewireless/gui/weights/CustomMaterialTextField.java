@@ -33,7 +33,7 @@ public class CustomMaterialTextField extends EditBox implements IResizableWidget
         super(font, x + PADDING, y + PADDING,
                 width - 2 * PADDING - font.width("_"), height - 2 * PADDING,
                 narration);
-        this.setBordered(false); // 关闭默认边框，以便使用自定义纹理
+        this.setBordered(false);
     }
 
     // 设置背景纹理
@@ -71,7 +71,7 @@ public class CustomMaterialTextField extends EditBox implements IResizableWidget
 
         // 如果没有输入文本且未聚焦，绘制占位符
         if (this.placeholder != null && !this.isFocused() && this.getValue().isEmpty()) {
-            int placeholderColor = 0xFF9B9B9B; // 灰色占位符颜色
+            int placeholderColor = 0xFF9B9B9B;
             guiGraphics.drawString(this.font, this.placeholder, this.getX(), this.getY(), placeholderColor, false);
         }
     }

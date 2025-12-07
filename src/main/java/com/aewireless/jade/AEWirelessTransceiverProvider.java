@@ -6,8 +6,10 @@ import com.aewireless.AeWireless;
 import com.aewireless.block.WirelessConnectBlockEntity;
 import com.aewireless.wireless.IWirelessEndpoint;
 import com.aewireless.wireless.WirelessData;
+import com.aewireless.wireless.WirelessTeamUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IServerDataProvider;
@@ -36,7 +38,6 @@ public enum AEWirelessTransceiverProvider implements IServerDataProvider<BlockAc
                 try {
                     networkUsable = grid.getEnergyService().isNetworkPowered();
                 } catch (Throwable ignored) {
-                    networkUsable = false;
                 }
             }
 
@@ -53,7 +54,8 @@ public enum AEWirelessTransceiverProvider implements IServerDataProvider<BlockAc
                 if (node instanceof appeng.me.GridNode gridNode) {
                     var channelMode = gridNode.getGrid().getPathingService().getChannelMode();
                     if (channelMode == appeng.api.networking.pathing.ChannelMode.INFINITE) {
-                        maxChannels = -1; // 无限频道
+                        // 无限频道
+                        maxChannels = -1;
                     } else {
                         maxChannels = gridNode.getMaxChannels();
                     }
@@ -62,20 +64,29 @@ public enum AEWirelessTransceiverProvider implements IServerDataProvider<BlockAc
             data.putInt("usedChannels", usedChannels);
             data.putInt("maxChannels", maxChannels);
 
+            // 添加所有者信息（有FTBTeams时显示团队，否则显示玩家）
+            var placerId = blockEntity.getPlacerId();
+            if (placerId != null && AeWireless.IS_FTB_TEAMS_LOADED && !placerId.equals(AeWireless.PUBLIC_NETWORK_UUID)) {
+                data.putUUID("placerId", placerId);
+                var level = blockEntity.getServerLevel();
+                if (level != null ) {
+                    // 使用WirelessTeamUtil自动判断显示团队或玩家名称
+                    Component ownerName = WirelessTeamUtil.getNetworkOwnerName(level , placerId);
+                    data.putString("ownerName", ownerName.getString());
+                }
+            }
 
-            // 如果是从模式，查询主节点位置与维度
             if (!blockEntity.isMode() && blockEntity.getFrequency() != null) {
                 String freq = blockEntity.getFrequency();
 
-                IWirelessEndpoint master = WirelessData.getData(freq);
+                IWirelessEndpoint master = WirelessData.getData(freq , !AeWireless.IS_FTB_TEAMS_LOADED ? AeWireless.PUBLIC_NETWORK_UUID : WirelessTeamUtil.getNetworkOwnerUUID(placerId) );
                 if (master != null && !master.isEndpointRemoved()) {
-
                     BlockPos pos = master.getBlockPos();
                     if (pos != null) {
                         data.putLong("masterPos", pos.asLong());
                     }
 
-                    data.putString("masterDim", master.getDimension().location().toString());
+                    data.putString("masterDim", master.getDimension().location().toLanguageKey());
 
                 }
             }
@@ -83,7 +94,6 @@ public enum AEWirelessTransceiverProvider implements IServerDataProvider<BlockAc
 
 
     }
-
     @Override
     public ResourceLocation getUid() {
         return UID;

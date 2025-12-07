@@ -4,6 +4,8 @@
   "gui.wireless.mode": "is the sender",
   "gui.wireless.add": "add",
   "gui.wireless.remove": "remove",
+  "gui.input_channel_name_screen.placeholder": "Enter channel name",
+  "gui.wireless.input.placeholder": "search...",
   "gui.wireless.mode.toggle": "mode",
   "gui.wireless.mode.channel": "channel",
   "gui.wireless.mode.disconnect": "disconnect",
@@ -13,9 +15,14 @@
   "aewireless.tooltip.master": "Mode: %s",
   "aewireless.tooltip.channels": "Channel: %s",
   "aewireless.tooltip.channels_of": "Channel: %d / %d",
+  "aewireless.tooltip.owner": "Owner: %s",
+  "aewireless.tooltip.owner.unset": "Owner: Unset",
+  "aewireless.tooltip.owner.public": "Owner: Public",
+
+  "aewireless.tooltip.failopen": "This is %s's wireless transceiver, you don't have permission to open it.",
+
+
   "config.jade.plugin_aewireless.wireless_tooltip": "AE Wireless Transceiver Info",
-  "gui.input_channel_name_screen.placeholder": "Enter channel name",
-  "gui.wireless.input.placeholder": "search...",
 
   "aewireless.jade.tooltip.masterpos": "Master Node Position",
   "aewireless.jade.tooltip.dimension": "Dimension",
