@@ -4,13 +4,10 @@ import appeng.menu.AEBaseMenu;
 import appeng.menu.guisync.GuiSync;
 import com.aewireless.block.WirelessConnectBlockEntity;
 import com.aewireless.register.ModRegister;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class WirelessMenu extends AEBaseMenu {
 
@@ -58,13 +55,6 @@ public class WirelessMenu extends AEBaseMenu {
 
         broadcastChanges();
     }
-
-    @OnlyIn(Dist.CLIENT)
-    public static boolean isPlayingOnServer() {
-        Minecraft mc = Minecraft.getInstance();
-        return mc.getSingleplayerServer() == null && mc.getConnection() != null;
-    }
-
 
     public void setMode(boolean mode) {
         blockEntity.setMasterMode( mode);

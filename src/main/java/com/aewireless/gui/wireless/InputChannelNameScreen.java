@@ -11,8 +11,10 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Supplier;
 
 /**
  * 创建一个二级窗口
@@ -21,18 +23,15 @@ import net.minecraft.resources.ResourceLocation;
 public class InputChannelNameScreen extends Screen {
     private CustomMaterialTextField channelNameField;
     WirelessScreen screen;
-    protected static final Button.CreateNarration DEFAULT_NARRATION = (supplier) -> (MutableComponent)supplier.get();
+    protected static final Button.CreateNarration DEFAULT_NARRATION = Supplier::get;
 
     // 窗口尺寸
     protected final int windowWidth = 180;
     protected final int windowHeight = 64;
 
-    // 按钮尺寸
-    private final int buttonWidth = 40;
-    private final int buttonHeight = 15;
 
     protected InputChannelNameScreen(WirelessScreen screen) {
-        super(Component.translatable("gui.input_channel_name_screen.title"));
+        super(Component.translatable(""));
         this.screen = screen;
     }
 
@@ -50,7 +49,7 @@ public class InputChannelNameScreen extends Screen {
                 windowY + 13,
                 windowWidth - 40,
                 12,
-                Component.translatable("")//实测占位
+                Component.translatable("")
         );
 
         // 设置占位符文本
@@ -61,6 +60,8 @@ public class InputChannelNameScreen extends Screen {
 
         this.addRenderableWidget(channelNameField);
 
+        int buttonWidth = 40;
+        int buttonHeight = 15;
         this.addRenderableWidget(new RenderButton(
                 windowX + 30,
                 windowY + windowHeight - 25,
@@ -89,7 +90,7 @@ public class InputChannelNameScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics arg, int i, int j, float f) {
+    public void render(@NotNull GuiGraphics arg, int i, int j, float f) {
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);

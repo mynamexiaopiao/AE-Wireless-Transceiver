@@ -31,9 +31,7 @@ public class RenderButton extends Button {
 
     private int getTextureY() {
         int i = 0;
-        if (!this.active) {
-            i = 0;
-        } else if (this.isHoveredOrFocused()) {
+        if (this.isHoveredOrFocused()) {
             i = 1;
         }
 

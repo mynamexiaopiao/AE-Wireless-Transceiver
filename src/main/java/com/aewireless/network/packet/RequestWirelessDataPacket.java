@@ -11,8 +11,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-public class RequestWirelessDataPacket {
-    public RequestWirelessDataPacket() {}
+public  class RequestWirelessDataPacket {
 
     public static void encode(RequestWirelessDataPacket msg, FriendlyByteBuf buf) {
         // 无需内容

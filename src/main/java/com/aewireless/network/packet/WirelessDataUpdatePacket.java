@@ -25,13 +25,11 @@ public class WirelessDataUpdatePacket {
     }
 
     public static void handle(WirelessDataUpdatePacket msg, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            Minecraft.getInstance().execute(() -> {
-                if (Minecraft.getInstance().screen instanceof com.aewireless.gui.wireless.WirelessScreen screen) {
-                    screen.receiveServerDataIncremental(msg.data, msg.isAdd);
-                }
-            });
-        });
+        ctx.get().enqueueWork(() -> Minecraft.getInstance().execute(() -> {
+            if (Minecraft.getInstance().screen instanceof com.aewireless.gui.wireless.WirelessScreen screen) {
+                screen.receiveServerDataIncremental(msg.data, msg.isAdd);
+            }
+        }));
         ctx.get().setPacketHandled(true);
     }
 }

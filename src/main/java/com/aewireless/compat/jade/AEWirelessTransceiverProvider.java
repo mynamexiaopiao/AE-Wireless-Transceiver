@@ -38,7 +38,6 @@ public enum AEWirelessTransceiverProvider implements IServerDataProvider<BlockAc
                 try {
                     networkUsable = grid.getEnergyService().isNetworkPowered();
                 } catch (Throwable ignored) {
-                    networkUsable = false;
                 }
             }
 
@@ -55,7 +54,8 @@ public enum AEWirelessTransceiverProvider implements IServerDataProvider<BlockAc
                 if (node instanceof appeng.me.GridNode gridNode) {
                     var channelMode = gridNode.getGrid().getPathingService().getChannelMode();
                     if (channelMode == appeng.api.networking.pathing.ChannelMode.INFINITE) {
-                        maxChannels = -1; // 无限频道
+                        // 无限频道
+                        maxChannels = -1;
                     } else {
                         maxChannels = gridNode.getMaxChannels();
                     }
@@ -77,14 +77,11 @@ public enum AEWirelessTransceiverProvider implements IServerDataProvider<BlockAc
             }
 
             if (!blockEntity.isMode() && blockEntity.getFrequency() != null) {
-                var level = blockEntity.getLevel();
                 String freq = blockEntity.getFrequency();
 
-                IWirelessEndpoint master = WirelessData.getData(freq ,  placerId);
+                IWirelessEndpoint master = WirelessData.getData(freq , !AeWireless.IS_FTB_TEAMS_LOADED ? AeWireless.PUBLIC_NETWORK_UUID : WirelessTeamUtil.getNetworkOwnerUUID(placerId));
+
                 if (master != null && !master.isEndpointRemoved()) {
-//                    if (master instanceof WirelessConnectBlockEntity masterBlockEntity && masterBlockEntity.getCustomName() != null) {
-//                        data.putString("customName", masterBlockEntity.getCustomName().getString());
-//                    }
                     BlockPos pos = master.getBlockPos();
                     if (pos != null) {
                         data.putLong("masterPos", pos.asLong());

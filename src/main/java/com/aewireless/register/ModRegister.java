@@ -1,12 +1,9 @@
 package com.aewireless.register;
 
-import appeng.menu.AEBaseMenu;
-import appeng.menu.implementations.MenuTypeBuilder;
 import com.aewireless.AeWireless;
 import com.aewireless.block.WirelessConnectBlock;
 import com.aewireless.block.WirelessConnectBlockEntity;
 import com.aewireless.gui.wireless.WirelessMenu;
-import net.minecraft.client.resources.model.Material;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -18,8 +15,6 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Supplier;
 
 public class ModRegister {
@@ -45,13 +40,6 @@ public class ModRegister {
     public static final RegistryObject<MenuType<WirelessMenu>> WIRELESS_MENU =
             MENU_TYPES.register("wireless_menu", () -> IForgeMenuType.create(WirelessMenu::new));
 
-
-    private static <C extends AEBaseMenu, I> RegistryObject<MenuType<C>> reg(
-            String id, MenuTypeBuilder.MenuFactory<C, I> factory, Class<I> host) {
-
-        return MENU_TYPES.register(id,
-                () -> MenuTypeBuilder.create(factory, host).build(id));
-    }
 
     public static RegistryObject<Block> registerBlock(String name, Supplier<Block> blockSupplier) {
         RegistryObject<Block> block = BLOCKS.register(name, blockSupplier);

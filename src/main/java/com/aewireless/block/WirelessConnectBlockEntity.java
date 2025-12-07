@@ -24,6 +24,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
@@ -31,15 +32,15 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvider , IInWorldGridNodeHost , IWirelessEndpoint {
-    private IManagedGridNode managedNode;
+    private final IManagedGridNode managedNode;
     protected final ContainerData data;
 
 
-    private WirelessMasterLink masterLink;
-    private WirelessLink slaveLink;
+    private final WirelessMasterLink masterLink;
+    private final WirelessLink slaveLink;
     private String frequency = null;
-    private UUID placerId; // 放置者UUID
-    private UUID playerId;
+    // 放置者UUID
+    private UUID placerId;
     private String placerName;
 
     private boolean mode = false;
@@ -48,7 +49,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         super(ModRegister.WIRELESS_TRANSCEIVER_ENTITY.get(), pos, blockState);
 
 
-        this.managedNode = GridHelper.createManagedNode(this, (nodeOwner, node) -> {nodeOwner.setChanged();})
+        this.managedNode = GridHelper.createManagedNode(this, (nodeOwner, node) -> nodeOwner.setChanged())
                 .setFlags(GridFlags.DENSE_CAPACITY);
 
 
@@ -66,9 +67,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
             @Override
             public int get(int i) {
                 if (i == 0) {
-                    if (managedNode != null){
-                        return managedNode.isOnline() ? 1 : 0;
-                    }
+                    return managedNode.isOnline() ? 1 : 0;
                 }
                 return 0;
             }
@@ -172,13 +171,13 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         }
 
         //修复无法删除
-        if (WirelessData.containsData(blockEntity.getFrequency() , id)){
+        if (blockEntity != null && WirelessData.containsData(blockEntity.getFrequency(), id)) {
             blockEntity.setFrequency(blockEntity.getFrequency());
         }
 
         //修复频道删除但保存问题
-        if (!WirelessData.containsData(blockEntity.getFrequency() , id)){
-            if (!blockEntity.mode){
+        if (blockEntity != null && !WirelessData.containsData(blockEntity.getFrequency(), id)) {
+            if (!blockEntity.mode) {
                 blockEntity.slaveLink.destroyConnection();
                 blockEntity.slaveLink.realUnregister();
             }
@@ -205,17 +204,17 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
 
     @Override
-    public BlockPos getBlockPos() {
+    public @NotNull BlockPos getBlockPos() {
         return this.worldPosition;
     }
 
     @Override
-    public Component getDisplayName() {
+    public @NotNull Component getDisplayName() {
         return Component.translatable("block.aewireless.wireless_transceiver");
     }
 
     @Override
-    public @Nullable AbstractContainerMenu createMenu(int i, Inventory arg, Player arg2) {
+    public @Nullable AbstractContainerMenu createMenu(int i, @NotNull Inventory arg, @NotNull Player arg2) {
         return new WirelessMenu(i, arg, this , data);
     }
 
@@ -242,15 +241,13 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         ServerLevel sl1 = super.getLevel() instanceof ServerLevel sl ? sl : null;
         if (sl1 == null) return;
 
-        GridHelper.onFirstTick(this, be -> {
-            be.managedNode.create(be.getLevel(), be.getBlockPos());
-        });
+        GridHelper.onFirstTick(this, be -> be.managedNode.create(be.getLevel(), be.getBlockPos()));
     }
 
 
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
+    protected void saveAdditional(@NotNull CompoundTag tag) {
         super.saveAdditional(tag);
         tag.putBoolean("mode", mode);
 
@@ -267,7 +264,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
 
     @Override
-    public void load(CompoundTag tag) {
+    public void load(@NotNull CompoundTag tag) {
         super.load(tag);
         mode = tag.getBoolean("mode");
 
@@ -294,7 +291,10 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
     @Override
     public ResourceKey<Level> getDimension() {
-        return this.getLevel().dimension();
+        if (this.getLevel() != null) {
+            return this.getLevel().dimension();
+        }
+        return Level.OVERWORLD;
     }
 
 
@@ -314,7 +314,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         return lvl instanceof ServerLevel sl ? sl : null;
     }
     @Override
-    public CompoundTag getUpdateTag() {
+    public @NotNull CompoundTag getUpdateTag() {
         return saveWithoutMetadata();
     }
     @Override

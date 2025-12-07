@@ -21,7 +21,7 @@ public class WirelessWorldData extends SavedData {
 
 
     @Override
-    public @NotNull CompoundTag save(CompoundTag arg) {
+    public @NotNull CompoundTag save(@NotNull CompoundTag arg) {
         // 保存端点数据
         CompoundTag endpointsTag = new CompoundTag();
 
@@ -30,9 +30,6 @@ public class WirelessWorldData extends SavedData {
 
         int i = 0;
         for (Map.Entry<WirelessData.Key, IWirelessEndpoint> entry : data.entrySet()) {
-
-            //待考虑的优化
-//            if (data.get(entry.getKey()) != null) continue;
 
             endpointsTag.putString("string" + i, entry.getKey().string());
             uuidTag.putUUID("uuid" + i, entry.getKey().uuid());
@@ -53,7 +50,6 @@ public class WirelessWorldData extends SavedData {
             CompoundTag endpointsTag = tag.getCompound("wirelessString");
             CompoundTag uuidTag = tag.getCompound("wirelessUUID");
 
-            ArrayList<WirelessData.Key> keys = new ArrayList<>();
             ArrayList<String> strings = new ArrayList<>();
 
 
@@ -61,22 +57,18 @@ public class WirelessWorldData extends SavedData {
             for (String key : endpointsTag.getAllKeys()) {
                 try {
                     String frequencyString = endpointsTag.getString(key);
-//                    UUID uuid = uuidTag.getUUID(key);
-                    if (frequencyString != null && !frequencyString.isEmpty()) {
+                    if (!frequencyString.isEmpty()) {
 
                         strings.add(frequencyString);
-//                        data.put(new WirelessData.Key(frequencyString, uuid), null);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    throw new RuntimeException("Error loading wireless endpoint data from NBT");
                 }
             }
 
             for (int i = 0 ; i<uuidTag.size() ; i ++){
                 UUID uuid = uuidTag.getUUID(uuidTag.getAllKeys().toArray()[i].toString());
-                if (uuid != null) {
-                    data.put(new WirelessData.Key(strings.get( i), uuid), null);
-                }
+                data.put(new WirelessData.Key(strings.get(i), uuid), null);
             }
 
         }

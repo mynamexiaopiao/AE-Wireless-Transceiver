@@ -9,7 +9,6 @@ import appeng.client.Point;
 import appeng.client.gui.style.Blitter;
 import appeng.client.gui.widgets.IResizableWidget;
 import appeng.client.gui.widgets.ITooltip;
-import appeng.core.AppEng;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -17,6 +16,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * 参照AETextField，由于这个ae的组件只有在AEBaseScreen中才能使用，我这里要添加一个二级菜单，故重写一份。
@@ -52,7 +52,7 @@ public class CustomMaterialTextField extends EditBox implements IResizableWidget
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         if (!this.visible) return;
 
         // 先绘制自定义背景（如果设置了纹理）

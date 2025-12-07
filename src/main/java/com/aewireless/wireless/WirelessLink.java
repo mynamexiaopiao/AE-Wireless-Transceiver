@@ -21,7 +21,7 @@ public class WirelessLink {
     }
 
     public void setUuid(UUID uuid) {
-        this.uuid = uuid == null ? AeWireless.PUBLIC_NETWORK_UUID : WirelessTeamUtil.getNetworkOwnerUUID(uuid);
+        this.uuid = WirelessTeamUtil.getNetworkOwnerUUID(uuid);
 
         if (!AeWireless.IS_FTB_TEAMS_LOADED){
             this.uuid  = AeWireless.PUBLIC_NETWORK_UUID;
@@ -46,9 +46,9 @@ public class WirelessLink {
             destroyConnection();
             return;
         }
-        UUID uuid1 = uuid == null ? AeWireless.PUBLIC_NETWORK_UUID :WirelessTeamUtil.getNetworkOwnerUUID(uuid);
 
-        IWirelessEndpoint master = WirelessData.getData(frequency, uuid1);
+        setUuid(uuid);
+        IWirelessEndpoint master = WirelessData.getData(frequency, uuid);
         if (master == null || master.isEndpointRemoved()) {
             destroyConnection();
             return;
@@ -78,9 +78,7 @@ public class WirelessLink {
             // 建立新连接
             if (!hostNode.equals(masterNode)){
                 IGridConnection newConnection = GridHelper.createConnection(hostNode, masterNode);
-                if (newConnection != null) {
-                    connection = new ConnectionWrapper(newConnection);
-                }
+                connection = new ConnectionWrapper(newConnection);
             }
 
         } catch (IllegalStateException e) {

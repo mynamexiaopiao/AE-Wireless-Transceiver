@@ -28,15 +28,15 @@ import java.util.function.Supplier;
 
 public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     Scrollbar scrollbar;
-    public AETextField input;
+AETextField input;
 
     //可见行数
     private final int visibleRows = 8;
     //每行的像素
     protected static final Button.CreateNarration DEFAULT_NARRATION = Supplier::get;
     private final int rowHeight = 12;
-    public final ArrayList<String> allDataRows = new ArrayList<>();
-    private final ArrayList<String> filteredDataRows = new ArrayList<>(); // 新增：用于存储过滤后的数据
+    public final List<String> allDataRows = new ArrayList<>();
+    private final ArrayList<String> filteredDataRows = new ArrayList<>();
 
 
     private int highlightedRowIndex = -1;
@@ -45,8 +45,10 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
 
     private int listX;
     private int listY;
-    private final int listWidth = 80; //列表宽度
-    private int listHeight; // 列表总高度
+    //列表宽度
+    private static final int LIST_WIDTH = 80;
+    // 列表总高度
+    private static int listHeight;
 
     //放置玩家的uuid
     private final UUID uuid;
@@ -88,7 +90,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         input = this.widgets.addTextField("input");
 
         input.setFilter(s -> {
-            return Minecraft.getInstance().font.width(s) <= listWidth;
+            return Minecraft.getInstance().font.width(s) <= LIST_WIDTH;
         });
 
         input.setPlaceholder(Component.translatable("gui.wireless.input.placeholder"));
@@ -177,16 +179,16 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
 
 
         listHeight = visibleRows * rowHeight;
-        listX = (this.width - listWidth) /   2  -  50;
+        listX = (this.width - LIST_WIDTH) /   2  -  50;
         // 将整个框向下移一点
         listY = this.height - this.topPos - listHeight - 35;
 
         // 添加按钮到屏幕，调整到合适位置
         int buttonY = this.getGuiTop() + 16;
-        modeButton.setPosition(this.getGuiLeft() + listWidth + 20, buttonY + 110);
-        addButton.setPosition(this.getGuiLeft()+listWidth + 20, buttonY + 90);
-        disconnect.setPosition(this.getGuiLeft() + listWidth + 65, buttonY + 110);
-        removeButton.setPosition(this.getGuiLeft() + listWidth + 65, buttonY + 90);
+        modeButton.setPosition(this.getGuiLeft() + LIST_WIDTH + 20, buttonY + 110);
+        addButton.setPosition(this.getGuiLeft()+ LIST_WIDTH + 20, buttonY + 90);
+        disconnect.setPosition(this.getGuiLeft() + LIST_WIDTH + 65, buttonY + 110);
+        removeButton.setPosition(this.getGuiLeft() + LIST_WIDTH + 65, buttonY + 90);
 
         this.addRenderableWidget(addButton);
         this.addRenderableWidget(removeButton);
@@ -257,7 +259,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
                         int yPos = listY + (visibleIndex * rowHeight);
 
                         // 绘制半透明的悬停效果
-                        guiGraphics.fill(listX + 1, yPos, listX + listWidth - 1, yPos + rowHeight, 0x33FFFFFF);
+                        guiGraphics.fill(listX + 1, yPos, listX + LIST_WIDTH - 1, yPos + rowHeight, 0x33FFFFFF);
                     }
                 }
             }
@@ -267,25 +269,25 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
 
     private void renderScrollbarBackground(GuiGraphics guiGraphics) {
         // 滚动条背景框的位置和尺寸
-        int scrollbarX = listX + listWidth; // 滚动条在列表右侧
+        // 滚动条在列表右侧
+        int scrollbarX = listX + LIST_WIDTH;
         int scrollbarY = listY;
-        int scrollbarWidth = 3; // 滚动条宽度
+        // 滚动条宽度
+        int scrollbarWidth = 3;
         int scrollbarHeight = listHeight;
 
 
         // 绘制滚动条边框
-        guiGraphics.fill(scrollbarX, scrollbarY, scrollbarX + scrollbarWidth, scrollbarY + 1, 0xFFAAAAAA); // 上边框
-        guiGraphics.fill(scrollbarX, scrollbarY + scrollbarHeight - 1, scrollbarX + scrollbarWidth, scrollbarY + scrollbarHeight, 0xFFAAAAAA); // 下边框
-        guiGraphics.fill(scrollbarX + scrollbarWidth - 1, scrollbarY, scrollbarX + scrollbarWidth, scrollbarY + scrollbarHeight, 0xFFAAAAAA); // 右边框
+        // 上边框
+        guiGraphics.fill(scrollbarX, scrollbarY, scrollbarX + scrollbarWidth, scrollbarY + 1, 0xFFAAAAAA);
+        // 下边框
+        guiGraphics.fill(scrollbarX, scrollbarY + scrollbarHeight - 1, scrollbarX + scrollbarWidth, scrollbarY + scrollbarHeight, 0xFFAAAAAA);
+        // 右边框
+        guiGraphics.fill(scrollbarX + scrollbarWidth - 1, scrollbarY, scrollbarX + scrollbarWidth, scrollbarY + scrollbarHeight, 0xFFAAAAAA);
 
     }
 
     private void updateData(){
-//        List<String> keys = WirelessData.getKeys().stream().filter(key -> key.uuid().equals(
-//                WirelessTeamUtil.getNetworkOwnerUUID(this.getMenu().getPlayer().getUUID()))).map(WirelessData.Key::string).toList();
-
-//        List<String> keys = WirelessData.getKeys().stream().map(WirelessData.Key::string).toList();
-
         List<String> keys = new ArrayList<>(allDataRows);
         if (highlightedRowIndex != -1) {
             if (highlightedRowIndex >= keys.size()) {
@@ -307,13 +309,17 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
 
     private void renderListBackground(GuiGraphics guiGraphics) {
         // 使用更现代的半透明背景
-        guiGraphics.fill(listX, listY, listX + listWidth, listY + listHeight, 0x88000000);
+        guiGraphics.fill(listX, listY, listX + LIST_WIDTH, listY + listHeight, 0x88000000);
 
         // 改进边框颜色和样式
-        guiGraphics.fill(listX, listY, listX + listWidth, listY + 1, 0xFFAAAAAA); // 上边框
-        guiGraphics.fill(listX, listY + listHeight - 1, listX + listWidth, listY + listHeight, 0xFFAAAAAA); // 下边框
-        guiGraphics.fill(listX, listY, listX + 1, listY + listHeight, 0xFFAAAAAA); // 左边框
-        guiGraphics.fill(listX + listWidth - 1, listY, listX + listWidth, listY + listHeight, 0xFFAAAAAA); // 右边框
+        // 上边框
+        guiGraphics.fill(listX, listY, listX + LIST_WIDTH, listY + 1, 0xFFAAAAAA);
+        // 下边框
+        guiGraphics.fill(listX, listY + listHeight - 1, listX + LIST_WIDTH, listY + listHeight, 0xFFAAAAAA);
+        // 左边框
+        guiGraphics.fill(listX, listY, listX + 1, listY + listHeight, 0xFFAAAAAA);
+        // 右边框
+        guiGraphics.fill(listX + LIST_WIDTH - 1, listY, listX + LIST_WIDTH, listY + listHeight, 0xFFAAAAAA);
     }
 
     private void renderListContent(GuiGraphics guiGraphics) {
@@ -338,7 +344,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
 
                 String displayText = Minecraft.getInstance().font.plainSubstrByWidth(
                         text,
-                        (int) ((listWidth - 10) / fontScale) // 减少可用宽度以适应边距
+                        (int) ((LIST_WIDTH - 10) / fontScale) // 减少可用宽度以适应边距
                 );
 
                 if (!displayText.equals(text) && displayText.length() > 3) {
@@ -378,13 +384,13 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
                     int yPos = listY + (visibleIndex * rowHeight);
 
                     // 改进高亮效果，使用渐变色和更明显的边框
-                    guiGraphics.fill(listX + 1, yPos, listX + listWidth - 1, yPos + rowHeight, highlightColor);
+                    guiGraphics.fill(listX + 1, yPos, listX + LIST_WIDTH - 1, yPos + rowHeight, highlightColor);
 
                     // 绘制更粗的边框
-                    guiGraphics.fill(listX + 1, yPos, listX + listWidth - 1, yPos + 1, highlightBorderColor);
-                    guiGraphics.fill(listX + 1, yPos + rowHeight - 1, listX + listWidth - 1, yPos + rowHeight, highlightBorderColor);
+                    guiGraphics.fill(listX + 1, yPos, listX + LIST_WIDTH - 1, yPos + 1, highlightBorderColor);
+                    guiGraphics.fill(listX + 1, yPos + rowHeight - 1, listX + LIST_WIDTH - 1, yPos + rowHeight, highlightBorderColor);
                     guiGraphics.fill(listX + 1, yPos, listX + 2, yPos + rowHeight, highlightBorderColor);
-                    guiGraphics.fill(listX + listWidth - 2, yPos, listX + listWidth - 1, yPos + rowHeight, highlightBorderColor);
+                    guiGraphics.fill(listX + LIST_WIDTH - 2, yPos, listX + LIST_WIDTH - 1, yPos + rowHeight, highlightBorderColor);
                 }
             }
         }
@@ -491,12 +497,14 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     }
 
     private boolean isMouseOverList(double mouseX, double mouseY) {
-        return mouseX >= listX && mouseX <= listX + listWidth &&
+        return mouseX >= listX && mouseX <= listX + LIST_WIDTH &&
                 mouseY >= listY && mouseY <= listY + listHeight;
     }
 
     public void addDataRow(String data ) {
-        if (data.isEmpty() || allDataRows.contains(data)) return;
+        if (data.isEmpty() || allDataRows.contains(data)) {
+            return;
+        }
         // 发送到服务端，不在客户端直接更新本地列表，等待服务器下发同步或增量更新
         NetworkHandler.sendToServer(new MenuDataPacket(data, MenuDataPacket.ActionType.ADD_CHANNEL , uuid));
     }

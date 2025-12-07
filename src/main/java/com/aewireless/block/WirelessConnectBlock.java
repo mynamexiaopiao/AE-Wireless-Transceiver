@@ -1,5 +1,7 @@
 package com.aewireless.block;
 
+import java.util.ArrayList;
+import java.util.List;
 import com.aewireless.AeWireless;
 import com.aewireless.register.ModRegister;
 import com.aewireless.wireless.WirelessTeamUtil;
@@ -23,22 +25,20 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class WirelessConnectBlock extends Block implements EntityBlock {
     public static final BooleanProperty CONNECTED = BooleanProperty.create("connected");
 
     public WirelessConnectBlock(Properties arg) {
         super(arg);
-        this.registerDefaultState(this.stateDefinition.any()
-                .setValue(CONNECTED, false));
+        this.registerDefaultState(this.stateDefinition.any().setValue(CONNECTED, false));
     }
 
     @Override
-    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+    public void setPlacedBy(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state, @Nullable LivingEntity placer, @NotNull ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (!level.isClientSide && placer instanceof Player player) {
             BlockEntity be = level.getBlockEntity(pos);
@@ -56,19 +56,19 @@ public class WirelessConnectBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public List<ItemStack> getDrops(BlockState arg, LootParams.Builder arg2) {
+    public @NotNull List<ItemStack> getDrops(@NotNull BlockState arg, LootParams.@NotNull Builder arg2) {
         List<ItemStack> drops = new ArrayList<>();
         drops.add(ModRegister.WIRELESS_TRANSCEIVER.get().asItem().getDefaultInstance());
         return drops ;
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos arg, BlockState arg2) {
+    public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos arg, @NotNull BlockState arg2) {
         return new WirelessConnectBlockEntity(arg, arg2);
     }
 
     @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+    public void onRemove(BlockState state, @NotNull Level level, @NotNull BlockPos pos, BlockState newState, boolean isMoving) {
         if (!state.is(newState.getBlock())) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof WirelessConnectBlockEntity te) {
@@ -79,12 +79,12 @@ public class WirelessConnectBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> type) {
         return level.isClientSide() ? null :(lvl, pos, st, be) -> ((WirelessConnectBlockEntity)be).serverTick(lvl, pos, st);
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    public @NotNull InteractionResult use(@NotNull BlockState state, Level level, @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult) {
         if (!level.isClientSide){
             BlockEntity blockEntity = level.getBlockEntity(pos);
 
@@ -107,7 +107,7 @@ public class WirelessConnectBlock extends Block implements EntityBlock {
                                 WirelessTeamUtil.getNetworkOwnerName(wirelessConnectBlockEntity.getServerLevel() ,wirelessConnectBlockEntity.getPlacerId())), true);
                         return InteractionResult.CONSUME;
                     }
-                }else {
+                } else {
                     wirelessConnectBlockEntity.setPlacerId(player.getUUID(), player.getName().getString());
                     NetworkHooks.openScreen((ServerPlayer) player, wirelessConnectBlockEntity , pos);
                     return InteractionResult.SUCCESS;

@@ -15,8 +15,7 @@ public class WirelessMasterLink {
     }
 
     public void setUuid(UUID uuid) {
-        // 设置网络所有者UUID
-        this.uuid = uuid != null ?WirelessTeamUtil.getNetworkOwnerUUID(uuid) : AeWireless.PUBLIC_NETWORK_UUID;
+        this.uuid = WirelessTeamUtil.getNetworkOwnerUUID(uuid);
 
         if (!AeWireless.IS_FTB_TEAMS_LOADED){
             this.uuid  = AeWireless.PUBLIC_NETWORK_UUID;
@@ -35,7 +34,7 @@ public class WirelessMasterLink {
         }
         this.frequency = frequency;
 
-        uuid = uuid != null ? WirelessTeamUtil.getNetworkOwnerUUID(uuid) : AeWireless.PUBLIC_NETWORK_UUID;
+        uuid = WirelessTeamUtil.getNetworkOwnerUUID(uuid) ;
 
         if (!AeWireless.IS_FTB_TEAMS_LOADED){
             uuid  = AeWireless.PUBLIC_NETWORK_UUID;

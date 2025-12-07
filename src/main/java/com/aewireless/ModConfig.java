@@ -11,9 +11,6 @@ public class ModConfig {
 
     protected static ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
-//    protected static ForgeConfigSpec.BooleanValue SLOT_VALUE = BUILDER
-//            .comment("")
-//            .define("highLight_style", false);
 
     protected static ForgeConfigSpec.ConfigValue<String> HighlightColor = BUILDER
             .comment("the background color（ARGB！）")
@@ -24,8 +21,6 @@ public class ModConfig {
             .define("highlight_border_color","0xFF006600");
 
     public static final ForgeConfigSpec CONFIG = BUILDER.build();
-
-    public static boolean highlightStyle;
 
     public static String highlightColor;
     public static String highlightBorderColor;
