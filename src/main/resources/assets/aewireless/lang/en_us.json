@@ -12,6 +12,7 @@
   "gui.wireless.mode.connect": "connected",
   "gui.confirm_delete.message": "Confirm the deletion?",
   "aewireless.tooltip.channel_name": "Channel Name: %d",
+  "gui.wireless.energy.usage": "Energy consumption",
   "aewireless.tooltip.master": "Mode: %s",
   "aewireless.tooltip.channels": "Channel: %s",
   "aewireless.tooltip.channels_of": "Channel: %d / %d",
@@ -30,6 +31,12 @@
   "aewireless.jade.tooltip.mastermode": "Master Mode",
   "aewireless.jade.tooltip.mode": "Slave Mode",
   "aewireless.jade.tooltip.deviceoff": "Device Offline",
-  "aewireless.jade.tooltip.deviceon": "Device Online"
+  "aewireless.jade.tooltip.deviceon": "Device Online",
+
+
+  "config.aewireless.title": "AE Wireless Config",
+  "config.aewireless.is_energy": "Use Energy",
+  "config.aewireless.battery_multiplier": "Battery Multiplier",
+  "config.aewireless.save": "Save"
 
 }

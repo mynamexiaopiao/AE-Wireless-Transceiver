@@ -3,6 +3,7 @@ package com.aewireless.block;
 import appeng.api.networking.*;
 import appeng.api.util.AECableType;
 import com.aewireless.AeWireless;
+import com.aewireless.ModConfig;
 import com.aewireless.gui.wireless.WirelessMenu;
 import com.aewireless.register.ModRegister;
 import com.aewireless.wireless.*;
@@ -45,19 +46,20 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
     private boolean mode = false;
 
+    private boolean tickLoad = false;
+
     public WirelessConnectBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModRegister.WIRELESS_TRANSCEIVER_ENTITY.get(), pos, blockState);
 
-
+        tickLoad  = false;
         this.managedNode = GridHelper.createManagedNode(this, (nodeOwner, node) -> nodeOwner.setChanged())
                 .setFlags(GridFlags.DENSE_CAPACITY);
-
-
 
         this.managedNode.setVisualRepresentation(ModRegister.WIRELESS_TRANSCEIVER.get());
         this.managedNode.setTagName("wireless_connect");
         this.managedNode.setInWorldNode(true);
         this.managedNode.setExposedOnSides(EnumSet.allOf(Direction.class));
+
 //        this.managedNode.setIdlePowerUsage()
 
         masterLink = new WirelessMasterLink(this);
@@ -82,6 +84,30 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
             }
         };
     }
+
+    public double getEnergy(){
+        if (!ModConfig.isEnergy || frequency == null) return 0;
+        if (this.mode) return ModConfig.baseEnergy;
+
+        IWirelessEndpoint master = WirelessData.getData(frequency , !AeWireless.IS_FTB_TEAMS_LOADED ? AeWireless.PUBLIC_NETWORK_UUID : WirelessTeamUtil.getNetworkOwnerUUID(placerId));
+
+        if (master != null ) {
+            BlockPos pos1 = master.getBlockPos();
+            BlockPos pos2 = this.getBlockPos();
+            if ( pos1 != null && pos2 != null){
+                double dx = pos1.getX() - pos2.getX();
+                double dy = pos1.getY() - pos2.getY();
+                double dz = pos1.getZ() - pos2.getZ();
+                double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                // 修正：距离应乘以能量系数，而不是直接返回距离
+                return (distance * ModConfig.batteryMultiplier);
+            }
+            return 0;
+        }
+        return 0;
+    }
+
+
 
     public String getFrequency() {
         return frequency;
@@ -131,6 +157,10 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         } else {
             slaveLink.setFrequency(frequency);
         }
+
+        if (this.managedNode != null) {
+            this.managedNode.setIdlePowerUsage(getEnergy());
+        }
         setChanged();
     }
 
@@ -162,6 +192,10 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public void serverTick(Level level, BlockPos pos, BlockState state) {
+//        if (this.managedNode != null && !tickLoad){
+//
+//            tickLoad = true;
+//        }
 
         WirelessConnectBlockEntity blockEntity = (WirelessConnectBlockEntity)level.getBlockEntity(pos);
         UUID id = placerId == null ? AeWireless.PUBLIC_NETWORK_UUID :WirelessTeamUtil.getNetworkOwnerUUID(placerId);
@@ -285,6 +319,10 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
             masterLink.setFrequency(frequency , placerId);
         } else {
             slaveLink.setFrequency(frequency);
+        }
+
+        if (this.managedNode != null) {
+            this.managedNode.setIdlePowerUsage(getEnergy());
         }
 
     }

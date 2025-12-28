@@ -1,12 +1,16 @@
 package com.aewireless.gui.wireless;
 
+import appeng.api.config.PowerUnits;
+import appeng.api.config.Settings;
 import appeng.client.gui.AEBaseScreen;
 import appeng.client.gui.style.ScreenStyle;
 import appeng.client.gui.widgets.*;
 import appeng.core.AppEng;
+import appeng.core.sync.packets.ConfigValuePacket;
 import com.aewireless.AeWireless;
 import com.aewireless.ModConfig;
 import com.aewireless.gui.weights.RenderButton;
+import com.aewireless.gui.weights.RenderSettingToggleButton;
 import com.aewireless.network.packet.MenuDataPacket;
 import com.aewireless.network.NetworkHandler;
 import com.aewireless.network.packet.RequestWirelessDataPacket;
@@ -41,7 +45,7 @@ AETextField input;
 
     private int highlightedRowIndex = -1;
     private int highlightColor = 0x3300FF00;
-    private int highlightBorderColor = 0xFF00CC00;
+    private int highlightBorderColor = 0xFF006600;
 
     private int listX;
     private int listY;
@@ -57,6 +61,9 @@ AETextField input;
     private final RenderButton removeButton;
     private final RenderButton modeButton;
     private final RenderButton disconnect;
+    private final RenderSettingToggleButton renderSettingToggleButton;
+
+    private boolean isAE = true;
 
     @SuppressWarnings("all")
     public WirelessScreen(WirelessMenu menu, Inventory playerInventory, Component title, ScreenStyle style){
@@ -64,21 +71,6 @@ AETextField input;
 
         // 统一通过 WirelessTeamUtil 获取网络拥有者 UUID（当未加载 FTB Teams 时会回退为玩家 UUID）
         uuid = AeWireless.IS_FTB_TEAMS_LOADED ? WirelessTeamUtil.getNetworkOwnerUUID(this.getMenu().getPlayer().getUUID()) : AeWireless.PUBLIC_NETWORK_UUID;
-
-        try{
-            String highlightColor1 = ModConfig.highlightColor;
-            String highlightBorderColor1 = ModConfig.highlightBorderColor;
-            int i = parseHexColor(highlightColor1);
-            int i1 = parseHexColor(highlightBorderColor1);
-            highlightColor = i;
-            highlightBorderColor = i1;
-        }catch (Exception e){
-            e.printStackTrace();
-            highlightColor = 0x3300FF00;
-            highlightBorderColor = 0xFF00CC00;
-        }
-
-
 
 
         scrollbar = this.widgets.addScrollBar("scrollbar", Scrollbar.Style.create(
@@ -141,30 +133,18 @@ AETextField input;
                 },
                 DEFAULT_NARRATION) {};
 
+
+        this.addToLeftToolbar(
+                renderSettingToggleButton = new RenderSettingToggleButton<>(Settings.POWER_UNITS, PowerUnits.AE , this::toggleServerSetting));
+
         refreshList();
     }
 
-
-
-    private int parseHexColor(String hexColor) {
-        if (hexColor == null || hexColor.isEmpty()) {
-            throw new IllegalArgumentException("Color string cannot be null or empty");
-        }
-
-        // 移除可能存在的 "0x" 或 "#" 前缀
-        if (hexColor.startsWith("0x")) {
-            hexColor = hexColor.substring(2);
-        } else if (hexColor.startsWith("#")) {
-            hexColor = hexColor.substring(1);
-        }
-
-        // 验证字符串是否为有效的十六进制格式
-        if (!hexColor.matches("[0-9A-Fa-f]+")) {
-            throw new IllegalArgumentException("Invalid hex color format: " + hexColor);
-        }
-
-        // 解析十六进制字符串
-        return (int) Long.parseLong(hexColor, 16);
+    private <SE extends Enum<SE>> void toggleServerSetting(SettingToggleButton<SE> btn, boolean backwards) {
+        SE next = btn.getNextValue(backwards);
+        appeng.core.sync.network.NetworkHandler.instance().sendToServer(new ConfigValuePacket(btn.getSetting(), next));
+        btn.set(next);
+        isAE = !isAE;
     }
 
 
@@ -220,7 +200,11 @@ AETextField input;
         renderHoveredRow(guiGraphics);
         renderListContent(guiGraphics);
         renderScrollbarBackground(guiGraphics);
-        renderMode(guiGraphics);
+        if (ModConfig.isEnergy){
+            renderEnergyMode( guiGraphics);
+        }else {
+            renderMode(guiGraphics);
+        }
     }
 
     private int hoveredRowIndex = -1;
@@ -402,12 +386,98 @@ AETextField input;
         NetworkHandler.sendToServer(new MenuDataPacket(null, this.getMenu().isMode() , uuid));
     }
 
-    private void renderMode(GuiGraphics guiGraphics){
+    private void renderEnergyMode(GuiGraphics guiGraphics){
         boolean mode = this.menu.isMode();
         boolean online = this.getMenu().isOnline();
         String modeText = mode ? " true" : " false";
         String modeText1 = online ? " true" : " false";
 
+        int baseX = this.getGuiLeft() + 100;
+        int baseY = this.getGuiTop() + 60;
+
+        // 频道信息 - 位置调整为 baseY - 25，与其他信息间距为 15
+        guiGraphics.drawString(
+                Minecraft.getInstance().font,
+                Component.translatable("gui.wireless.mode.channel").append(": ").append(highlightedRowIndex == -1 ? "" : allDataRows.get(highlightedRowIndex)),
+                baseX,
+                baseY - 25,
+                0xFFFFFF,
+                false
+        );
+
+        // 耗电信息 - 在频道下面，间距为 15
+        String energyUsage = isAE ? calculateEnergyUsage()  : String.format( "%.2f" ,PowerUnits.AE.convertTo(PowerUnits.FE ,this.getMenu().blockEntity.getEnergy()));
+        guiGraphics.drawString(
+                Minecraft.getInstance().font,
+                Component.translatable("gui.wireless.energy.usage").append(": ").append(energyUsage).append(isAE ? " AE/t": " FE/t"),
+                baseX,
+                baseY - 10, // 间距压缩到 15
+                0xFFFFFF,
+                false
+        );
+
+        // 模式信息 - 间距压缩到 15
+        guiGraphics.drawString(
+                Minecraft.getInstance().font,
+                Component.translatable("gui.wireless.mode").append(":"),
+                baseX,
+                baseY + 5,
+                0xFFFFFF,
+                false
+        );
+
+        // 用不同颜色显示模式状态
+        guiGraphics.drawString(
+                Minecraft.getInstance().font,
+                Component.literal(modeText),
+                baseX + Minecraft.getInstance().font.width(Component.translatable("gui.wireless.mode").append(":").getString()),
+                baseY + 5,
+                mode ? 0x00FF00 : 0xFF0000,
+                false
+        );
+
+        // 连接状态 - 间距压缩到 15
+        guiGraphics.drawString(
+                Minecraft.getInstance().font,
+                Component.translatable("gui.wireless.mode.connect").append(": "),
+                baseX,
+                baseY + 20,
+                0xFFFFFF,
+                false
+        );
+
+        guiGraphics.drawString(
+                Minecraft.getInstance().font,
+                Component.literal(modeText1),
+                baseX + Minecraft.getInstance().font.width(Component.translatable("gui.wireless.mode.connect").append(":").getString()),
+                baseY + 20,
+                online ? 0x00FF00 : 0xFF0000,
+                false
+        );
+    }
+
+
+
+    // 计算能量使用量的辅助方法
+    private String calculateEnergyUsage() {
+        if (!ModConfig.isEnergy) {
+            return "0";
+        }
+
+        // 从菜单获取当前的耗电信息
+        if (this.getMenu().blockEntity != null) {
+            double energyUsage = this.getMenu().blockEntity.getEnergy();
+            return String.format("%.2f", energyUsage);
+        }
+
+        return "0";
+    }
+
+    private void renderMode(GuiGraphics guiGraphics){
+        boolean mode = this.menu.isMode();
+        boolean online = this.getMenu().isOnline();
+        String modeText = mode ? " true" : " false";
+        String modeText1 = online ? " true" : " false";
 
 
         int baseX = this.getGuiLeft() + 100;

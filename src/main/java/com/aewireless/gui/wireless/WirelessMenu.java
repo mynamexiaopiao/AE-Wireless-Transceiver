@@ -19,6 +19,8 @@ public class WirelessMenu extends AEBaseMenu {
     @GuiSync(0)
     private boolean mode;
 
+
+
     private final ContainerData data;
 
     public WirelessMenu(int containerId, Inventory inventory,FriendlyByteBuf friendlyByteBuf) {

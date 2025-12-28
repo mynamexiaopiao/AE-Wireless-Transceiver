@@ -1,6 +1,5 @@
 package com.aewireless;
 
-
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -11,26 +10,29 @@ public class ModConfig {
 
     protected static ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
 
+    public static ForgeConfigSpec.ConfigValue<Boolean> IS_ENERGY = BUILDER
+            .comment("Whether to use energy")
+            .define("is_energy", false);
+    public static ForgeConfigSpec.ConfigValue<Double> BASE_ENERGY = BUILDER
+            .comment("Base Energy")
+            .defineInRange("base_energy", 100.0,0,Integer.MAX_VALUE);
 
-    protected static ForgeConfigSpec.ConfigValue<String> HighlightColor = BUILDER
-            .comment("the background color（ARGB！）")
-            .define("highlight_color","0x3300FF00");
+    public static ForgeConfigSpec.ConfigValue<Double> BATTERY_MULTIPLIER = BUILDER
+            .comment("The battery multiplier")
+            .defineInRange("battery_multiplier", 1.0, 0, Integer.MAX_VALUE);;
 
-    protected static ForgeConfigSpec.ConfigValue<String> HighlightBorderColor = BUILDER
-            .comment("the border color（ARGB！）")
-            .define("highlight_border_color","0xFF006600");
 
     public static final ForgeConfigSpec CONFIG = BUILDER.build();
 
-    public static String highlightColor;
-    public static String highlightBorderColor;
+    // 添加公共字段来存储当前配置值
+    public static boolean isEnergy;
+    public static double baseEnergy;
+    public static double batteryMultiplier;
 
     public static void getConfig() {
-//        highlightStyle = SLOT_VALUE.get();
-
-        highlightColor = HighlightColor.get();
-        highlightBorderColor = HighlightBorderColor.get();
-
+        isEnergy = IS_ENERGY.get();
+        baseEnergy = BASE_ENERGY.get();
+        batteryMultiplier = BATTERY_MULTIPLIER.get();
     }
 
     @SubscribeEvent

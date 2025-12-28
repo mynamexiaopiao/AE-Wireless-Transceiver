@@ -20,6 +20,7 @@ public abstract class AEBaseScreenMixin<T extends AEBaseMenu> extends AbstractCo
 
 
 
+
     @Shadow protected abstract void openHelp();
 
     @Shadow @Final private VerticalButtonBar verticalToolbar;
@@ -30,9 +31,12 @@ public abstract class AEBaseScreenMixin<T extends AEBaseMenu> extends AbstractCo
     @Inject(at = @At("HEAD"), method = "addToLeftToolbar" , cancellable = true ,remap = false)
     public  <B extends Button> void add(B button, CallbackInfoReturnable<B> cir){
         if ((AEBaseScreen)(Object)this instanceof WirelessScreen){
-            OpenGuideButton button1 = new RenderOpenGuideButton((s)->openHelp());
-            verticalToolbar.add(button1);
-            cir.setReturnValue((B) button1);
+            if (button instanceof OpenGuideButton){
+                OpenGuideButton button1 = new RenderOpenGuideButton((s)->openHelp());
+                verticalToolbar.add(button1);
+                cir.setReturnValue((B) button1);
+            }
+
         }
     }
 

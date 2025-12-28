@@ -3,6 +3,7 @@ package com.aewireless;
 import com.aewireless.network.NetworkHandler;
 import com.aewireless.register.ModRegister;
 import com.aewireless.register.RegisterHandler;
+import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
@@ -39,6 +40,12 @@ public class AeWireless {
         modEventBus.addListener(this::commonSetup);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, com.aewireless.ModConfig.CONFIG);
+
+//        // 注册配置屏幕
+//        ModLoadingContext.get().registerExtensionPoint(
+//                ConfigScreenHandler.ConfigScreenFactory.class,
+//                () -> new ConfigScreenHandler.ConfigScreenFactory((client, parent) -> new ConfigScreen(parent))
+//        );
     }
 
     @SubscribeEvent
