@@ -253,9 +253,14 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
         if (grid != null) {
             try {
-                for (var connection : node.getConnections()) {
-                    usedChannels = Math.max(connection.getUsedChannels(), usedChannels);
+                if (node.isOnline()){
+                    for (var connection : node.getConnections()) {
+                        usedChannels = Math.max(connection.getUsedChannels(), usedChannels);
+                    }
+                }else {
+                    usedChannels = 0;
                 }
+
                 // 获取节点的最大频道容量（致密线缆为32）
                 if (node instanceof appeng.me.GridNode gridNode) {
                     var channelMode = gridNode.getGrid().getPathingService().getChannelMode();
