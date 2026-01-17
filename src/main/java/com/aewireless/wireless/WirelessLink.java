@@ -5,6 +5,9 @@ import appeng.api.networking.IGridConnection;
 import appeng.api.networking.IGridNode;
 import appeng.me.service.helpers.ConnectionWrapper;
 import com.aewireless.AeWireless;
+import com.aewireless.AeWirelessConfig;
+import com.mojang.datafixers.kinds.IdF;
+import net.minecraft.server.level.ServerLevel;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -48,12 +51,34 @@ public class WirelessLink {
         }
 
         setUuid(uuid);
-        IWirelessEndpoint master = WirelessData.getData(frequency, uuid);
-        if (master == null || master.isEndpointRemoved()) {
-            destroyConnection();
-            return;
-        }
 
+        ServerLevel level = host.getServerLevel();
+        Double distance = 0.0D;
+
+        IWirelessEndpoint master = WirelessData.getData(frequency, uuid);
+
+        boolean crossDimensional = AeWirelessConfig.INSTANCE.crossDimensional;
+
+        if (master != null && !master.isEndpointRemoved() && (crossDimensional || master.getServerLevel() == level)) {
+
+            distance = Math.sqrt(master.getBlockPos().distSqr(host.getBlockPos()));
+
+
+            double maxRange = AeWirelessConfig.INSTANCE.maxDistance;
+
+            if (master.getServerLevel() == level){
+                if ( distance <= maxRange || maxRange == 0) {
+                    connect(master);
+                }
+            }else if (crossDimensional){
+                connect(master);
+            }
+
+
+        }
+    }
+
+    private void connect(IWirelessEndpoint master) {
         try {
             IGridConnection existingConnection = connection.getConnection();
             IGridNode hostNode = host.getGridNode();
@@ -69,7 +94,7 @@ public class WirelessLink {
                 IGridNode a = existingConnection.a();
                 IGridNode b = existingConnection.b();
                 if ((a == hostNode || b == hostNode) && (a == masterNode || b == masterNode)) {
-                    return; // 已经正确连接
+                    return;
                 }
                 // 连接不匹配，需要重新建立
                 existingConnection.destroy();

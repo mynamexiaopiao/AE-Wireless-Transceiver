@@ -3,7 +3,7 @@ package com.aewireless.block;
 import appeng.api.networking.*;
 import appeng.api.util.AECableType;
 import com.aewireless.AeWireless;
-import com.aewireless.ModConfig;
+import com.aewireless.AeWirelessConfig;
 import com.aewireless.gui.wireless.WirelessMenu;
 import com.aewireless.register.ModRegister;
 import com.aewireless.wireless.*;
@@ -40,6 +40,10 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     private final WirelessMasterLink masterLink;
     private final WirelessLink slaveLink;
     private String frequency = null;
+
+    int usedChannels = 0;
+    int maxChannels = 0;
+
     // 放置者UUID
     private UUID placerId;
     private String placerName;
@@ -60,6 +64,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         this.managedNode.setInWorldNode(true);
         this.managedNode.setExposedOnSides(EnumSet.allOf(Direction.class));
 
+
 //        this.managedNode.setIdlePowerUsage()
 
         masterLink = new WirelessMasterLink(this);
@@ -70,6 +75,10 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
             public int get(int i) {
                 if (i == 0) {
                     return managedNode.isOnline() ? 1 : 0;
+                }else if (i == 1) {
+                    return usedChannels;
+                }else if (i == 2) {
+                    return maxChannels;
                 }
                 return 0;
             }
@@ -80,14 +89,14 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
             @Override
             public int getCount() {
-                return 1;
+                return 3;
             }
         };
     }
 
     public double getEnergy(){
-        if (!ModConfig.isEnergy || frequency == null) return 0;
-        if (this.mode) return ModConfig.baseEnergy;
+        if (!AeWirelessConfig.INSTANCE.isEnergy || frequency == null) return 0;
+        if (this.mode) return AeWirelessConfig.INSTANCE.baseEnergy;
 
         IWirelessEndpoint master = WirelessData.getData(frequency , !AeWireless.IS_FTB_TEAMS_LOADED ? AeWireless.PUBLIC_NETWORK_UUID : WirelessTeamUtil.getNetworkOwnerUUID(placerId));
 
@@ -100,7 +109,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
                 double dz = pos1.getZ() - pos2.getZ();
                 double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
                 // 修正：距离应乘以能量系数，而不是直接返回距离
-                return (distance * ModConfig.batteryMultiplier);
+                return (distance * AeWirelessConfig.INSTANCE.batteryMultiplier);
             }
             return 0;
         }
@@ -227,6 +236,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
             level.setBlock(pos, blockState, Block.UPDATE_ALL );
         }
 
+        updateChannelUsedAndMax();
 
 
         if (!(level instanceof ServerLevel)) return;
@@ -236,6 +246,30 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         }
     }
 
+
+    private void updateChannelUsedAndMax(){
+        IGridNode node = getGridNode();
+        IGrid grid = node == null ? null : node.getGrid();
+
+        if (grid != null) {
+            try {
+                for (var connection : node.getConnections()) {
+                    usedChannels = Math.max(connection.getUsedChannels(), usedChannels);
+                }
+                // 获取节点的最大频道容量（致密线缆为32）
+                if (node instanceof appeng.me.GridNode gridNode) {
+                    var channelMode = gridNode.getGrid().getPathingService().getChannelMode();
+                    if (channelMode == appeng.api.networking.pathing.ChannelMode.INFINITE) {
+                        // 无限频道
+                        maxChannels = -1;
+                    } else {
+                        maxChannels = gridNode.getMaxChannels();
+                    }
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+    }
 
     @Override
     public @NotNull BlockPos getBlockPos() {

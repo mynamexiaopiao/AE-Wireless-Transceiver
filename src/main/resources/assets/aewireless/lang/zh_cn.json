@@ -8,6 +8,7 @@
   "gui.wireless.mode.channel": "频道",
   "gui.wireless.mode.disconnect": "断开",
   "gui.wireless.mode.connect": "已连接",
+  "gui.wireless.remaining_channels": "使用频道",
   "gui.wireless.energy.usage": "耗能",
   "gui.confirm_delete.message": "确认删除?",
   "gui.input_channel_name_screen.placeholder": "输入频道名称",
@@ -37,5 +38,17 @@
   "config.aewireless.title": "AE Wireless 配置界面",
   "config.aewireless.is_energy": "使用能量",
   "config.aewireless.battery_multiplier": "能量乘数",
-  "config.aewireless.save": "保存"
+  "config.aewireless.save": "保存",
+
+  "config.screen.aewireless": "AE Wireless 配置",
+  "config.aewireless.option.isEnergy": "无线收发器是否使用能量",
+  "config.aewireless.option.baseEnergy": "无线收发器主端的默认耗能",
+  "config.aewireless.option.batteryMultiplier": "无线收发器的能量乘数",
+  "config.aewireless.option.maxDistance": "最大传输距离",
+  "config.aewireless.option.crossDimensional": "是否允许跨纬度连接",
+
+  "config.aewireless.option.isEnergy.comment.0": "如果启用，无线收发器将消耗能量以进行传输。",
+  "config.aewireless.option.batteryMultiplier.comment.0": "从端耗能 = 主端和从端的距离 × 能量乘数。",
+  "config.aewireless.option.maxDistance.comment.0": "无线收发器主端和从端之间的最大传输距离（0为无限制）。",
+  "config.aewireless.option.crossDimensional.comment.0": "如果启用，无线收发器将允许跨维度连接（忽略距离限制）。"
 }

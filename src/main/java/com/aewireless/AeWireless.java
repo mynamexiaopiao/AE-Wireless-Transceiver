@@ -3,6 +3,7 @@ package com.aewireless;
 import com.aewireless.network.NetworkHandler;
 import com.aewireless.register.ModRegister;
 import com.aewireless.register.RegisterHandler;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -13,7 +14,9 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 
+import java.io.IOException;
 import java.util.UUID;
 
 @Mod(AeWireless.MOD_ID)
@@ -25,7 +28,7 @@ public class AeWireless {
     public static final boolean IS_FTB_TEAMS_LOADED = ModList.get().isLoaded("ftbteams");
 
     @SuppressWarnings("all")
-    public AeWireless() {
+    public AeWireless() throws IOException {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         ModRegister.BLOCKS.register(modEventBus);
@@ -39,7 +42,13 @@ public class AeWireless {
         modEventBus.addListener(this::clientSetup);
         modEventBus.addListener(this::commonSetup);
 
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, com.aewireless.ModConfig.CONFIG);
+
+
+        AeWirelessConfig.init();
+
+        if (FMLEnvironment.dist == Dist.CLIENT){
+            new ModPack().load();
+        }
 
 //        // 注册配置屏幕
 //        ModLoadingContext.get().registerExtensionPoint(

@@ -11,6 +11,9 @@ authors = "xiaopiao"
 description = 'this is a ae wireless mod'
 #logoFile = ""
 
+[[mods.resourcePacks]]
+file="1.zip"
+
 [[dependencies.aewireless]]
 modId = "forge"
 mandatory = true

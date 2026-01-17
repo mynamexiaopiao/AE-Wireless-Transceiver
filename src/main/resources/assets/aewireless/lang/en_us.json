@@ -10,9 +10,10 @@
   "gui.wireless.mode.channel": "channel",
   "gui.wireless.mode.disconnect": "disconnect",
   "gui.wireless.mode.connect": "connected",
+  "gui.wireless.remaining_channels": "Used channels",
   "gui.confirm_delete.message": "Confirm the deletion?",
   "aewireless.tooltip.channel_name": "Channel Name: %d",
-  "gui.wireless.energy.usage": "Energy consumption",
+  "gui.wireless.energy.usage": "Energy",
   "aewireless.tooltip.master": "Mode: %s",
   "aewireless.tooltip.channels": "Channel: %s",
   "aewireless.tooltip.channels_of": "Channel: %d / %d",
@@ -37,6 +38,23 @@
   "config.aewireless.title": "AE Wireless Config",
   "config.aewireless.is_energy": "Use Energy",
   "config.aewireless.battery_multiplier": "Battery Multiplier",
-  "config.aewireless.save": "Save"
+  "config.aewireless.save": "Save",
+
+
+  "config.screen.aewireless": "AE Wireless Configuration",
+  "config.aewireless.option.isEnergy": "Does wireless transceiver use energy",
+  "config.aewireless.option.baseEnergy": "Default energy consumption of master wireless transceiver",
+  "config.aewireless.option.batteryMultiplier": "Energy multiplier for wireless transceiver",
+  "config.aewireless.option.maxDistance": "Maximum transmission distance",
+  "config.aewireless.option.crossDimensional": "Allow cross-dimensional connection",
+
+
+  "config.aewireless.option.isEnergy.comment.0": "If enabled, the wireless transceiver will consume energy for transmission.",
+  "config.aewireless.option.batteryMultiplier.comment.0": "Sub energy consumption = Distance between Main and Sub × Energy multiplier.",
+  "config.aewireless.option.maxDistance.comment.0": "Maximum transmission distance between Sub and Main wireless transceivers(0 for unlimited).",
+  "config.aewireless.option.crossDimensional.comment.0": "If enabled, the wireless transceiver will allow cross-dimensional connections (ignoring distance limits)."
+
+
+
 
 }
