@@ -11,7 +11,7 @@
   "gui.confirm_delete.message": "确认删除?",
   "gui.input_channel_name_screen.placeholder": "输入频道名称",
   "gui.wireless.input.placeholder": "搜索...",
-
+  "gui.wireless.energy.usage": "耗能",
   "aewireless.tooltip.failopen": "这是属于 %s 的无线收发器，您无权打开。",
 
   "aewireless.tooltip.channel_name": "频道名称: %d",

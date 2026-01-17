@@ -3,6 +3,7 @@ package com.aewireless.block;
 import appeng.api.networking.*;
 import appeng.api.util.AECableType;
 import com.aewireless.AeWireless;
+import com.aewireless.ModConfig;
 import com.aewireless.gui.wireless.WirelessMenu;
 import com.aewireless.register.ModRegister;
 import com.aewireless.wireless.*;
@@ -120,6 +121,9 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
             slaveLink.setFrequency( frequency);
         }
 
+        if (this.managedNode != null) {
+            this.managedNode.setIdlePowerUsage(getEnergy());
+        }
         this.frequency = null;
         setChanged();
     }
@@ -149,6 +153,28 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         this.masterLink.setUuid(placerId);
         this.slaveLink.setUuid(placerId);
         setChanged();
+    }
+
+    public double getEnergy(){
+        if (!ModConfig.isEnergy || frequency == null) return 0;
+        if (this.mode) return ModConfig.baseEnergy;
+
+        IWirelessEndpoint master = WirelessData.getData(frequency , !AeWireless.IS_FTB_TEAMS_LOADED ? AeWireless.PUBLIC_NETWORK_UUID : WirelessTeamUtil.getNetworkOwnerUUID(placerId));
+
+        if (master != null ) {
+            BlockPos pos1 = master.getBlockPos();
+            BlockPos pos2 = this.getBlockPos();
+            if ( pos1 != null && pos2 != null){
+                double dx = pos1.getX() - pos2.getX();
+                double dy = pos1.getY() - pos2.getY();
+                double dz = pos1.getZ() - pos2.getZ();
+                double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                // 修正：距离应乘以能量系数，而不是直接返回距离
+                return (distance * ModConfig.batteryMultiplier);
+            }
+            return 0;
+        }
+        return 0;
     }
 
     public void onRemoved() {
@@ -289,6 +315,11 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
             slaveLink.setFrequency(frequency);
         }
 
+
+        if (this.managedNode != null) {
+            this.managedNode.setIdlePowerUsage(getEnergy());
+        }
+
     }
 
     @Override
@@ -297,15 +328,6 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
             return this.getLevel().dimension();
         }
         return Level.OVERWORLD;
-    }
-
-
-    public UUID getPlacerId() {
-        return placerId;
-    }
-
-    public boolean isMode() {
-        return mode;
     }
 
 
@@ -331,4 +353,11 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     }
 
 
+    public UUID getPlacerId() {
+        return placerId;
+    }
+
+    public boolean isMode() {
+        return mode;
+    }
 }

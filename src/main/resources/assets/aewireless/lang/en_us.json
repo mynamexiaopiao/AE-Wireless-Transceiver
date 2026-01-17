@@ -18,6 +18,7 @@
   "aewireless.tooltip.owner": "Owner: %s",
   "aewireless.tooltip.owner.unset": "Owner: Unset",
   "aewireless.tooltip.owner.public": "Owner: Public",
+  "gui.wireless.energy.usage": "Energy",
 
   "aewireless.tooltip.failopen": "This is %s's wireless transceiver, you don't have permission to open it.",
 
