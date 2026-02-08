@@ -19,6 +19,7 @@
   "aewireless.tooltip.owner.unset": "Owner: Unset",
   "aewireless.tooltip.owner.public": "Owner: Public",
   "gui.wireless.energy.usage": "Energy",
+  "gui.wireless.remaining_channels": "Used channels",
 
   "aewireless.tooltip.failopen": "This is %s's wireless transceiver, you don't have permission to open it.",
 
@@ -31,6 +32,21 @@
   "aewireless.jade.tooltip.mastermode": "Master Mode",
   "aewireless.jade.tooltip.mode": "Slave Mode",
   "aewireless.jade.tooltip.deviceoff": "Device Offline",
-  "aewireless.jade.tooltip.deviceon": "Device Online"
+  "aewireless.jade.tooltip.deviceon": "Device Online",
+
+
+  "config.screen.aewireless": "AE Wireless Configuration",
+  "config.aewireless.option.isEnergy": "Does wireless transceiver use energy",
+  "config.aewireless.option.baseEnergy": "Default energy consumption of master wireless transceiver",
+  "config.aewireless.option.batteryMultiplier": "Energy multiplier for wireless transceiver",
+  "config.aewireless.option.maxDistance": "Maximum transmission distance",
+  "config.aewireless.option.crossDimensional": "Allow cross-dimensional connection",
+
+
+  "config.aewireless.option.isEnergy.comment.0": "If enabled, the wireless transceiver will consume energy for transmission.",
+  "config.aewireless.option.batteryMultiplier.comment.0": "Sub energy consumption = Distance between Main and Sub × Energy multiplier.",
+  "config.aewireless.option.maxDistance.comment.0": "Maximum transmission distance between Sub and Main wireless transceivers(0 for unlimited).",
+  "config.aewireless.option.crossDimensional.comment.0": "If enabled, the wireless transceiver will allow cross-dimensional connections (ignoring distance limits)."
+
 
 }

@@ -5,7 +5,6 @@ import appeng.api.config.Settings;
 import appeng.client.gui.AEBaseScreen;
 import appeng.client.gui.style.ScreenStyle;
 import appeng.client.gui.widgets.*;
-import appeng.core.AppEng;
 import appeng.core.network.ServerboundPacket;
 import appeng.core.network.bidirectional.ConfigValuePacket;
 import com.aewireless.AeWireless;
@@ -199,7 +198,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         renderHoveredRow(guiGraphics);
         renderListContent(guiGraphics);
         renderScrollbarBackground(guiGraphics);
-        if (ModConfig.isEnergy){
+        if (ModConfig.INSTANCE.isEnergy){
             renderEnergyMode( guiGraphics);
         }else {
             renderMode(guiGraphics);
@@ -384,7 +383,6 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         highlightedRowIndex = -1;
         NetworkHandler.sendToServer(new MenuDataPacket(null, this.getMenu().isMode() , uuid));
     }
-
     private void renderEnergyMode(GuiGraphics guiGraphics){
         boolean mode = this.menu.isMode();
         boolean online = this.getMenu().isOnline();
@@ -394,33 +392,44 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         int baseX = this.getGuiLeft() + 100;
         int baseY = this.getGuiTop() + 60;
 
-        // 频道信息 - 位置调整为 baseY - 25，与其他信息间距为 15
+        // 频道信息 - 位置调整为 baseY - 29，与其他信息间距为 14
         guiGraphics.drawString(
                 Minecraft.getInstance().font,
                 Component.translatable("gui.wireless.mode.channel").append(": ").append(highlightedRowIndex == -1 ? "" : allDataRows.get(highlightedRowIndex)),
                 baseX,
-                baseY - 25,
+                baseY - 29,
                 0xFFFFFF,
                 false
         );
 
-        // 耗电信息 - 在频道下面，间距为 15
+        // 剩余频道信息 - 在频道信息下方，间距为 14
+        String remainingChannels = getRemainingChannelsText();
+        guiGraphics.drawString(
+                Minecraft.getInstance().font,
+                Component.translatable("gui.wireless.remaining_channels").append(": ").append(remainingChannels),
+                baseX,
+                baseY - 15, // 间距为 14
+                0xFFFFFF,
+                false
+        );
+
+        // 耗电信息 - 在频道下面，间距为 14
         String energyUsage = isAE ? calculateEnergyUsage()  : String.format( "%.2f" ,PowerUnit.AE.convertTo(PowerUnit.FE ,this.getMenu().blockEntity.getEnergy()));
         guiGraphics.drawString(
                 Minecraft.getInstance().font,
                 Component.translatable("gui.wireless.energy.usage").append(": ").append(energyUsage).append(isAE ? " AE/t": " FE/t"),
                 baseX,
-                baseY - 10, // 间距压缩到 15
+                baseY - 1, // 间距为 14
                 0xFFFFFF,
                 false
         );
 
-        // 模式信息 - 间距压缩到 15
+        // 模式信息 - 间距为 14
         guiGraphics.drawString(
                 Minecraft.getInstance().font,
                 Component.translatable("gui.wireless.mode").append(":"),
                 baseX,
-                baseY + 5,
+                baseY + 13,
                 0xFFFFFF,
                 false
         );
@@ -430,17 +439,17 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
                 Minecraft.getInstance().font,
                 Component.literal(modeText),
                 baseX + Minecraft.getInstance().font.width(Component.translatable("gui.wireless.mode").append(":").getString()),
-                baseY + 5,
+                baseY + 13,
                 mode ? 0x00FF00 : 0xFF0000,
                 false
         );
 
-        // 连接状态 - 间距压缩到 15
+        // 连接状态 - 间距为 14
         guiGraphics.drawString(
                 Minecraft.getInstance().font,
                 Component.translatable("gui.wireless.mode.connect").append(": "),
                 baseX,
-                baseY + 20,
+                baseY + 27,
                 0xFFFFFF,
                 false
         );
@@ -449,15 +458,21 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
                 Minecraft.getInstance().font,
                 Component.literal(modeText1),
                 baseX + Minecraft.getInstance().font.width(Component.translatable("gui.wireless.mode.connect").append(":").getString()),
-                baseY + 20,
+                baseY + 27,
                 online ? 0x00FF00 : 0xFF0000,
                 false
         );
     }
 
+    private String getRemainingChannelsText() {
+        int usedChannels = this.getMenu().getUsedChannels();
+        int maxChannels = this.getMenu().getMaxChannels(); // 假设有这个配置项
+        return usedChannels + "/" + maxChannels;
+    }
+
     // 计算能量使用量的辅助方法
     private String calculateEnergyUsage() {
-        if (!ModConfig.isEnergy) {
+        if (!ModConfig.INSTANCE.isEnergy) {
             return "0";
         }
 
@@ -477,30 +492,10 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         String modeText = mode ? " true" : " false";
         String modeText1 = online ? " true" : " false";
 
-
-
         int baseX = this.getGuiLeft() + 100;
         int baseY = this.getGuiTop() + 60;
 
-        guiGraphics.drawString(
-                Minecraft.getInstance().font,
-                Component.translatable("gui.wireless.mode").append(":"),
-                baseX,
-                baseY,
-                0xFFFFFF,
-                false
-        );
-
-        // 用不同颜色显示模式状态
-        guiGraphics.drawString(
-                Minecraft.getInstance().font,
-                Component.literal(modeText),
-                baseX + Minecraft.getInstance().font.width(Component.translatable("gui.wireless.mode").append(":").getString()),
-                baseY,
-                mode ? 0x00FF00 : 0xFF0000,
-                false
-        );
-
+        // 频道信息
         guiGraphics.drawString(
                 Minecraft.getInstance().font,
                 Component.translatable("gui.wireless.mode.channel").append(": ").append(highlightedRowIndex == -1 ? "" : allDataRows.get(highlightedRowIndex)),
@@ -510,11 +505,43 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
                 false
         );
 
+        // 剩余频道信息 - 在频道信息下方，间距为 15
+        String remainingChannels = getRemainingChannelsText();
+        guiGraphics.drawString(
+                Minecraft.getInstance().font,
+                Component.translatable("gui.wireless.remaining_channels").append(": ").append(remainingChannels),
+                baseX,
+                baseY - 5, // 间距压缩到 15
+                0xFFFFFF,
+                false
+        );
+
+        // 模式信息
+        guiGraphics.drawString(
+                Minecraft.getInstance().font,
+                Component.translatable("gui.wireless.mode").append(":"),
+                baseX,
+                baseY + 10,
+                0xFFFFFF,
+                false
+        );
+
+        // 用不同颜色显示模式状态
+        guiGraphics.drawString(
+                Minecraft.getInstance().font,
+                Component.literal(modeText),
+                baseX + Minecraft.getInstance().font.width(Component.translatable("gui.wireless.mode").append(":").getString()),
+                baseY + 10,
+                mode ? 0x00FF00 : 0xFF0000,
+                false
+        );
+
+        // 连接状态
         guiGraphics.drawString(
                 Minecraft.getInstance().font,
                 Component.translatable("gui.wireless.mode.connect").append(": "),
                 baseX,
-                baseY + 20,
+                baseY + 25,
                 0xFFFFFF,
                 false
         );
@@ -523,12 +550,11 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
                 Minecraft.getInstance().font,
                 Component.literal(modeText1),
                 baseX + Minecraft.getInstance().font.width(Component.translatable("gui.wireless.mode.connect").append(":").getString()),
-                baseY + 20,
+                baseY + 25,
                 online ? 0x00FF00 : 0xFF0000,
                 false
         );
     }
-
 
     // 修改：鼠标点击处理方法
     @Override

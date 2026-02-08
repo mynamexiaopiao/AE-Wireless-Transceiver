@@ -38,7 +38,7 @@ public class WirelessMenu extends AEBaseMenu {
 
 
     public WirelessMenu(int containerId, Inventory inventory,FriendlyByteBuf friendlyByteBuf) {
-        this(containerId, inventory, ((WirelessConnectBlockEntity) inventory.player.level().getBlockEntity(friendlyByteBuf.readBlockPos())) , new SimpleContainerData(1));
+        this(containerId, inventory, ((WirelessConnectBlockEntity) inventory.player.level().getBlockEntity(friendlyByteBuf.readBlockPos())) , new SimpleContainerData(3));
     }
 
     public WirelessMenu( int id, Inventory playerInventory, WirelessConnectBlockEntity host, ContainerData data) {
@@ -109,4 +109,18 @@ public class WirelessMenu extends AEBaseMenu {
         return false;
     }
 
+
+    public int getUsedChannels() {
+        if (data != null) {
+            return data.get(1);
+        }
+        return 0;
+    }
+
+    public int getMaxChannels() {
+        if (data != null) {
+            return data.get(2);
+        }
+        return 0;
+    }
 }

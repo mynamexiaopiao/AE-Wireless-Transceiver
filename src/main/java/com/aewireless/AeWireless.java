@@ -39,7 +39,7 @@ public class AeWireless {
 
         ModRegister.MENU_TYPES.register(modEventBus);
 
-        modContainer.registerConfig(net.neoforged.fml.config.ModConfig.Type.COMMON , ModConfig.CONFIG);
+        ModConfig.init();
 
 
         modEventBus.addListener(this::registerCapabilities);

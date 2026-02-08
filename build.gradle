@@ -155,6 +155,11 @@ dependencies {
     implementation "org.appliedenergistics:guideme:2.5.1"
 
 
+    // compileOnly 供代码编译
+
+    jarJar(implementation "curse.maven:configuration-444699:6779573")
+
+
     implementation "curse.maven:jade-324717:6853386"
 
 

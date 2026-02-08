@@ -1,41 +1,50 @@
 package com.aewireless;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.config.ModConfigEvent;
+import dev.toma.configuration.Configuration;
+import dev.toma.configuration.config.Config;
+import dev.toma.configuration.config.Configurable;
+import dev.toma.configuration.config.format.ConfigFormats;
 
-@EventBusSubscriber
+@Config(id = AeWireless.MOD_ID)
 public class ModConfig {
 
-    protected static ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
+    public static ModConfig INSTANCE;
+    private static final Object lock = new Object();
 
-    public static ModConfigSpec.ConfigValue<Boolean> IS_ENERGY = BUILDER
-            .comment("Whether to use energy")
-            .define("is_energy", true);
-    public static ModConfigSpec.ConfigValue<Double> BASE_ENERGY = BUILDER
-            .comment("Master Transceiver Energy")
-            .defineInRange("base_energy", 100.0,0,Integer.MAX_VALUE);
-
-    public static ModConfigSpec.ConfigValue<Double> BATTERY_MULTIPLIER = BUILDER
-            .comment("The battery multiplier")
-            .defineInRange("battery_multiplier", 1.0, 0, Integer.MAX_VALUE);;
-
-    public static final ModConfigSpec CONFIG = BUILDER.build();
-
-    // 添加公共字段来存储当前配置值
-    public static boolean isEnergy;
-    public static double baseEnergy;
-    public static double batteryMultiplier;
-
-    public static void getConfig() {
-        isEnergy = IS_ENERGY.get();
-        baseEnergy = BASE_ENERGY.get();
-        batteryMultiplier = BATTERY_MULTIPLIER.get();
+    public static void init() {
+        synchronized (lock) {
+            if (INSTANCE == null) {
+                INSTANCE = Configuration.registerConfig(ModConfig.class, ConfigFormats.yaml()).getConfigInstance();
+            }
+        }
     }
 
-    @SubscribeEvent
-    static void onLoad(final ModConfigEvent event) {
-        getConfig();
-    }
+    @Configurable
+    @Configurable.Synchronized
+    @Configurable.Comment(value = {"If enabled, the wireless transceiver will consume energy for transmission."}, localize = true)
+    public boolean isEnergy = true;
+
+    @Configurable
+    @Configurable.Synchronized
+    @Configurable.Comment(value = {"Allow cross-dimensional connection"}, localize = true)
+    public boolean crossDimensional = true;
+
+    @Configurable
+    @Configurable.Synchronized
+    @Configurable.DecimalRange(min = 0)
+    public double baseEnergy = 100.0;
+
+
+    @Configurable
+    @Configurable.Synchronized
+    @Configurable.DecimalRange(min = 0)
+    @Configurable.Comment(value = {"Maximum transmission distance between Sub and Main wireless transceivers(0 for unlimited)."}, localize = true)
+    public double maxDistance = 0;
+
+    @Configurable
+    @Configurable.Synchronized
+    @Configurable.DecimalRange(min = 0)
+    @Configurable.Comment(value = {"Sub energy consumption = Distance between Main and Sub × Energy multiplier."}, localize = true)
+    public double batteryMultiplier = 1.0;
+
 }
