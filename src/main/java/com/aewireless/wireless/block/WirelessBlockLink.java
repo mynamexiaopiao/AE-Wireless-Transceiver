@@ -1,26 +1,35 @@
-package com.aewireless.wireless;
+package com.aewireless.wireless.block;
 
 import appeng.api.networking.GridHelper;
 import appeng.api.networking.IGridConnection;
 import appeng.api.networking.IGridNode;
+import appeng.api.networking.IInWorldGridNodeHost;
 import appeng.me.service.helpers.ConnectionWrapper;
 import com.aewireless.AeWireless;
 import com.aewireless.AeWirelessConfig;
-import com.mojang.datafixers.kinds.IdF;
+import com.aewireless.wireless.IWirelessEndpoint;
+import com.aewireless.wireless.WirelessData;
+import com.aewireless.wireless.WirelessTeamUtil;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 
 import java.util.Objects;
 import java.util.UUID;
 
-public class WirelessLink {
-    private final IWirelessEndpoint host;
+public class WirelessBlockLink {
+    private final IInWorldGridNodeHost host;
+    ServerLevel level;
+    BlockPos pos;
     private String frequency ;
     private UUID uuid;
 
     private ConnectionWrapper connection = new ConnectionWrapper( null);
 
-    public WirelessLink(IWirelessEndpoint host) {
+    public WirelessBlockLink(IInWorldGridNodeHost host , ServerLevel level , BlockPos pos) {
         this.host = host;
+        this.level = level;
+        this.pos = pos;
     }
 
     public void setUuid(UUID uuid) {
@@ -45,14 +54,8 @@ public class WirelessLink {
             return;
         }
 
-        if (host.isEndpointRemoved()) {
-            destroyConnection();
-            return;
-        }
-
         setUuid(uuid);
 
-        ServerLevel level = host.getServerLevel();
         Double distance = 0.0D;
 
         IWirelessEndpoint master = WirelessData.getData(frequency, uuid);
@@ -61,7 +64,7 @@ public class WirelessLink {
 
         if (master != null && !master.isEndpointRemoved() && (crossDimensional || master.getServerLevel() == level)) {
 
-            distance = Math.sqrt(master.getBlockPos().distSqr(host.getBlockPos()));
+            distance = Math.sqrt(master.getBlockPos().distSqr(pos));
 
 
             double maxRange = AeWirelessConfig.INSTANCE.maxDistance;
@@ -73,8 +76,6 @@ public class WirelessLink {
             }else if (crossDimensional){
                 connect(master);
             }
-
-
         }else {
             destroyConnection();
         }
@@ -83,7 +84,7 @@ public class WirelessLink {
     private void connect(IWirelessEndpoint master) {
         try {
             IGridConnection existingConnection = connection.getConnection();
-            IGridNode hostNode = host.getGridNode();
+            IGridNode hostNode = host.getGridNode(Direction.DOWN);
             IGridNode masterNode = master.getGridNode();
 
             if (hostNode == null || masterNode == null) {
@@ -105,18 +106,14 @@ public class WirelessLink {
             // 建立新连接
             if (!hostNode.equals(masterNode)){
                 IGridConnection newConnection = GridHelper.createConnection(hostNode, masterNode);
-                connection = new ConnectionWrapper(newConnection);
+                connection.setConnection(newConnection);
             }
 
         } catch (IllegalStateException e) {
-            // 记录错误日志
             destroyConnection();
         }
     }
 
-    public void realUnregister() {
-        frequency = null;
-    }
 
     public void destroyConnection() {
         var current = connection.getConnection();

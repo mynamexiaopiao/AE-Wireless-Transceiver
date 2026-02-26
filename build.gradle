@@ -71,6 +71,12 @@ dependencies {
     mappings loom.officialMojangMappings()
     forge "net.minecraftforge:forge:${forge_version}"
 
+
+//    modCompileOnly("com.gregtechceu.gtceu:gtceu-${project.minecraft_version}:${project.gtceu_version}")
+//    modCompileOnly("com.lowdragmc.ldlib:ldlib-forge-$project.minecraft_version:$project.ldlib_version")
+//    modCompileOnly("com.tterrag.registrate:Registrate:$project.registrate_version")
+//    modCompileOnly("dev.toma.configuration:configuration-forge-$project.minecraft_version:$project.configuration_version")
+
     modImplementation "curse.maven:glodium-957920:${glodium_version}"
     modImplementation "appeng:appliedenergistics2-forge:${ae2_version}"
     modImplementation "org.appliedenergistics:guideme:${guideme_version}"

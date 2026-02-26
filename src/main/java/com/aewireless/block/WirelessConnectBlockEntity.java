@@ -189,6 +189,8 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         setChanged();
     }
 
+
+
     public void onRemoved() {
         if (this.mode) {
             masterLink.unregister();

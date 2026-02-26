@@ -4,9 +4,12 @@ import com.aewireless.AeWireless;
 import com.aewireless.block.WirelessConnectBlock;
 import com.aewireless.block.WirelessConnectBlockEntity;
 import com.aewireless.gui.wireless.WirelessMenu;
+import com.aewireless.item.WirelessCore;
+import com.aewireless.item.WirelessDestroy;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -31,6 +34,10 @@ public class ModRegister {
             () -> new WirelessConnectBlock(Block.Properties.of().strength(3f)
                     .requiresCorrectToolForDrops()
                     .sound(SoundType.METAL)));
+
+    public static final RegistryObject<Item> WIRELESS_CORER = ITEMS.register("wireless_connect", () -> new WirelessCore( new Item.Properties()));
+    public static final RegistryObject<Item> WIRELESS_DESTROY = ITEMS.register("wireless_destroy", () -> new WirelessDestroy( new Item.Properties()));
+
 
     public static final RegistryObject<BlockEntityType<WirelessConnectBlockEntity>> WIRELESS_TRANSCEIVER_ENTITY = BLOCKS_ENTITY.register(
             "wireless_transceiver_block_entity",

@@ -1,5 +1,9 @@
 {
   "block.aewireless.wireless_transceiver": "AE 无线收发器",
+  "item.aewireless.wireless_connect": "无线连接器",
+  "item.aewireless.wireless_destroy": "无线破坏器",
+
+
   "gui.aewireless.wireless": "AE 无线收发器",
   "gui.wireless.mode": "是否为发送端",
   "gui.wireless.add": "添加",
@@ -25,6 +29,7 @@
   "aewireless.tooltip.owner.unset": "所有者: 未设置",
   "aewireless.tooltip.owner.public": "所有者: 公共",
   "config.jade.plugin_aewireless.wireless_tooltip": "无线收发器信息",
+  "config.jade.plugin_aewireless.block_entity_tooltip": "connect block inf",
 
   "aewireless.jade.tooltip.masterpos": "主节点位置",
   "aewireless.jade.tooltip.dimension": "维度",

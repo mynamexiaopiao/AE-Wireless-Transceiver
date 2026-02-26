@@ -1,5 +1,8 @@
 {
   "block.aewireless.wireless_transceiver": "AE Wireless Transceiver",
+  "item.aewireless.wireless_connect": "Wireless Connector",
+  "item.aewireless.wireless_destroy": "Wireless Destroyer",
+
   "gui.aewireless.wireless": "AE Wireless Transceiver",
   "gui.wireless.mode": "is the sender",
   "gui.wireless.add": "add",
@@ -23,7 +26,7 @@
 
   "aewireless.tooltip.failopen": "This is %s's wireless transceiver, you don't have permission to open it.",
 
-
+  "config.jade.plugin_aewireless.block_entity_tooltip": "connect block inf",
   "config.jade.plugin_aewireless.wireless_tooltip": "AE Wireless Transceiver Info",
 
   "aewireless.jade.tooltip.masterpos": "Master Node Position",
