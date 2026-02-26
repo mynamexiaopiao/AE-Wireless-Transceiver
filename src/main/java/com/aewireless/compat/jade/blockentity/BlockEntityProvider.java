@@ -31,7 +31,7 @@ public enum BlockEntityProvider implements IServerDataProvider<BlockAccessor> {
 
         BlockEntity blockEntity = blockAccessor.getBlockEntity();
         CompoundTag persistentData = blockEntity.getPersistentData();
-        if (persistentData.contains("uuid" ) && persistentData.contains("frequency")) {
+        if (persistentData.contains("uuid" ) && persistentData.contains("frequency") && persistentData.contains("direction")){
             String frequency = persistentData.getString("frequency");
             UUID uuid = persistentData.getUUID("uuid");
             Level level = blockAccessor.getLevel();
@@ -42,7 +42,7 @@ public enum BlockEntityProvider implements IServerDataProvider<BlockAccessor> {
             }
 
             compoundTag.putString("frequency", frequency);
-
+            compoundTag.putInt("direction", persistentData.getInt("direction"));
         }
     }
 }

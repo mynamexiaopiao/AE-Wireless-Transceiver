@@ -7,6 +7,7 @@ import com.aewireless.wireless.IWirelessEndpoint;
 import com.aewireless.wireless.WirelessData;
 import com.aewireless.wireless.WirelessLink;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
@@ -35,18 +36,19 @@ public class LevelManage {
 
         if (level.isClientSide) return;
 
-        HashMap<BlockPos, WirelessBlockLink> blockPosList = WirelessBlockManage.getBlockPosList();
+        HashMap<WirelessBlockManage.PosAndDirection, WirelessBlockLink> blockPosList = WirelessBlockManage.getBlockPosList();
 
-        Iterator<Map.Entry<BlockPos, WirelessBlockLink>> iterator = blockPosList.entrySet().iterator();
+        Iterator<Map.Entry<WirelessBlockManage.PosAndDirection, WirelessBlockLink>> iterator = blockPosList.entrySet().iterator();
 
         while (iterator.hasNext()) {
-            Map.Entry<BlockPos, WirelessBlockLink> blockPosWirelessBlockLinkEntry = iterator.next();
-            BlockPos blockPos = blockPosWirelessBlockLinkEntry.getKey();
+            Map.Entry<WirelessBlockManage.PosAndDirection, WirelessBlockLink> blockPosWirelessBlockLinkEntry = iterator.next();
+            BlockPos blockPos = blockPosWirelessBlockLinkEntry.getKey().pos();
+            Direction direction = blockPosWirelessBlockLinkEntry.getKey().direction();
             WirelessBlockLink value = blockPosWirelessBlockLinkEntry.getValue();
             BlockEntity blockEntity = level.getBlockEntity(blockPos);
             if (blockEntity != null) {
                 CompoundTag compoundTag = blockEntity.getPersistentData();
-                if (compoundTag.contains("frequency") && compoundTag.contains("uuid")) {
+                if (compoundTag.contains("frequency") && compoundTag.contains("uuid") && compoundTag.contains("direction")) {
                     String frequency = compoundTag.getString("frequency");
                     UUID uuid = compoundTag.getUUID("uuid");
                     if (!frequency.isEmpty()) {
@@ -54,12 +56,11 @@ public class LevelManage {
                         if (nodeHost != null) {
                             if (value == null){
                                 WirelessBlockLink wirelessLink = new WirelessBlockLink(nodeHost , level instanceof ServerLevel sl ? sl : null  , blockPos);
-                                wirelessLink.setUuid(uuid);
-                                wirelessLink.setFrequency(frequency);
-                                WirelessBlockManage.addBlockPos(blockPos , wirelessLink);
+                                WirelessBlockManage.addBlockPos(new WirelessBlockManage.PosAndDirection(blockPos , direction) , wirelessLink);
                             }else {
                                 value.setUuid(uuid);
                                 value.setFrequency(frequency);
+                                value.setDirection(direction);
                                 value.update();
                             }
                         }

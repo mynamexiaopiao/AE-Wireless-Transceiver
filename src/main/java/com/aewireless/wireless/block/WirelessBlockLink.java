@@ -19,10 +19,11 @@ import java.util.UUID;
 
 public class WirelessBlockLink {
     private final IInWorldGridNodeHost host;
-    ServerLevel level;
-    BlockPos pos;
+    private ServerLevel level;
+    private BlockPos pos;
     private String frequency ;
     private UUID uuid;
+    private Direction direction;
 
     private ConnectionWrapper connection = new ConnectionWrapper( null);
 
@@ -38,6 +39,10 @@ public class WirelessBlockLink {
         if (!AeWireless.IS_FTB_TEAMS_LOADED){
             this.uuid  = AeWireless.PUBLIC_NETWORK_UUID;
         }
+    }
+
+    public void setDirection(Direction direction) {
+        this.direction = direction;
     }
 
     public void setFrequency(String frequency) {
@@ -71,20 +76,20 @@ public class WirelessBlockLink {
 
             if (master.getServerLevel() == level){
                 if ( distance <= maxRange || maxRange == 0) {
-                    connect(master);
+                    connect(master , direction);
                 }
             }else if (crossDimensional){
-                connect(master);
+                connect(master , direction);
             }
         }else {
             destroyConnection();
         }
     }
 
-    private void connect(IWirelessEndpoint master) {
+    private void connect(IWirelessEndpoint master , Direction direction) {
         try {
             IGridConnection existingConnection = connection.getConnection();
-            IGridNode hostNode = host.getGridNode(Direction.DOWN);
+            IGridNode hostNode = host.getGridNode(direction);
             IGridNode masterNode = master.getGridNode();
 
             if (hostNode == null || masterNode == null) {

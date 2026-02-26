@@ -4,53 +4,69 @@ import com.aewireless.wireless.WirelessData;
 import com.aewireless.wireless.block.WirelessBlockLink;
 import com.aewireless.wireless.block.WirelessBlockManage;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class WirelessBlockWorldData extends SavedData {
-    HashMap<BlockPos, WirelessBlockLink> blockPosList;
+    HashMap<WirelessBlockManage.PosAndDirection, WirelessBlockLink> blockPosList;
 
-    public WirelessBlockWorldData(HashMap<BlockPos, WirelessBlockLink> pos){
+    public WirelessBlockWorldData(HashMap<WirelessBlockManage.PosAndDirection, WirelessBlockLink> pos){
         blockPosList = pos;
     }
 
     @Override
-    public CompoundTag save(CompoundTag arg) {
+    public CompoundTag save(CompoundTag tag) {
 
-        CompoundTag posTag = new CompoundTag();
+        ListTag list = new ListTag();
 
-        int i = 0;
+        for (var entry : blockPosList.entrySet()) {
 
-        for (Map.Entry<BlockPos, WirelessBlockLink> blockPosWirelessBlockLinkEntry : blockPosList.entrySet()) {
-            BlockPos blockPos = blockPosWirelessBlockLinkEntry.getKey();
-            posTag.putLong("pos"+i ,blockPos.asLong());
-            i++;
+            CompoundTag element = new CompoundTag();
+
+            element.putLong("pos", entry.getKey().pos().asLong());
+            element.putInt("dir", entry.getKey().direction().ordinal());
+
+            list.add(element);
         }
 
-        arg.put("blockPosList" , posTag);
-        return arg;
+        tag.put("entries", list);
+
+        return tag;
     }
 
+    /* ===================== 读取 ===================== */
+
     public void loadFromNBT(CompoundTag tag) {
-        blockPosList.clear();
 
-        if (tag.contains("blockPosList")) {
+        if (tag.contains("entries", Tag.TAG_LIST)) {
 
-            CompoundTag posTag = tag.getCompound("blockPosList");
+            ListTag list = tag.getList("entries", Tag.TAG_COMPOUND);
 
-            for (String pos : posTag.getAllKeys()) {
-                long aLong = posTag.getLong(pos);
-                BlockPos blockPos = BlockPos.of(aLong);
-                blockPosList.put(blockPos , null);
+            for (int i = 0; i < list.size(); i++) {
+
+                CompoundTag element = list.getCompound(i);
+
+                BlockPos pos = BlockPos.of(element.getLong("pos"));
+                Direction dir = Direction.values()[element.getInt("dir")];
+
+                WirelessBlockManage.PosAndDirection key =
+                        new WirelessBlockManage.PosAndDirection(pos, dir);
+
+                blockPosList.put(key, null);
             }
         }
+
     }
 
     public static WirelessBlockWorldData get(Level level) {

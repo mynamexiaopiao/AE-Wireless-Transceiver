@@ -2,6 +2,7 @@ package com.aewireless.compat.jade.blockentity;
 
 import com.aewireless.AeWireless;
 import com.aewireless.wireless.WirelessTeamUtil;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -22,14 +23,18 @@ public class BlockEntityComponents implements IBlockComponentProvider {
     public void appendTooltip(ITooltip iTooltip, BlockAccessor blockAccessor, IPluginConfig iPluginConfig) {
         CompoundTag serverData = blockAccessor.getServerData();
 
-        if (serverData.contains("frequency") && serverData.contains("uuid")) {
+        if (serverData.contains("frequency") && serverData.contains("uuid") && serverData.contains("direction")) {
             String frequency = serverData.getString("frequency");
             String uuid = serverData.getString("uuid");
+            int direction = serverData.getInt("direction");
+            Direction value = Direction.values()[direction];
             Level level = blockAccessor.getBlockEntity().getLevel();
 
             iTooltip.add(Component.translatable("aewireless.tooltip.channel_name" , frequency));
 
             iTooltip.add(Component.translatable("aewireless.tooltip.owner" ,uuid));
+
+            iTooltip.add(Component.translatable("aewireless.tooltip.direction" ,value.toString()));
 
         }
 
