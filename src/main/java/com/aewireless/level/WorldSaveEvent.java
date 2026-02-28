@@ -3,7 +3,9 @@ package com.aewireless.level;
 
 import com.aewireless.AeWireless;
 import com.aewireless.wireless.WirelessData;
+import com.aewireless.wireless.block.LevelManage;
 import com.aewireless.wireless.block.WirelessBlockManage;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
@@ -30,8 +32,28 @@ public class WorldSaveEvent {
             if (worldData != null && !worldData.data.isEmpty()){
                 WirelessData.setDATAMap(worldData.data);
             }
-
         }
+    }
+
+
+    @SubscribeEvent
+    public static void onServerStopping(LevelEvent.Unload event) {
+        MinecraftServer server = event.getLevel().getServer();
+
+        if (server == null) return;
+
+        WirelessWorldData worldData = WirelessWorldData.get(server.getLevel(Level.OVERWORLD));
+        WirelessBlockWorldData blockWorldData = WirelessBlockWorldData.get(server.getLevel(Level.OVERWORLD));
+        if (blockWorldData != null) {
+            blockWorldData.blockPosList = new HashMap<>(WirelessBlockManage.getBlockPosList());
+            blockWorldData.setDirty();
+        }
+        if (worldData != null) {
+            worldData.data = new HashMap<>(WirelessData.getDATAMap());
+            worldData.setDirty();
+        }
+
+
     }
 
 
@@ -47,6 +69,7 @@ public class WorldSaveEvent {
             worldData.data = new HashMap<>(WirelessData.getDATAMap());
             worldData.setDirty();
         }
+
 
         WirelessData.clearData();
         WirelessBlockManage.clearBlockPosList();

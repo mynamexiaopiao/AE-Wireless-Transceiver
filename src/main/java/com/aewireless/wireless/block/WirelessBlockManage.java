@@ -19,21 +19,33 @@ public class WirelessBlockManage {
     private static  HashMap<PosAndDirection, WirelessBlockLink> blockPosList = new HashMap<>();
 
     public synchronized static  void addBlockPos(PosAndDirection pos , WirelessBlockLink link){
-        if (blockPosList.containsKey(pos)){
-            WirelessBlockLink wirelessBlockLink = blockPosList.get(pos);
-            if (wirelessBlockLink != null){
-                wirelessBlockLink.destroyConnection();
+        for (Direction value : Direction.values()) {
+            if (blockPosList.containsKey(new PosAndDirection(pos.pos , value))){
+                WirelessBlockLink wirelessBlockLink = blockPosList.get(pos);
+                if (wirelessBlockLink != null){
+                    wirelessBlockLink.destroyConnection();
+                    blockPosList.remove(new PosAndDirection(pos.pos, value));
+                }
             }
         }
         blockPosList.put(pos, link);
     }
 
-    public synchronized static  void removeBlockPos(BlockPos pos , Direction direction){
-        WirelessBlockLink wirelessBlockLink = blockPosList.get(new PosAndDirection(pos, direction));
-        if (wirelessBlockLink != null){
-            wirelessBlockLink.destroyConnection();
+    public synchronized static  void removeBlockPos(BlockPos pos ){
+
+        for (Direction value : Direction.values()) {
+            WirelessBlockLink wirelessBlockLink = blockPosList.get(new PosAndDirection(pos, value));
+            if (wirelessBlockLink != null){
+                wirelessBlockLink.destroyConnection();
+            }
+            blockPosList.remove(new PosAndDirection(pos, value));
         }
-        blockPosList.remove(new PosAndDirection(pos, direction));
+
+    }
+
+
+    public synchronized static boolean contains(PosAndDirection pos){
+        return blockPosList.containsKey(pos);
     }
 
     public synchronized static HashMap<PosAndDirection, WirelessBlockLink> getBlockPosList(){

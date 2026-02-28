@@ -18,7 +18,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class WirelessBlockLink {
-    private final IInWorldGridNodeHost host;
+    private IInWorldGridNodeHost host;
     private ServerLevel level;
     private BlockPos pos;
     private String frequency ;
@@ -89,6 +89,9 @@ public class WirelessBlockLink {
     private void connect(IWirelessEndpoint master , Direction direction) {
         try {
             IGridConnection existingConnection = connection.getConnection();
+
+            if (host == null) return;
+
             IGridNode hostNode = host.getGridNode(direction);
             IGridNode masterNode = master.getGridNode();
 
@@ -119,6 +122,13 @@ public class WirelessBlockLink {
         }
     }
 
+    public IInWorldGridNodeHost getHost() {
+        return host;
+    }
+
+    public void setHost(IInWorldGridNodeHost host) {
+        this.host = host;
+    }
 
     public void destroyConnection() {
         var current = connection.getConnection();

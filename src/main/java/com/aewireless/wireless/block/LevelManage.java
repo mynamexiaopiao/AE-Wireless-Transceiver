@@ -1,11 +1,7 @@
 package com.aewireless.wireless.block;
 
 import appeng.api.networking.GridHelper;
-import appeng.api.networking.IGridNode;
 import appeng.api.networking.IInWorldGridNodeHost;
-import com.aewireless.wireless.IWirelessEndpoint;
-import com.aewireless.wireless.WirelessData;
-import com.aewireless.wireless.WirelessLink;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -14,23 +10,44 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModWorkManager;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicReference;
 
 
 @Mod.EventBusSubscriber
 public class LevelManage {
-
     private static int tickCounter = 0;
+
+    private static int TICK_INTERVAL = 20;
+
+    public static CopyOnWriteArrayList<WirelessBlockLink> blockPosList1 = new CopyOnWriteArrayList<>();
+
+
+
+    @SubscribeEvent
+    public static void onServerTick(TickEvent.ServerTickEvent event) {
+
+        tickCounter ++;
+        if (tickCounter > TICK_INTERVAL) tickCounter = 0;
+        if (tickCounter != TICK_INTERVAL)return;
+
+        for (WirelessBlockLink wirelessBlockLink : blockPosList1) {
+            wirelessBlockLink.update();
+        }
+
+        blockPosList1.clear();
+    }
+
 
     @SubscribeEvent
     public static void onWorldTick(TickEvent.LevelTickEvent event) {
-        tickCounter++;
-        if (tickCounter > 10) tickCounter = 0;
-        if (tickCounter != 10 )return;
+
+        if (event.level.getGameTime() % TICK_INTERVAL != 0) return;
 
         Level level = event.level;
 
@@ -38,41 +55,44 @@ public class LevelManage {
 
         HashMap<WirelessBlockManage.PosAndDirection, WirelessBlockLink> blockPosList = WirelessBlockManage.getBlockPosList();
 
-        Iterator<Map.Entry<WirelessBlockManage.PosAndDirection, WirelessBlockLink>> iterator = blockPosList.entrySet().iterator();
 
-        while (iterator.hasNext()) {
-            Map.Entry<WirelessBlockManage.PosAndDirection, WirelessBlockLink> blockPosWirelessBlockLinkEntry = iterator.next();
+        for (Map.Entry<WirelessBlockManage.PosAndDirection, WirelessBlockLink> blockPosWirelessBlockLinkEntry : blockPosList.entrySet()) {
             BlockPos blockPos = blockPosWirelessBlockLinkEntry.getKey().pos();
             Direction direction = blockPosWirelessBlockLinkEntry.getKey().direction();
             WirelessBlockLink value = blockPosWirelessBlockLinkEntry.getValue();
+            WirelessBlockManage.PosAndDirection posAndDirection = new WirelessBlockManage.PosAndDirection(blockPos, direction);
+            IInWorldGridNodeHost nodeHost = GridHelper.getNodeHost(level, blockPos);
+
+
             BlockEntity blockEntity = level.getBlockEntity(blockPos);
+
+            if (blockPosList.get(posAndDirection) != null) {
+                if (value.getHost() == null || value.getHost().getGridNode(direction) == null) {
+                    value.setHost(nodeHost);
+                }
+                blockPosList1.add(value);
+
+                continue;
+            };
+
             if (blockEntity != null) {
                 CompoundTag compoundTag = blockEntity.getPersistentData();
                 if (compoundTag.contains("frequency") && compoundTag.contains("uuid") && compoundTag.contains("direction")) {
                     String frequency = compoundTag.getString("frequency");
                     UUID uuid = compoundTag.getUUID("uuid");
                     if (!frequency.isEmpty()) {
-                        IInWorldGridNodeHost nodeHost = GridHelper.getNodeHost(level, blockPos);
                         if (nodeHost != null) {
                             if (value == null){
                                 WirelessBlockLink wirelessLink = new WirelessBlockLink(nodeHost , level instanceof ServerLevel sl ? sl : null  , blockPos);
-                                WirelessBlockManage.addBlockPos(new WirelessBlockManage.PosAndDirection(blockPos , direction) , wirelessLink);
-                            }else {
-                                value.setUuid(uuid);
-                                value.setFrequency(frequency);
-                                value.setDirection(direction);
-                                value.update();
+                                wirelessLink.setUuid(uuid);
+                                wirelessLink.setFrequency(frequency);
+                                wirelessLink.setDirection(direction);
+                                WirelessBlockManage.addBlockPos(posAndDirection , wirelessLink);
                             }
                         }
                     }
-                }else {
-                    if (value != null){
-                        value.destroyConnection();
-                    }
-                    iterator.remove();
                 }
             }
         }
-
     }
 }

@@ -107,7 +107,7 @@ public class ItemOnBlockEvent {
                         persistentData.remove("uuid");
                         persistentData.remove("frequency");
                         int direction = persistentData.getInt("direction");
-                        WirelessBlockManage.removeBlockPos(clickedPos , Direction.values()[direction]);
+                        WirelessBlockManage.removeBlockPos(clickedPos );
                         persistentData.remove("direction");
 
                         arg.setCancellationResult(InteractionResult.SUCCESS);
