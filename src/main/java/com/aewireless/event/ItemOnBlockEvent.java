@@ -32,16 +32,15 @@ public class ItemOnBlockEvent {
     @SubscribeEvent
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock arg) {
 
-        BlockPos clickedPos = arg.getPos();
-        Player player = arg.getEntity();
-        InteractionHand hand = arg.getHand();
-        Level level = arg.getLevel();
-        BlockEntity blockEntity = level.getBlockEntity(clickedPos);
-        ItemStack itemInHand = player.getItemInHand(hand);
-        Direction clickedFace = arg.getFace();
-
         ItemStack itemStack = arg.getItemStack();
         if (itemStack.is(ModRegister.WIRELESS_CORER.get())){
+            BlockPos clickedPos = arg.getPos();
+            Player player = arg.getEntity();
+            InteractionHand hand = arg.getHand();
+            Level level = arg.getLevel();
+            BlockEntity blockEntity = level.getBlockEntity(clickedPos);
+            ItemStack itemInHand = player.getItemInHand(hand);
+            Direction clickedFace = arg.getFace();
             if (!arg.getLevel().isClientSide){
                 arg.setCanceled(true);
                 if (player.isShiftKeyDown() && blockEntity instanceof WirelessConnectBlockEntity entity){
@@ -90,6 +89,11 @@ public class ItemOnBlockEvent {
 
             }
         }else if (itemStack.is(ModRegister.WIRELESS_DESTROY.get())){
+            BlockPos clickedPos = arg.getPos();
+            Player player = arg.getEntity();
+            InteractionHand hand = arg.getHand();
+            Level level = arg.getLevel();
+            BlockEntity blockEntity = level.getBlockEntity(clickedPos);
             if (!arg.getLevel().isClientSide){
                 arg.setCanceled(true);
                 CompoundTag persistentData = blockEntity.getPersistentData();

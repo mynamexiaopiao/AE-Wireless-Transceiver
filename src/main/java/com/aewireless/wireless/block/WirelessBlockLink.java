@@ -69,13 +69,13 @@ public class WirelessBlockLink {
 
         if (master != null && !master.isEndpointRemoved() && (crossDimensional || master.getServerLevel() == level)) {
 
-            distance = Math.sqrt(master.getBlockPos().distSqr(pos));
+            distance = master.getBlockPos().distSqr(pos);
 
 
             double maxRange = AeWirelessConfig.INSTANCE.maxDistance;
 
             if (master.getServerLevel() == level){
-                if ( distance <= maxRange || maxRange == 0) {
+                if ( distance <= maxRange*maxRange || maxRange == 0) {
                     connect(master , direction);
                 }
             }else if (crossDimensional){
