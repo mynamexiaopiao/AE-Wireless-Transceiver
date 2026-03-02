@@ -14,7 +14,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class WirelessBlockManage {
 
-    public WirelessBlockManage(){}
+    private static boolean dirty = false;
 
     private static  HashMap<PosAndDirection, WirelessBlockLink> blockPosList = new HashMap<>();
 
@@ -29,6 +29,7 @@ public class WirelessBlockManage {
             }
         }
         blockPosList.put(pos, link);
+        setDirty();
     }
 
     public synchronized static  void removeBlockPos(BlockPos pos ){
@@ -40,6 +41,7 @@ public class WirelessBlockManage {
             }
             blockPosList.remove(new PosAndDirection(pos, value));
         }
+        setDirty();
 
     }
 
@@ -54,10 +56,25 @@ public class WirelessBlockManage {
 
     public synchronized static void setBlockPosList(HashMap<PosAndDirection, WirelessBlockLink> blockPosList){
         WirelessBlockManage.blockPosList = blockPosList;
+        setDirty();
     }
 
     public synchronized static void clearBlockPosList(){
         blockPosList.clear();
+        setDirty();
+    }
+
+
+    public static void setDirty() {
+        WirelessBlockManage.dirty = true;
+    }
+
+    public static void setUndirty() {
+        WirelessBlockManage.dirty = false;
+    }
+
+    public static boolean isDirty() {
+        return dirty;
     }
 
     public record PosAndDirection(BlockPos pos , Direction direction){

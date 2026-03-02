@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class LevelManage {
 
     public static CopyOnWriteArrayList<WirelessBlockLink> blockPosList1 = new CopyOnWriteArrayList<>();
-
+    private static HashMap<WirelessBlockManage.PosAndDirection, WirelessBlockLink> blockPosList;
 
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent event) {
@@ -46,7 +46,14 @@ public class LevelManage {
 
         if (level.isClientSide) return;
 
-        HashMap<WirelessBlockManage.PosAndDirection, WirelessBlockLink> blockPosList = WirelessBlockManage.getBlockPosList();
+        if (blockPosList == null){
+            blockPosList = WirelessBlockManage.getBlockPosList();
+        }
+
+        if (WirelessBlockManage.isDirty()){
+            blockPosList = WirelessBlockManage.getBlockPosList();
+            WirelessBlockManage.setUndirty();
+        }
 
         for (Map.Entry<WirelessBlockManage.PosAndDirection, WirelessBlockLink> blockPosWirelessBlockLinkEntry : blockPosList.entrySet()) {
             BlockPos blockPos = blockPosWirelessBlockLinkEntry.getKey().pos();
