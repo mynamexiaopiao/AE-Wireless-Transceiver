@@ -36,25 +36,7 @@ public class WorldSaveEvent {
     }
 
 
-    @SubscribeEvent
-    public static void onServerStopping(LevelEvent.Unload event) {
-        MinecraftServer server = event.getLevel().getServer();
 
-        if (server == null) return;
-
-        WirelessWorldData worldData = WirelessWorldData.get(server.getLevel(Level.OVERWORLD));
-        WirelessBlockWorldData blockWorldData = WirelessBlockWorldData.get(server.getLevel(Level.OVERWORLD));
-        if (blockWorldData != null) {
-            blockWorldData.blockPosList = new HashMap<>(WirelessBlockManage.getBlockPosList());
-            blockWorldData.setDirty();
-        }
-        if (worldData != null) {
-            worldData.data = new HashMap<>(WirelessData.getDATAMap());
-            worldData.setDirty();
-        }
-
-
-    }
 
 
     @SubscribeEvent

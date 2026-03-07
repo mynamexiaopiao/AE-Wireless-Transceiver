@@ -1,9 +1,8 @@
-package com.aewireless.wireless.block;
+package com.aewireless.wireless.block.link;
 
 import appeng.api.networking.GridHelper;
 import appeng.api.networking.IGridConnection;
 import appeng.api.networking.IGridNode;
-import appeng.api.networking.IInWorldGridNodeHost;
 import appeng.me.service.helpers.ConnectionWrapper;
 import com.aewireless.AeWireless;
 import com.aewireless.AeWirelessConfig;
@@ -11,25 +10,28 @@ import com.aewireless.wireless.IWirelessEndpoint;
 import com.aewireless.wireless.WirelessData;
 import com.aewireless.wireless.WirelessTeamUtil;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 
 import java.util.Objects;
 import java.util.UUID;
 
 public class WirelessBlockLink {
-    private IInWorldGridNodeHost host;
-    private ServerLevel level;
-    private BlockPos pos;
-    private String frequency ;
-    private UUID uuid;
-    private Direction direction;
+    protected IGridNode hostNode;
+    protected ServerLevel level;
+    protected BlockPos pos;
+    protected String frequency ;
+    protected UUID uuid;
 
-    private ConnectionWrapper connection = new ConnectionWrapper( null);
+    protected ConnectionWrapper connection = new ConnectionWrapper( null);
 
-    public WirelessBlockLink(IInWorldGridNodeHost host , ServerLevel level , BlockPos pos) {
-        this.host = host;
+    public WirelessBlockLink(IGridNode host , ServerLevel level , BlockPos pos) {
         this.level = level;
+        this.pos = pos;
+        this.hostNode = host;
+    }
+
+    public WirelessBlockLink(ServerLevel level , BlockPos pos){
+        this.level= level;
         this.pos = pos;
     }
 
@@ -41,9 +43,6 @@ public class WirelessBlockLink {
         }
     }
 
-    public void setDirection(Direction direction) {
-        this.direction = direction;
-    }
 
     public void setFrequency(String frequency) {
         if (frequency == null)return;
@@ -74,25 +73,25 @@ public class WirelessBlockLink {
 
             double maxRange = AeWirelessConfig.INSTANCE.maxDistance;
 
+
+
             if (master.getServerLevel() == level){
                 if ( distance <= maxRange*maxRange || maxRange == 0) {
-                    connect(master , direction);
+                    connect(master , hostNode ,connection);
                 }
             }else if (crossDimensional){
-                connect(master , direction);
+                connect(master , hostNode , connection);
             }
         }else {
             destroyConnection();
         }
     }
 
-    private void connect(IWirelessEndpoint master , Direction direction) {
+
+    void connect(IWirelessEndpoint master, IGridNode hostNode , ConnectionWrapper connection) {
         try {
             IGridConnection existingConnection = connection.getConnection();
 
-            if (host == null) return;
-
-            IGridNode hostNode = host.getGridNode(direction);
             IGridNode masterNode = master.getGridNode();
 
             if (hostNode == null || masterNode == null) {
@@ -122,12 +121,12 @@ public class WirelessBlockLink {
         }
     }
 
-    public IInWorldGridNodeHost getHost() {
-        return host;
+    public IGridNode getHostNode() {
+        return hostNode;
     }
 
-    public void setHost(IInWorldGridNodeHost host) {
-        this.host = host;
+    public void setHostNode(IGridNode hostNode) {
+        this.hostNode = hostNode;
     }
 
     public void destroyConnection() {

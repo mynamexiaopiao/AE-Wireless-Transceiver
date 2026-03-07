@@ -3,7 +3,8 @@
 	"credit": "Made with _leng",
 	"texture_size": [32, 32],
 	"textures": {
-		"0": "aewireless:block/wireless_transceiver"
+		"0": "aewireless:block/wireless_transceiver",
+		"particle": "aewireless:block/wireless_transceiver"
 	},
 	"elements": [
 		{

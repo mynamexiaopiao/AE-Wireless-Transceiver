@@ -32,7 +32,7 @@ import java.util.function.Supplier;
 
 public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     Scrollbar scrollbar;
-AETextField input;
+    AETextField input;
 
     //可见行数
     private final int visibleRows = 8;
@@ -664,7 +664,7 @@ AETextField input;
         this.resetScrollbar();
     }
 
-    public void receiveServerData(java.util.List<String> keys) {
+    public void receiveServerData(List<String> keys) {
         // 只有当数据实际发生变化时才更新UI
         if (!this.allDataRows.equals(keys)) {
             this.allDataRows.clear();

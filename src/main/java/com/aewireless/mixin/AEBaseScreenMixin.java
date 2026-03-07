@@ -17,7 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(AEBaseScreen.class)
 public abstract class AEBaseScreenMixin<T extends AEBaseMenu> extends AbstractContainerScreen<T> {
-
     @Shadow protected abstract void openHelp();
 
     @Shadow @Final private VerticalButtonBar verticalToolbar;

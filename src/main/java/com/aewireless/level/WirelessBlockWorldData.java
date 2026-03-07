@@ -1,7 +1,6 @@
 package com.aewireless.level;
 
-import com.aewireless.wireless.WirelessData;
-import com.aewireless.wireless.block.WirelessBlockLink;
+import com.aewireless.wireless.block.link.WirelessBlockLink;
 import com.aewireless.wireless.block.WirelessBlockManage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -12,11 +11,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class WirelessBlockWorldData extends SavedData {
     HashMap<WirelessBlockManage.PosAndDirection, WirelessBlockLink> blockPosList;

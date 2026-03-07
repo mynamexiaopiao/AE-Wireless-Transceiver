@@ -8,69 +8,99 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class WirelessWorldData extends SavedData {
-    Map<WirelessData.Key, IWirelessEndpoint> data;
+    public Map<WirelessData.Key, IWirelessEndpoint> data;
 
-    public WirelessWorldData(Map<WirelessData.Key, IWirelessEndpoint> data){
+    public WirelessWorldData(Map<WirelessData.Key, IWirelessEndpoint> data) {
         this.data = data;
     }
 
-
     @Override
-    public @NotNull CompoundTag save(@NotNull CompoundTag arg) {
-        // 保存端点数据
+    public @NotNull CompoundTag save(@NotNull CompoundTag tag) {
+        // 保持原有的存储格式以保持兼容性
         CompoundTag endpointsTag = new CompoundTag();
-
         CompoundTag uuidTag = new CompoundTag();
-
 
         int i = 0;
         for (Map.Entry<WirelessData.Key, IWirelessEndpoint> entry : data.entrySet()) {
-
             endpointsTag.putString("string" + i, entry.getKey().string());
             uuidTag.putUUID("uuid" + i, entry.getKey().uuid());
-
             i++;
         }
 
-        arg.put("wirelessString" , endpointsTag);
-        arg.put("wirelessUUID" , uuidTag);
-        return arg;
-    }
+        tag.put("wirelessString", endpointsTag);
+        tag.put("wirelessUUID", uuidTag);
 
+        // 同时保存新格式，方便将来迁移
+        CompoundTag newFormatTag = new CompoundTag();
+        i = 0;
+        for (Map.Entry<WirelessData.Key, IWirelessEndpoint> entry : data.entrySet()) {
+            CompoundTag endpointTag = new CompoundTag();
+            endpointTag.putString("frequency", entry.getKey().string());
+            endpointTag.putUUID("uuid", entry.getKey().uuid());
+            newFormatTag.put(String.valueOf(i), endpointTag);
+            i++;
+        }
+        tag.put("wireless_endpoints_v2", newFormatTag);
+
+        return tag;
+    }
 
     public void loadFromNBT(CompoundTag tag) {
         data.clear();
 
-        if (tag.contains("wirelessString") && tag.contains("wirelessUUID")) {
-            CompoundTag endpointsTag = tag.getCompound("wirelessString");
-            CompoundTag uuidTag = tag.getCompound("wirelessUUID");
+        // 先尝试加载新格式
+        if (tag.contains("wireless_endpoints_v2")) {
+            loadNewFormat(tag.getCompound("wireless_endpoints_v2"));
+        }
+        // 否则加载旧格式
+        else if (tag.contains("wirelessString") && tag.contains("wirelessUUID")) {
+            loadOldFormat(tag);
+        }
+    }
 
-            ArrayList<String> strings = new ArrayList<>();
-
-
-            // 遍历所有保存的键值
-            for (String key : endpointsTag.getAllKeys()) {
-                try {
-                    String frequencyString = endpointsTag.getString(key);
-                    if (!frequencyString.isEmpty()) {
-
-                        strings.add(frequencyString);
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException("Error loading wireless endpoint data from NBT");
-                }
+    private void loadNewFormat(CompoundTag endpointsTag) {
+        for (String key : endpointsTag.getAllKeys()) {
+            try {
+                CompoundTag endpointTag = endpointsTag.getCompound(key);
+                String frequencyString = endpointTag.getString("frequency");
+                UUID uuid = endpointTag.getUUID("uuid");
+                data.put(new WirelessData.Key(frequencyString, uuid), null);
+            } catch (Exception e) {
+                throw new RuntimeException("Error loading wireless endpoint data from NBT (new format)", e);
             }
+        }
+    }
 
-            for (int i = 0 ; i<uuidTag.size() ; i ++){
-                UUID uuid = uuidTag.getUUID(uuidTag.getAllKeys().toArray()[i].toString());
-                data.put(new WirelessData.Key(strings.get(i), uuid), null);
-            }
+    private void loadOldFormat(CompoundTag tag) {
+        CompoundTag endpointsTag = tag.getCompound("wirelessString");
+        CompoundTag uuidTag = tag.getCompound("wirelessUUID");
 
+        // 获取所有键并按数字排序以确保正确的对应关系
+        List<String> stringKeys = new ArrayList<>(endpointsTag.getAllKeys());
+        List<String> uuidKeys = new ArrayList<>(uuidTag.getAllKeys());
+
+        // 自定义排序，确保按索引顺序
+        stringKeys.sort((a, b) -> {
+            int numA = Integer.parseInt(a.replace("string", ""));
+            int numB = Integer.parseInt(b.replace("string", ""));
+            return Integer.compare(numA, numB);
+        });
+
+        uuidKeys.sort((a, b) -> {
+            int numA = Integer.parseInt(a.replace("uuid", ""));
+            int numB = Integer.parseInt(b.replace("uuid", ""));
+            return Integer.compare(numA, numB);
+        });
+
+        // 确保两个列表大小相同
+        int size = Math.min(stringKeys.size(), uuidKeys.size());
+        for (int i = 0; i < size; i++) {
+            String frequencyString = endpointsTag.getString(stringKeys.get(i));
+            UUID uuid = uuidTag.getUUID(uuidKeys.get(i));
+            data.put(new WirelessData.Key(frequencyString, uuid), null);
         }
     }
 
@@ -78,14 +108,23 @@ public class WirelessWorldData extends SavedData {
         if (level instanceof ServerLevel serverLevel) {
             return serverLevel.getDataStorage().computeIfAbsent(
                     (tag) -> {
-                        WirelessWorldData data = new WirelessWorldData(WirelessData.getDATAMap());
-                        data.loadFromNBT(tag);
-                        return data;
+                        WirelessWorldData worldData = new WirelessWorldData(new HashMap<>());
+                        worldData.loadFromNBT(tag);
+                        return worldData;
                     },
-                    () -> new WirelessWorldData(WirelessData.getDATAMap()),
+                    () -> new WirelessWorldData(new HashMap<>()),
                     "wireless_world_data"
             );
         }
         return null;
+    }
+
+    public Map<WirelessData.Key, IWirelessEndpoint> getData() {
+        return data;
+    }
+
+    public void setData(Map<WirelessData.Key, IWirelessEndpoint> newData) {
+        this.data = newData;
+        this.setDirty();
     }
 }
