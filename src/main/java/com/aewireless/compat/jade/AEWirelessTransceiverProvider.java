@@ -1,4 +1,4 @@
-package com.aewireless.jade;
+package com.aewireless.compat.jade;
 
 import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridNode;

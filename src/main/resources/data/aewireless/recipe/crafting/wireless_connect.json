@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " B ",
+    " A ",
+    "   "
+  ],
+  "key": {
+    "A": {
+      "item": "ae2:wireless_booster"
+    },
+    "B":{
+      "item":"ae2:wireless_receiver"
+    }
+  },
+  "result": {
+    "id": "aewireless:wireless_connect"
+  }
+}

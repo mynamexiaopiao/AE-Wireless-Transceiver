@@ -1,5 +1,11 @@
 {
   "block.aewireless.wireless_transceiver": "AE Wireless Transceiver",
+  "item.aewireless.wireless_connect": "Wireless Connector",
+  "item.aewireless.wireless_destroy": "Wireless Destroyer",
+
+  "tooltip.aewireless_connect.1":  "The mode of wireless transceiver is wrong!",
+  "tooltip.aewireless_connect.2" : "shift + Right Click ： Connect to wireless transceiver",
+
   "gui.aewireless.wireless": "AE Wireless Transceiver",
   "gui.wireless.mode": "is the sender",
   "gui.wireless.add": "add",
@@ -10,20 +16,21 @@
   "gui.wireless.mode.channel": "channel",
   "gui.wireless.mode.disconnect": "disconnect",
   "gui.wireless.mode.connect": "connected",
+  "gui.wireless.remaining_channels": "Used channels",
   "gui.confirm_delete.message": "Confirm the deletion?",
   "aewireless.tooltip.channel_name": "Channel Name: %d",
+  "gui.wireless.energy.usage": "Energy",
   "aewireless.tooltip.master": "Mode: %s",
   "aewireless.tooltip.channels": "Channel: %s",
   "aewireless.tooltip.channels_of": "Channel: %d / %d",
   "aewireless.tooltip.owner": "Owner: %s",
   "aewireless.tooltip.owner.unset": "Owner: Unset",
   "aewireless.tooltip.owner.public": "Owner: Public",
-  "gui.wireless.energy.usage": "Energy",
-  "gui.wireless.remaining_channels": "Used channels",
+  "aewireless.tooltip.direction": "Direction: %s",
 
   "aewireless.tooltip.failopen": "This is %s's wireless transceiver, you don't have permission to open it.",
 
-
+  "config.jade.plugin_aewireless.block_entity_tooltip": "connect block inf",
   "config.jade.plugin_aewireless.wireless_tooltip": "AE Wireless Transceiver Info",
 
   "aewireless.jade.tooltip.masterpos": "Master Node Position",
@@ -33,6 +40,12 @@
   "aewireless.jade.tooltip.mode": "Slave Mode",
   "aewireless.jade.tooltip.deviceoff": "Device Offline",
   "aewireless.jade.tooltip.deviceon": "Device Online",
+
+
+  "config.aewireless.title": "AE Wireless Config",
+  "config.aewireless.is_energy": "Use Energy",
+  "config.aewireless.battery_multiplier": "Battery Multiplier",
+  "config.aewireless.save": "Save",
 
 
   "config.screen.aewireless": "AE Wireless Configuration",
@@ -47,6 +60,8 @@
   "config.aewireless.option.batteryMultiplier.comment.0": "Sub energy consumption = Distance between Main and Sub × Energy multiplier.",
   "config.aewireless.option.maxDistance.comment.0": "Maximum transmission distance between Sub and Main wireless transceivers(0 for unlimited).",
   "config.aewireless.option.crossDimensional.comment.0": "If enabled, the wireless transceiver will allow cross-dimensional connections (ignoring distance limits)."
+
+
 
 
 }

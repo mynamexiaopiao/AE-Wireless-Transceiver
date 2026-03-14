@@ -1,4 +1,4 @@
-package com.aewireless.jade;
+package com.aewireless.compat.jade;
 
 import com.aewireless.AeWireless;
 import net.minecraft.core.BlockPos;

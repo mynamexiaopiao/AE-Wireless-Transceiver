@@ -1,5 +1,12 @@
 {
   "block.aewireless.wireless_transceiver": "AE 无线收发器",
+  "item.aewireless.wireless_connect": "无线连接器",
+  "item.aewireless.wireless_destroy": "无线破坏器",
+
+  "tooltip.aewireless_connect.1":  "无线收发器模式错误！",
+  "tooltip.aewireless_connect.2" : "shift + 右键: 连接无线收发器",
+
+
   "gui.aewireless.wireless": "AE 无线收发器",
   "gui.wireless.mode": "是否为发送端",
   "gui.wireless.add": "添加",
@@ -8,12 +15,15 @@
   "gui.wireless.mode.channel": "频道",
   "gui.wireless.mode.disconnect": "断开",
   "gui.wireless.mode.connect": "已连接",
+  "gui.wireless.remaining_channels": "使用频道",
+  "gui.wireless.energy.usage": "耗能",
   "gui.confirm_delete.message": "确认删除?",
   "gui.input_channel_name_screen.placeholder": "输入频道名称",
   "gui.wireless.input.placeholder": "搜索...",
-  "gui.wireless.energy.usage": "耗能",
-  "gui.wireless.remaining_channels": "使用频道",
+
+
   "aewireless.tooltip.failopen": "这是属于 %s 的无线收发器，您无权打开。",
+  "aewireless.tooltip.direction": "方向: %s",
 
   "aewireless.tooltip.channel_name": "频道名称: %d",
   "aewireless.tooltip.master": "模式: %s",
@@ -23,6 +33,7 @@
   "aewireless.tooltip.owner.unset": "所有者: 未设置",
   "aewireless.tooltip.owner.public": "所有者: 公共",
   "config.jade.plugin_aewireless.wireless_tooltip": "无线收发器信息",
+  "config.jade.plugin_aewireless.block_entity_tooltip": "connect block inf",
 
   "aewireless.jade.tooltip.masterpos": "主节点位置",
   "aewireless.jade.tooltip.dimension": "维度",
@@ -32,6 +43,11 @@
   "aewireless.jade.tooltip.deviceoff": "设备离线",
   "aewireless.jade.tooltip.deviceon": "设备在线",
 
+
+  "config.aewireless.title": "AE Wireless 配置界面",
+  "config.aewireless.is_energy": "使用能量",
+  "config.aewireless.battery_multiplier": "能量乘数",
+  "config.aewireless.save": "保存",
 
   "config.screen.aewireless": "AE Wireless 配置",
   "config.aewireless.option.isEnergy": "无线收发器是否使用能量",

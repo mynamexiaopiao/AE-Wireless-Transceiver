@@ -4,6 +4,8 @@ import com.aewireless.AeWireless;
 import com.aewireless.block.WirelessConnectBlock;
 import com.aewireless.block.WirelessConnectBlockEntity;
 import com.aewireless.gui.wireless.WirelessMenu;
+import com.aewireless.item.WirelessCore;
+import com.aewireless.item.WirelessDestroy;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -44,6 +46,9 @@ public class ModRegister {
             "wireless_transceiver_block_entity",
             () -> BlockEntityType.Builder.of(WirelessConnectBlockEntity::new, WIRELESS_TRANSCEIVER.get()).build(null)
     );
+
+    public static final Supplier<Item> WIRELESS_CORER = ITEMS.register("wireless_connect", () -> new WirelessCore( new Item.Properties()));
+    public static final Supplier<Item> WIRELESS_DESTROY = ITEMS.register("wireless_destroy", () -> new WirelessDestroy( new Item.Properties()));
 
 
     public static DeferredBlock<Block> registerBlock(String name, Supplier<Block> blockSupplier){

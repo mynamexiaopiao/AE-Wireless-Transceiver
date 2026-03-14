@@ -2,20 +2,21 @@
 	"format_version": "1.9.0",
 	"credit": "Made with _leng",
 	"textures": {
-		"0": "aewireless:block/wireless_transceiver_light",
-		"1": "aewireless:block/wireless_transceiver_light_top"
+		"1": "aewireless:block/wireless_transceiver_light_top",
+		"2": "aewireless:block/wireless_transceiver_light_bottom",
+		"particle": "aewireless:block/wireless_transceiver_light"
 	},
 	"elements": [
 		{
 			"from": [0, 0, 0],
 			"to": [16, 16, 16],
 			"faces": {
-				"north": {"uv": [0, 0, 16, 16], "texture": "#0"},
-				"east": {"uv": [0, 0, 16, 16], "texture": "#0"},
-				"south": {"uv": [0, 0, 16, 16], "texture": "#0"},
-				"west": {"uv": [0, 0, 16, 16], "texture": "#0"},
+				"north": {"uv": [0, 0, 16, 16], "texture": "#particle"},
+				"east": {"uv": [0, 0, 16, 16], "texture": "#particle"},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#particle"},
+				"west": {"uv": [0, 0, 16, 16], "texture": "#particle"},
 				"up": {"uv": [16, 16, 0, 0], "texture": "#1"},
-				"down": {"uv": [16, 16, 0, 0], "texture": "#1"}
+				"down": {"uv": [16, 16, 0, 0], "texture": "#2"}
 			}
 		}
 	],
