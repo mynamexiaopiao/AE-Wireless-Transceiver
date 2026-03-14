@@ -91,7 +91,7 @@ public class WirelessPartLink extends WirelessBlockLink{
             IPart part = PartHelper.getPart(level, pos, value);
             if (part != null ) {
                 IGridNode gridNode = part.getGridNode();
-                if (gridNode!= null){
+                if (gridNode!= null && !gridNodes.contains(gridNode)){
                     gridNodes.add(gridNode);
                 }
             }
