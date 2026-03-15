@@ -161,6 +161,10 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
     public void setFrequency(String frequency) {
         this.frequency = frequency;
+
+
+        usedChannels = 0;
+
         if (isMode()) {
             masterLink.setFrequency(frequency , placerId);
         } else {

@@ -27,6 +27,7 @@ public class LevelManage {
 
     public static List<WirelessBlockLink> blockPosList1 = new ArrayList<>();  // 使用普通 List，减少同步开销
     private static Map<WirelessBlockManage.PosAndDirection, WirelessBlockLink> blockPosList;
+    private static Map<BlockPos, BlockEntity> blockEntities = new HashMap<>();
 
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent event) {
@@ -59,13 +60,22 @@ public class LevelManage {
             WirelessBlockManage.setUndirty();
         }
 
+        if (blockEntities.isEmpty() && !blockPosList.isEmpty()) {
+            blockPosList.entrySet().forEach(entry -> {
+                BlockPos pos = entry.getKey().pos();
+                BlockEntity blockEntity = level.getBlockEntity(pos);
+                blockEntities.put(pos, blockEntity);
+            });
+        }
+
         for (Map.Entry<WirelessBlockManage.PosAndDirection, WirelessBlockLink> entry : blockPosList.entrySet()) {
             WirelessBlockManage.PosAndDirection posAndDirection = entry.getKey();
             BlockPos blockPos = posAndDirection.pos();
             Direction direction = posAndDirection.direction();
             WirelessBlockLink wirelessBlockLink = entry.getValue();
 
-            BlockEntity blockEntity = level.getBlockEntity(blockPos);
+            BlockEntity blockEntity = blockEntities.get(blockPos);
+
             IInWorldGridNodeHost nodeHost = null;
 
             if (wirelessBlockLink != null) {
@@ -113,14 +123,26 @@ public class LevelManage {
         }
     }
 
-    public static IInWorldGridNodeHost getNodeHost(BlockEntity blockEntity) {
+    public static void addBlockEntityList(BlockPos pos, BlockEntity blockEntity) {
+        blockEntities.put(pos, blockEntity);
+    }
+
+    public static void removeBlockEntity(BlockPos pos) {
+        blockEntities.remove(pos);
+    }
+
+    public static void clearBlockEntity(){
+        blockEntities.clear();
+    }
+
+    private static IInWorldGridNodeHost getNodeHost(BlockEntity blockEntity) {
         if (blockEntity instanceof IInWorldGridNodeHost host) {
             return host;
         }
         return blockEntity != null ? blockEntity.getCapability(Capabilities.IN_WORLD_GRID_NODE_HOST).orElse(null) : null;
     }
 
-    public static boolean isPart(Level level, BlockPos pos) {
+    private static boolean isPart(Level level, BlockPos pos) {
         // 仅检查方向上有部件的情况，减少重复检查
         for (Direction direction : Direction.values()) {
             IPart part = PartHelper.getPart(level, pos, direction);

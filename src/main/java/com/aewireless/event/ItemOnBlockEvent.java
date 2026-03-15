@@ -6,6 +6,7 @@ import com.aewireless.block.WirelessConnectBlockEntity;
 import com.aewireless.compat.gtceu.GTCeuPacketUtil;
 import com.aewireless.register.ModRegister;
 import com.aewireless.wireless.WirelessTeamUtil;
+import com.aewireless.wireless.block.LevelManage;
 import com.aewireless.wireless.block.WirelessBlockManage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -143,6 +144,8 @@ public class ItemOnBlockEvent {
                     ),
                     null
             );
+
+            LevelManage.addBlockEntityList(blockEntity.getBlockPos() , blockEntity);
 
 
             return InteractionResult.SUCCESS;

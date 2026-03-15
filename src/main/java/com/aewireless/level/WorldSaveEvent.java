@@ -55,5 +55,6 @@ public class WorldSaveEvent {
 
         WirelessData.clearData();
         WirelessBlockManage.clearBlockPosList();
+        LevelManage.clearBlockEntity();
     }
 }
