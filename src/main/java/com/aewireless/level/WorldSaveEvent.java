@@ -3,6 +3,7 @@ package com.aewireless.level;
 
 import com.aewireless.AeWireless;
 import com.aewireless.wireless.WirelessData;
+import com.aewireless.wireless.block.LevelManage;
 import com.aewireless.wireless.block.WirelessBlockManage;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -46,7 +47,7 @@ public class WorldSaveEvent {
             worldData.setDirty();
         }
 
-
+        LevelManage.clearBlockEntity();
         WirelessData.clearData();
         WirelessBlockManage.clearBlockPosList();
     }

@@ -15,32 +15,29 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.*;
 
 
 @EventBusSubscriber
 public class LevelManage {
 
-    public static CopyOnWriteArrayList<WirelessBlockLink> blockPosList1 = new CopyOnWriteArrayList<>();
-    private static HashMap<WirelessBlockManage.PosAndDirection, WirelessBlockLink> blockPosList;
+    public static List<WirelessBlockLink> blockPosList1 = new ArrayList<>();  // 使用普通 List，减少同步开销
+    private static Map<WirelessBlockManage.PosAndDirection, WirelessBlockLink> blockPosList;
+    private static Map<BlockPos, BlockEntity> blockEntities = new HashMap<>();
 
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {
 
+        // 仅更新必要的 blockPosList1
         for (WirelessBlockLink wirelessBlockLink : blockPosList1) {
             wirelessBlockLink.update();
         }
 
         blockPosList1.clear();
     }
-
 
     @SubscribeEvent
     public static void onWorldTick(LevelTickEvent.Post event) {
@@ -59,18 +56,27 @@ public class LevelManage {
             WirelessBlockManage.setUndirty();
         }
 
+        if (blockEntities.isEmpty() && !blockPosList.isEmpty()) {
+            blockPosList.entrySet().forEach(entry -> {
+                BlockPos pos = entry.getKey().pos();
+                BlockEntity blockEntity = level.getBlockEntity(pos);
+                blockEntities.put(pos, blockEntity);
+            });
+        }
+
         for (Map.Entry<WirelessBlockManage.PosAndDirection, WirelessBlockLink> entry : blockPosList.entrySet()) {
             WirelessBlockManage.PosAndDirection posAndDirection = entry.getKey();
             BlockPos blockPos = posAndDirection.pos();
             Direction direction = posAndDirection.direction();
             WirelessBlockLink wirelessBlockLink = entry.getValue();
 
-            BlockEntity blockEntity = level.getBlockEntity(blockPos);
+            BlockEntity blockEntity = blockEntities.get(blockPos);
+
             IInWorldGridNodeHost nodeHost = null;
 
             if (wirelessBlockLink != null) {
                 if (wirelessBlockLink.getHostNode() == null) {
-                    nodeHost = GridHelper.getNodeHost(level , blockPos);
+                    nodeHost = GridHelper.getNodeHost(level,blockPos);
                     if (nodeHost != null) {
                         wirelessBlockLink.setHostNode(nodeHost.getGridNode(direction));
                     }
@@ -79,7 +85,7 @@ public class LevelManage {
                 continue;
             }
 
-            nodeHost = GridHelper.getNodeHost(level , blockPos);
+            nodeHost = GridHelper.getNodeHost(level,blockPos);
 
             if (blockEntity != null) {
                 CompoundTag compoundTag = blockEntity.getPersistentData();
@@ -113,15 +119,26 @@ public class LevelManage {
         }
     }
 
+    public static void addBlockEntityList(BlockPos pos, BlockEntity blockEntity) {
+        blockEntities.put(pos, blockEntity);
+    }
+
+    public static void removeBlockEntity(BlockPos pos) {
+        blockEntities.remove(pos);
+    }
+
+    public static void clearBlockEntity(){
+        blockEntities.clear();
+    }
 
 
-    public static boolean isPart(Level level , BlockPos pos){
-        for (Direction value : Direction.values()) {
-            IPart part = PartHelper.getPart(level, pos, value);
+
+    private static boolean isPart(Level level, BlockPos pos) {
+        // 仅检查方向上有部件的情况，减少重复检查
+        for (Direction direction : Direction.values()) {
+            IPart part = PartHelper.getPart(level, pos, direction);
             if (part != null) return true;
         }
         return false;
     }
-
-
 }
