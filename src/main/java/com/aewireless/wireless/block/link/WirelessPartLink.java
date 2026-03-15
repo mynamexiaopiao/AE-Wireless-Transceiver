@@ -26,8 +26,6 @@ public class WirelessPartLink extends WirelessBlockLink{
         super(level, pos);
     }
 
-
-
     @Override
     public void update() {
         if (frequency == null || frequency.isEmpty()) {
@@ -99,6 +97,6 @@ public class WirelessPartLink extends WirelessBlockLink{
     }
 
     public boolean isEmpty(){
-        return  gridNodes.isEmpty();
+        return gridNodes.isEmpty();
     }
 }
