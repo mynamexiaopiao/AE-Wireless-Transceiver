@@ -21,6 +21,7 @@ public class WirelessLink {
     }
 
     public void setUuid(UUID uuid) {
+        if (this.uuid == uuid) return;
         this.uuid = WirelessTeamUtil.getNetworkOwnerUUID(uuid);
 
         if (!AeWireless.IS_FTB_TEAMS_LOADED){

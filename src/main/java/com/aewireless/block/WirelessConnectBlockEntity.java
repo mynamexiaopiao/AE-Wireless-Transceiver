@@ -198,8 +198,8 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     public void serverTick(Level level, BlockPos pos, BlockState state) {
 
         WirelessConnectBlockEntity blockEntity = (WirelessConnectBlockEntity)level.getBlockEntity(pos);
-        UUID id = placerId == null ? AeWireless.PUBLIC_NETWORK_UUID :WirelessTeamUtil.getNetworkOwnerUUID(placerId);
 
+        UUID id = placerId == null ? AeWireless.PUBLIC_NETWORK_UUID :WirelessTeamUtil.getNetworkOwnerUUID(placerId);
         if (!AeWireless.IS_FTB_TEAMS_LOADED){
             id= AeWireless.PUBLIC_NETWORK_UUID;
         }

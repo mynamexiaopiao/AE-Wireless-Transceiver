@@ -15,6 +15,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
@@ -43,39 +44,42 @@ public class LevelManage {
 
     @SubscribeEvent
     public static void onWorldTick(LevelTickEvent.Post event) {
-
         Level level = event.getLevel();
 
         if (level.isClientSide) return;
 
-        if (blockPosList == null){
+        // 只有在 blockPosList 为 null 时才加载
+        if (blockPosList == null) {
             blockPosList = WirelessBlockManage.getBlockPosList();
         }
 
-        if (WirelessBlockManage.isDirty()){
+        // 仅在必要时刷新 blockPosList
+        if (WirelessBlockManage.isDirty()) {
             blockPosList = WirelessBlockManage.getBlockPosList();
             WirelessBlockManage.setUndirty();
         }
 
-        for (Map.Entry<WirelessBlockManage.PosAndDirection, WirelessBlockLink> blockPosWirelessBlockLinkEntry : blockPosList.entrySet()) {
-            BlockPos blockPos = blockPosWirelessBlockLinkEntry.getKey().pos();
-            Direction direction = blockPosWirelessBlockLinkEntry.getKey().direction();
-            WirelessBlockLink value = blockPosWirelessBlockLinkEntry.getValue();
-            WirelessBlockManage.PosAndDirection posAndDirection = blockPosWirelessBlockLinkEntry.getKey();
-            IInWorldGridNodeHost nodeHost = GridHelper.getNodeHost(level, blockPos);
-
-            if (value != null) {
-                if (value.getHostNode() == null && nodeHost != null) {
-                    value.setHostNode(nodeHost.getGridNode(direction));
-                }
-                blockPosList1.add(value);
-                continue;
-            };
-
-
+        for (Map.Entry<WirelessBlockManage.PosAndDirection, WirelessBlockLink> entry : blockPosList.entrySet()) {
+            WirelessBlockManage.PosAndDirection posAndDirection = entry.getKey();
+            BlockPos blockPos = posAndDirection.pos();
+            Direction direction = posAndDirection.direction();
+            WirelessBlockLink wirelessBlockLink = entry.getValue();
 
             BlockEntity blockEntity = level.getBlockEntity(blockPos);
+            IInWorldGridNodeHost nodeHost = null;
 
+            if (wirelessBlockLink != null) {
+                if (wirelessBlockLink.getHostNode() == null) {
+                    nodeHost = GridHelper.getNodeHost(level , blockPos);
+                    if (nodeHost != null) {
+                        wirelessBlockLink.setHostNode(nodeHost.getGridNode(direction));
+                    }
+                }
+                blockPosList1.add(wirelessBlockLink);
+                continue;
+            }
+
+            nodeHost = GridHelper.getNodeHost(level , blockPos);
 
             if (blockEntity != null) {
                 CompoundTag compoundTag = blockEntity.getPersistentData();
@@ -84,23 +88,22 @@ public class LevelManage {
                     UUID uuid = compoundTag.getUUID("uuid");
                     if (!frequency.isEmpty()) {
                         if (nodeHost != null) {
-                            if (value == null){
-                                ServerLevel serverLevel = level instanceof ServerLevel sl ? sl : null;
+                            if (wirelessBlockLink == null) {
+                                ServerLevel serverLevel = level instanceof ServerLevel ? (ServerLevel) level : null;
 
                                 if (isPart(level, blockPos)) {
                                     WirelessPartLink wirelessPartLink = new WirelessPartLink(serverLevel, blockPos);
                                     wirelessPartLink.setUuid(uuid);
                                     wirelessPartLink.setFrequency(frequency);
-                                    WirelessBlockManage.addBlockPos(posAndDirection , wirelessPartLink);
-                                }else {
+                                    WirelessBlockManage.addBlockPos(posAndDirection, wirelessPartLink);
+                                } else {
                                     IGridNode gridNode = nodeHost.getGridNode(direction);
+                                    if (gridNode == null) continue;
 
-                                    if (gridNode == null)  continue;
-
-                                    WirelessBlockLink wirelessLink = new WirelessBlockLink(gridNode , serverLevel, blockPos);
-                                    wirelessLink.setUuid(uuid);
-                                    wirelessLink.setFrequency(frequency);
-                                    WirelessBlockManage.addBlockPos(posAndDirection , wirelessLink);
+                                    WirelessBlockLink newWirelessBlockLink = new WirelessBlockLink(gridNode, serverLevel, blockPos);
+                                    newWirelessBlockLink.setUuid(uuid);
+                                    newWirelessBlockLink.setFrequency(frequency);
+                                    WirelessBlockManage.addBlockPos(posAndDirection, newWirelessBlockLink);
                                 }
                             }
                         }
@@ -109,6 +112,8 @@ public class LevelManage {
             }
         }
     }
+
+
 
     public static boolean isPart(Level level , BlockPos pos){
         for (Direction value : Direction.values()) {
