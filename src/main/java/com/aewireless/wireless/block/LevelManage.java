@@ -5,6 +5,7 @@ import appeng.api.networking.IGridNode;
 import appeng.api.networking.IInWorldGridNodeHost;
 import appeng.api.parts.IPart;
 import appeng.api.parts.PartHelper;
+import com.aewireless.ModConfig;
 import com.aewireless.wireless.block.link.WirelessBlockLink;
 import com.aewireless.wireless.block.link.WirelessPartLink;
 import net.minecraft.core.BlockPos;
@@ -29,6 +30,7 @@ public class LevelManage {
     public static List<WirelessBlockLink> blockPosList1 = new ArrayList<>();
     private static Map<WirelessBlockManage.PosAndDirection, WirelessBlockLink> blockPosList;
     private static Map<BlockPos, BlockEntity> blockEntities = new HashMap<>();
+    private static boolean isCacheLoad;
 
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {
@@ -75,15 +77,19 @@ public class LevelManage {
 
         if (blockPosList == null) return;
 
-
-
         for (Map.Entry<WirelessBlockManage.PosAndDirection, WirelessBlockLink> entry : new HashMap<>(blockPosList).entrySet()) {
             WirelessBlockManage.PosAndDirection posAndDirection = entry.getKey();
             BlockPos blockPos = posAndDirection.pos();
             Direction direction = posAndDirection.direction();
             WirelessBlockLink wirelessBlockLink = entry.getValue();
 
-            BlockEntity blockEntity = getBlockEntity(level, blockPos);
+            isCacheLoad = ModConfig.INSTANCE.isCacheLoad;
+            BlockEntity blockEntity;
+            if (isCacheLoad){
+                blockEntity = getBlockEntity(blockPos);
+            }else {
+                blockEntity = getBlockEntity(level,blockPos);
+            }
 
             IInWorldGridNodeHost nodeHost = null;
 
@@ -132,28 +138,15 @@ public class LevelManage {
             }
         }
     }
-    public static BlockEntity getBlockEntity(Level level, BlockPos pos) {
+    public static BlockEntity getBlockEntity(BlockPos pos) {
         // 先从缓存获取
-        BlockEntity be = blockEntities.get(pos);
-
-        // 如果缓存有效且位置相同，直接返回
-        if (be != null && !be.isRemoved() && be.getBlockPos().equals(pos)) {
-            return be;
-        }
-
-        // 缓存失效，从世界获取
-        be = level.getBlockEntity(pos);
-
-
-        // 更新缓存
-        if (be != null && !be.isRemoved()) {
-            blockEntities.put(pos.immutable(), be);
-        } else {
-            blockEntities.remove(pos);
-        }
-
-        return be;
+        return blockEntities.get(pos);
     }
+
+    public static BlockEntity getBlockEntity(Level level, BlockPos pos) {
+        return level.getBlockEntity(pos);
+    }
+
 
     public static void addBlockEntityList(BlockPos pos, BlockEntity blockEntity) {
         blockEntities.put(pos, blockEntity);

@@ -21,6 +21,11 @@ public class ModConfig {
 
     @Configurable
     @Configurable.Synchronized
+    @Configurable.Comment(value = {"Enable full cache mode for wireless direct connection?"}, localize = true)
+    public boolean isCacheLoad = true;
+
+    @Configurable
+    @Configurable.Synchronized
     @Configurable.Comment(value = {"If enabled, the wireless transceiver will consume energy for transmission."}, localize = true)
     public boolean isEnergy = true;
 
