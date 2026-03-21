@@ -137,6 +137,8 @@ public class ItemOnBlockEvent {
 
             updateTag.putInt("direction" , direction.ordinal());
 
+            blockEntity.setChanged();
+
             WirelessBlockManage.addBlockPos(
                     new WirelessBlockManage.PosAndDirection(
                             blockEntity.getBlockPos(),

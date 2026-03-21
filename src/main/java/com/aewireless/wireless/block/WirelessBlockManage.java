@@ -3,6 +3,7 @@ package com.aewireless.wireless.block;
 import com.aewireless.wireless.block.link.WirelessBlockLink;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
 
@@ -15,7 +16,7 @@ public class WirelessBlockManage {
     public synchronized static  void addBlockPos(PosAndDirection pos , WirelessBlockLink link){
         for (Direction value : Direction.values()) {
             if (blockPosList.containsKey(new PosAndDirection(pos.pos , value))){
-                WirelessBlockLink wirelessBlockLink = blockPosList.get(pos);
+                WirelessBlockLink wirelessBlockLink = blockPosList.get(new PosAndDirection(pos.pos(), value));
                 if (wirelessBlockLink != null){
                     wirelessBlockLink.destroyConnection();
                     blockPosList.remove(new PosAndDirection(pos.pos, value));
@@ -71,7 +72,7 @@ public class WirelessBlockManage {
         return dirty;
     }
 
-    public record PosAndDirection(BlockPos pos , Direction direction){
+    public record PosAndDirection(BlockPos pos , Direction direction ){
 
     }
 
