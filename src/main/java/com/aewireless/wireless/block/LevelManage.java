@@ -6,6 +6,7 @@ import appeng.api.networking.IInWorldGridNodeHost;
 import appeng.api.parts.IPart;
 import appeng.api.parts.PartHelper;
 import appeng.capabilities.Capabilities;
+import com.aewireless.AeWirelessConfig;
 import com.aewireless.wireless.block.link.WirelessBlockLink;
 import com.aewireless.wireless.block.link.WirelessPartLink;
 import net.minecraft.core.BlockPos;
@@ -29,10 +30,14 @@ public class LevelManage {
     public static List<WirelessBlockLink> blockPosList1 = new ArrayList<>();
     private static Map<WirelessBlockManage.PosAndDirection, WirelessBlockLink> blockPosList;
     private static Map<BlockPos, BlockEntity> blockEntities = new HashMap<>();
+    private static boolean isLoad = true;
+    private static boolean isCacheLoad ;
 
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
+
+        if (!isLoad)return;
 
         // 只有在 blockPosList 为 null 时才加载
         if (blockPosList == null) {
@@ -71,6 +76,9 @@ public class LevelManage {
     @SubscribeEvent
     public static void onWorldTick(TickEvent.LevelTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
+
+        if (!isLoad)return;
+
         Level level = event.level;
         if (level.isClientSide) return;
 
@@ -84,7 +92,13 @@ public class LevelManage {
             Direction direction = posAndDirection.direction();
             WirelessBlockLink wirelessBlockLink = entry.getValue();
 
-            BlockEntity blockEntity = getBlockEntity(level, blockPos);
+            isCacheLoad = AeWirelessConfig.INSTANCE.isCacheLoad;
+            BlockEntity blockEntity;
+            if (isCacheLoad){
+                blockEntity = getBlockEntity(blockPos);
+            }else {
+                blockEntity = getBlockEntity(level,blockPos);
+            }
 
             IInWorldGridNodeHost nodeHost = null;
 
@@ -133,27 +147,13 @@ public class LevelManage {
             }
         }
     }
-    public static BlockEntity getBlockEntity(Level level, BlockPos pos) {
+    public static BlockEntity getBlockEntity(BlockPos pos) {
         // 先从缓存获取
-        BlockEntity be = blockEntities.get(pos);
+        return blockEntities.get(pos);
+    }
 
-        // 如果缓存有效且位置相同，直接返回
-        if (be != null && !be.isRemoved() && be.getBlockPos().equals(pos)) {
-            return be;
-        }
-
-        // 缓存失效，从世界获取
-        be = level.getBlockEntity(pos);
-
-
-        // 更新缓存
-        if (be != null && !be.isRemoved()) {
-            blockEntities.put(pos.immutable(), be);
-        } else {
-            blockEntities.remove(pos);
-        }
-
-        return be;
+    public static BlockEntity getBlockEntity(Level level, BlockPos pos) {
+        return level.getBlockEntity(pos);
     }
 
     public static void addBlockEntityList(BlockPos pos, BlockEntity blockEntity) {
@@ -174,6 +174,11 @@ public class LevelManage {
         }
         return blockEntity != null ? blockEntity.getCapability(Capabilities.IN_WORLD_GRID_NODE_HOST).orElse(null) : null;
     }
+
+    public static void setIsLoad(boolean isLoad) {
+        LevelManage.isLoad = isLoad;
+    }
+
 
     private static boolean isPart(Level level, BlockPos pos) {
         // 仅检查方向上有部件的情况，减少重复检查
