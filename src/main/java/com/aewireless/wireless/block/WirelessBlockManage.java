@@ -15,7 +15,7 @@ public class WirelessBlockManage {
     public synchronized static  void addBlockPos(PosAndDirection pos , WirelessBlockLink link){
         for (Direction value : Direction.values()) {
             if (blockPosList.containsKey(new PosAndDirection(pos.pos , value))){
-                WirelessBlockLink wirelessBlockLink = blockPosList.get(pos);
+                WirelessBlockLink wirelessBlockLink = blockPosList.get(new PosAndDirection(pos.pos(), value));;
                 if (wirelessBlockLink != null){
                     wirelessBlockLink.destroyConnection();
                     blockPosList.remove(new PosAndDirection(pos.pos, value));
