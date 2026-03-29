@@ -8,7 +8,8 @@
     "AETextFieldMixin"
   ],
   "mixins": [
-    "BlockMixin"
+    "BlockEntityMixin",
+    "PartPlacementMixin"
   ],
   "injectors": {
     "defaultRequire": 1

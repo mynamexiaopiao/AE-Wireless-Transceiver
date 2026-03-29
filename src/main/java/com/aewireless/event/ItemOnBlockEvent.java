@@ -6,8 +6,6 @@ import com.aewireless.block.WirelessConnectBlockEntity;
 import com.aewireless.compat.gtceu.GTCeuPacketUtil;
 import com.aewireless.register.ModRegister;
 import com.aewireless.wireless.WirelessTeamUtil;
-import com.aewireless.wireless.block.LevelManage;
-import com.aewireless.wireless.block.WirelessBlockManage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -20,12 +18,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -107,19 +105,20 @@ public class ItemOnBlockEvent {
                         player.displayClientMessage(Component.translatable("aewireless.tooltip.failopen" ,
                                 WirelessTeamUtil.getNetworkOwnerName((ServerLevel) level ,uuid)), true);
                         arg.setCancellationResult(InteractionResult.SUCCESS);
-
                     }else {
                         persistentData.remove("uuid");
                         persistentData.remove("frequency");
-                        int direction = persistentData.getInt("direction");
-                        WirelessBlockManage.removeBlockPos(clickedPos );
                         persistentData.remove("direction");
 
+                        try {
+                            Method clearLink = blockEntity.getClass().getMethod("clearLink");
+                            clearLink.invoke(blockEntity);
+                        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                            throw new RuntimeException(e);
+                        }
+
                         arg.setCancellationResult(InteractionResult.SUCCESS);
-
                     }
-
-
             }
 
             arg.setCancellationResult(InteractionResult.SUCCESS);
@@ -139,15 +138,16 @@ public class ItemOnBlockEvent {
 
             blockEntity.setChanged();
 
-            WirelessBlockManage.addBlockPos(
-                    new WirelessBlockManage.PosAndDirection(
-                            blockEntity.getBlockPos(),
-                            direction
-                    ),
-                    null
-            );
+            try {
+                Class<? extends BlockEntity> aClass = blockEntity.getClass();
+                Method aewireless$updateWireless = aClass.getMethod("aewireless$updateWireless");
 
-            LevelManage.addBlockEntityList(blockEntity.getBlockPos() , blockEntity);
+                aewireless$updateWireless.invoke(blockEntity);
+            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+
+
 
 
             return InteractionResult.SUCCESS;

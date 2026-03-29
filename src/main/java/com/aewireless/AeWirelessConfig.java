@@ -20,10 +20,6 @@ public class AeWirelessConfig {
         }
     }
 
-    @Configurable
-    @Configurable.Synchronized
-    @Configurable.Comment(value = {"Enable full cache mode for wireless direct connection?"}, localize = true)
-    public boolean isCacheLoad = true;
 
     @Configurable
     @Configurable.Synchronized

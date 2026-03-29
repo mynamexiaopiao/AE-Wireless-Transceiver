@@ -67,7 +67,7 @@ public class WirelessPartLink extends WirelessBlockLink{
             if (connectionWrapper1 == null){
                 ConnectionWrapper connectionWrapper = new ConnectionWrapper(null);
                 connectionWrappers.put(gridNode,connectionWrapper);
-                return;
+                continue;
             }
             connect(master , gridNode , connectionWrapper1);
         }
