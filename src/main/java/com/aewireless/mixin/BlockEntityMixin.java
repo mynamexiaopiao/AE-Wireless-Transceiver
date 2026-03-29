@@ -4,6 +4,7 @@ import appeng.api.networking.IGridNode;
 import appeng.api.networking.IInWorldGridNodeHost;
 import appeng.api.parts.IPart;
 import appeng.api.parts.PartHelper;
+import appeng.blockentity.networking.CableBusBlockEntity;
 import appeng.capabilities.Capabilities;
 import com.aewireless.wireless.block.link.JoinWorldWireless;
 import com.aewireless.wireless.block.link.WirelessBlockLink;
@@ -89,8 +90,30 @@ public abstract class BlockEntityMixin extends CapabilityProvider<BlockEntity> i
     }
 
     @Unique
+    public boolean updatePart(){
+        if (!((BlockEntity) (Object) this instanceof CableBusBlockEntity)) return true;
+
+        if (aewireless$link == null){
+            aewireless$updateWireless();
+            return false;
+        }
+
+        if (aewireless$link instanceof WirelessPartLink partLink){
+            aewireless$link.update();
+
+            return partLink.isConnected();
+        }
+
+
+        return false;
+    }
+
+    @Unique
     public boolean updateHost() {
         WirelessData data = readWirelessData();
+
+//        if ((BlockEntity)(Object)this instanceof CableBusBlockEntity) return true;
+
         if (data == null) {
             return true;
         }

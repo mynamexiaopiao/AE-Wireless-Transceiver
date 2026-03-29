@@ -36,7 +36,9 @@ public class WirelessBlockLink {
     }
 
     public void setUuid(UUID uuid) {
-        if (this.uuid == uuid)return;
+//        if (!WirelessCommand.TEAM_UPDATE){
+//            if (this.uuid == uuid)return;
+//        }
 
         this.uuid = WirelessTeamUtil.getNetworkOwnerUUID(uuid);
 
