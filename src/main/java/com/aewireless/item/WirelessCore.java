@@ -1,5 +1,6 @@
 package com.aewireless.item;
 
+import com.aewireless.wireless.WirelessTeamUtil;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -10,6 +11,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.UUID;
 
 public class WirelessCore extends Item {
     public WirelessCore(Properties arg) {
@@ -29,6 +31,7 @@ public class WirelessCore extends Item {
             if (tag.contains("frequency")) {
                 String frequency = tag.getString("frequency");
                 list.add(Component.translatable("aewireless.tooltip.channel_name", frequency));
+
             }
         }
     }

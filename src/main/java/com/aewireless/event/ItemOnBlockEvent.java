@@ -2,12 +2,12 @@ package com.aewireless.event;
 
 import appeng.api.networking.IInWorldGridNodeHost;
 import com.aewireless.AeWireless;
+import com.aewireless.api.IWirelessBlockEntity;
 import com.aewireless.block.WirelessConnectBlockEntity;
 import com.aewireless.compat.gtceu.GTCeuPacketUtil;
 import com.aewireless.register.ModRegister;
 import com.aewireless.wireless.WirelessTeamUtil;
-import com.aewireless.wireless.block.LevelManage;
-import com.aewireless.wireless.block.WirelessBlockManage;
+import com.aewireless.wireless.block.link.JoinWorldWireless;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -118,9 +118,11 @@ public class ItemOnBlockEvent {
                 }else {
                     persistentData.remove("uuid");
                     persistentData.remove("frequency");
-                    int direction = persistentData.getInt("direction");
-                    WirelessBlockManage.removeBlockPos(clickedPos );
                     persistentData.remove("direction");
+
+                    if (blockEntity instanceof IWirelessBlockEntity wireless) {
+                        wireless.clearLink();
+                    }
 
                     arg.setCancellationResult(InteractionResult.SUCCESS);
 
@@ -148,18 +150,11 @@ public class ItemOnBlockEvent {
                 updateTag.putUUID("uuid", tag.getUUID("uuid"));
                 updateTag.putInt("direction", direction.ordinal());
 
-                WirelessBlockManage.addBlockPos(
-                        new WirelessBlockManage.PosAndDirection(
-                                blockEntity.getBlockPos(),
-                                direction
-                        ),
-                        null
-                );
 
                 // 标记 BlockEntity 为已修改
                 blockEntity.setChanged();
 
-                LevelManage.addBlockEntityList(blockEntity.getBlockPos(),blockEntity);
+                JoinWorldWireless.add(blockEntity.getLevel(), blockEntity.getBlockPos());
 
                 return InteractionResult.SUCCESS;
             }

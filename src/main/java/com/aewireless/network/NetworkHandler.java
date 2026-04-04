@@ -1,7 +1,9 @@
 package com.aewireless.network;
 
 import com.aewireless.network.packet.MenuDataPacket;
+import com.aewireless.network.packet.RequestSlaveListPacket;
 import com.aewireless.network.packet.RequestWirelessDataPacket;
+import com.aewireless.network.packet.SyncSlaveListPacket;
 import com.aewireless.network.packet.SyncWirelessDataPacket;
 import com.aewireless.network.packet.WirelessDataUpdatePacket;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -15,6 +17,11 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 @EventBusSubscriber
 public class NetworkHandler {
     private static final String PROTOCOL_VERSION = "1";
+
+    public static void register() {
+        // NeoForge uses RegisterPayloadHandlersEvent for payload registration.
+        // Keeping this method for parity with older init flows.
+    }
 
     @SubscribeEvent
     public static void register(final RegisterPayloadHandlersEvent event) {
@@ -34,10 +41,22 @@ public class NetworkHandler {
                 RequestWirelessDataPacket::handle
         );
 
+        registrar.playToServer(
+                RequestSlaveListPacket.TYPE,
+                RequestSlaveListPacket.STREAM_CODEC,
+                RequestSlaveListPacket::handle
+        );
+
         registrar.playToClient(
                 SyncWirelessDataPacket.TYPE,
                 SyncWirelessDataPacket.STREAM_CODEC,
                 SyncWirelessDataPacket::handle
+        );
+
+        registrar.playToClient(
+                SyncSlaveListPacket.TYPE,
+                SyncSlaveListPacket.STREAM_CODEC,
+                SyncSlaveListPacket::handle
         );
 
         registrar.playToClient(

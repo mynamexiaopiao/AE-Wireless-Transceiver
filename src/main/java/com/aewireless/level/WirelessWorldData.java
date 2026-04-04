@@ -42,20 +42,76 @@ public class WirelessWorldData extends SavedData {
         data.clear();
 
         if (tag.contains("endpoints", Tag.TAG_LIST)) {
-            ListTag endpointsList = tag.getList("endpoints", Tag.TAG_COMPOUND);
+            loadListFormat(tag.getList("endpoints", Tag.TAG_COMPOUND));
+            return;
+        }
 
-            for (int i = 0; i < endpointsList.size(); i++) {
-                CompoundTag entryTag = endpointsList.getCompound(i);
-                try {
-                    String frequencyString = entryTag.getString("string");
-                    UUID uuid = entryTag.getUUID("uuid");
+        if (tag.contains("wireless_endpoints_v2")) {
+            loadV2Format(tag.getCompound("wireless_endpoints_v2"));
+            return;
+        }
 
-                    if (!frequencyString.isEmpty()) {
-                        data.put(new WirelessData.Key(frequencyString, uuid), null);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+        if (tag.contains("wirelessString") && tag.contains("wirelessUUID")) {
+            loadLegacyFormat(tag);
+        }
+    }
+
+    private void loadListFormat(ListTag endpointsList) {
+        for (int i = 0; i < endpointsList.size(); i++) {
+            CompoundTag entryTag = endpointsList.getCompound(i);
+            try {
+                String frequencyString = entryTag.getString("string");
+                UUID uuid = entryTag.getUUID("uuid");
+
+                if (!frequencyString.isEmpty()) {
+                    data.put(new WirelessData.Key(frequencyString, uuid), null);
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void loadV2Format(CompoundTag endpointsTag) {
+        for (String key : endpointsTag.getAllKeys()) {
+            try {
+                CompoundTag endpointTag = endpointsTag.getCompound(key);
+                String frequencyString = endpointTag.getString("frequency");
+                UUID uuid = endpointTag.getUUID("uuid");
+                if (!frequencyString.isEmpty()) {
+                    data.put(new WirelessData.Key(frequencyString, uuid), null);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void loadLegacyFormat(CompoundTag tag) {
+        CompoundTag endpointsTag = tag.getCompound("wirelessString");
+        CompoundTag uuidTag = tag.getCompound("wirelessUUID");
+
+        var stringKeys = new ArrayList<>(endpointsTag.getAllKeys());
+        var uuidKeys = new ArrayList<>(uuidTag.getAllKeys());
+
+        stringKeys.sort((a, b) -> {
+            int numA = Integer.parseInt(a.replace("string", ""));
+            int numB = Integer.parseInt(b.replace("string", ""));
+            return Integer.compare(numA, numB);
+        });
+
+        uuidKeys.sort((a, b) -> {
+            int numA = Integer.parseInt(a.replace("uuid", ""));
+            int numB = Integer.parseInt(b.replace("uuid", ""));
+            return Integer.compare(numA, numB);
+        });
+
+        int size = Math.min(stringKeys.size(), uuidKeys.size());
+        for (int i = 0; i < size; i++) {
+            String frequencyString = endpointsTag.getString(stringKeys.get(i));
+            UUID uuid = uuidTag.getUUID(uuidKeys.get(i));
+            if (!frequencyString.isEmpty()) {
+                data.put(new WirelessData.Key(frequencyString, uuid), null);
             }
         }
     }

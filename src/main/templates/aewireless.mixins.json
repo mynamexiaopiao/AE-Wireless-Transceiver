@@ -2,6 +2,8 @@
   "required": true,
   "package": "com.aewireless.mixin",
   "mixins": [
+    "BlockEntityMixin",
+    "PartPlacementMixin",
     "VerticalButtonBarMixin"
   ],
   "client": [

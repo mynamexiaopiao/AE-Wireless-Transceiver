@@ -19,38 +19,36 @@ public class WirelessBlockLink {
     protected IGridNode hostNode;
     protected ServerLevel level;
     protected BlockPos pos;
-    protected String frequency ;
+    protected String frequency;
     protected UUID uuid;
 
-    protected ConnectionWrapper connection = new ConnectionWrapper( null);
+    protected ConnectionWrapper connection = new ConnectionWrapper(null);
+    protected IWirelessEndpoint lastMaster;
 
-    public WirelessBlockLink(IGridNode host , ServerLevel level , BlockPos pos) {
+    public WirelessBlockLink(IGridNode host, ServerLevel level, BlockPos pos) {
         this.level = level;
         this.pos = pos;
         this.hostNode = host;
     }
 
-    public WirelessBlockLink(ServerLevel level , BlockPos pos){
-        this.level= level;
+    public WirelessBlockLink(ServerLevel level, BlockPos pos) {
+        this.level = level;
         this.pos = pos;
     }
 
     public void setUuid(UUID uuid) {
-        if (this.uuid == uuid)return;
-
         this.uuid = WirelessTeamUtil.getNetworkOwnerUUID(uuid);
 
-        if (!AeWireless.IS_FTB_TEAMS_LOADED){
-            this.uuid  = AeWireless.PUBLIC_NETWORK_UUID;
+        if (!AeWireless.IS_FTB_TEAMS_LOADED) {
+            this.uuid = AeWireless.PUBLIC_NETWORK_UUID;
         }
     }
 
-
     public void setFrequency(String frequency) {
-        if (frequency == null)return;
+        if (frequency == null) return;
         if (Objects.equals(this.frequency, frequency)) return;
         this.frequency = frequency;
-        //重连
+        // 重连
         update();
     }
 
@@ -62,35 +60,26 @@ public class WirelessBlockLink {
 
         setUuid(uuid);
 
-        Double distance = 0.0D;
-
         IWirelessEndpoint master = WirelessData.getData(frequency, uuid);
-
         boolean crossDimensional = ModConfig.INSTANCE.crossDimensional;
 
         if (master != null && !master.isEndpointRemoved() && (crossDimensional || master.getServerLevel() == level)) {
-
-            distance = master.getBlockPos().distSqr(pos);
-
-
+            double distance = master.getBlockPos().distSqr(pos);
             double maxRange = ModConfig.INSTANCE.maxDistance;
 
-
-
-            if (master.getServerLevel() == level){
-                if ( distance <= maxRange*maxRange || maxRange == 0) {
-                    connect(master , hostNode ,connection);
+            if (master.getServerLevel() == level) {
+                if (distance <= maxRange * maxRange || maxRange == 0) {
+                    connect(master, hostNode, connection);
                 }
-            }else if (crossDimensional){
-                connect(master , hostNode , connection);
+            } else if (crossDimensional) {
+                connect(master, hostNode, connection);
             }
-        }else {
+        } else {
             destroyConnection();
         }
     }
 
-
-    void connect(IWirelessEndpoint master, IGridNode hostNode , ConnectionWrapper connection) {
+    void connect(IWirelessEndpoint master, IGridNode hostNode, ConnectionWrapper connection) {
         try {
             IGridConnection existingConnection = connection.getConnection();
 
@@ -101,26 +90,33 @@ public class WirelessBlockLink {
                 return;
             }
 
-            // 检查是否已经连接
+            // Even if AE already has a link and createConnection throws, keep slave registered for overlay.
+            registerMaster(master);
+
             if (existingConnection != null) {
                 IGridNode a = existingConnection.a();
                 IGridNode b = existingConnection.b();
                 if ((a == hostNode || b == hostNode) && (a == masterNode || b == masterNode)) {
+                    registerMaster(master);
                     return;
                 }
-                // 连接不匹配，需要重新建立
                 existingConnection.destroy();
             }
 
-            // 建立新连接
-            if (!hostNode.equals(masterNode)){
+            if (!hostNode.equals(masterNode)) {
                 IGridConnection newConnection = GridHelper.createConnection(hostNode, masterNode);
                 connection.setConnection(newConnection);
             }
 
         } catch (IllegalStateException e) {
-            destroyConnection();
+            // Usually means AE link already exists; keep master-slave registry instead of dropping it.
+            registerMaster(master);
         }
+    }
+
+    public boolean isConnected() {
+        IGridConnection connection1 = connection.getConnection();
+        return connection1 != null;
     }
 
     public IGridNode getHostNode() {
@@ -138,5 +134,23 @@ public class WirelessBlockLink {
             connection.setConnection(null);
         }
         connection = new ConnectionWrapper(null);
+        unregisterMaster();
+    }
+
+    protected void registerMaster(IWirelessEndpoint master) {
+        if (master == null) return;
+        if (master == lastMaster) return;
+        unregisterMaster();
+        if (master instanceof com.aewireless.wireless.IWirelessMasterEndpoint masterEndpoint) {
+            masterEndpoint.registerSlave(level, pos);
+        }
+        lastMaster = master;
+    }
+
+    protected void unregisterMaster() {
+        if (lastMaster instanceof com.aewireless.wireless.IWirelessMasterEndpoint masterEndpoint) {
+            masterEndpoint.unregisterSlave(level, pos);
+        }
+        lastMaster = null;
     }
 }

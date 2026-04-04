@@ -65,5 +65,8 @@ public class WirelessMasterLink {
             WirelessData.addData(frequency, uuid , null);
         }
         registered = false;
+        if (host instanceof IWirelessMasterEndpoint master) {
+            master.notifySlavesResync();
+        }
     }
 }

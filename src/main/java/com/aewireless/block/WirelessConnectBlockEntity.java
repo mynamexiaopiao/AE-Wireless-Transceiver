@@ -7,6 +7,7 @@ import com.aewireless.ModConfig;
 import com.aewireless.gui.wireless.WirelessMenu;
 import com.aewireless.register.ModRegister;
 import com.aewireless.wireless.*;
+import com.aewireless.wireless.block.link.JoinWorldWireless;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -17,6 +18,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -30,10 +32,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
-public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvider , IInWorldGridNodeHost , IWirelessEndpoint {
+public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvider , IInWorldGridNodeHost , IWirelessEndpoint, IWirelessMasterEndpoint {
     private final IManagedGridNode managedNode;
     protected final ContainerData data;
 
@@ -49,6 +53,8 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     int maxChannels = 0;
 
     private boolean mode = false;
+
+    private final Set<SlaveRef> slaveRefs = new LinkedHashSet<>();
 
     public WirelessConnectBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModRegister.WIRELESS_TRANSCEIVER_ENTITY.get(), pos, blockState);
@@ -388,6 +394,56 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         return managedNode;
     }
 
+    public java.util.List<SlaveRef> getSlaveRefsSnapshot() {
+        synchronized (slaveRefs) {
+            return new java.util.ArrayList<>(slaveRefs);
+        }
+    }
+
+    @Override
+    public void registerSlave(ServerLevel level, BlockPos pos) {
+        if (level == null || pos == null) return;
+        synchronized (slaveRefs) {
+            slaveRefs.add(new SlaveRef(level.dimension(), pos.immutable()));
+        }
+    }
+
+    @Override
+    public void unregisterSlave(ServerLevel level, BlockPos pos) {
+        if (level == null || pos == null) return;
+        synchronized (slaveRefs) {
+            slaveRefs.remove(new SlaveRef(level.dimension(), pos.immutable()));
+        }
+    }
+
+    @Override
+    public void notifySlavesResync() {
+        var server = ServerLifecycleHooks.getCurrentServer();
+        if (server == null) return;
+        java.util.List<SlaveRef> snapshot;
+        synchronized (slaveRefs) {
+            if (slaveRefs.isEmpty()) return;
+            snapshot = new java.util.ArrayList<>(slaveRefs);
+        }
+        for (SlaveRef ref : snapshot) {
+            ServerLevel level = server.getLevel(ref.dimension);
+            if (level != null) {
+                if (level.getBlockEntity(ref.pos) != null) {
+                    JoinWorldWireless.add(level, ref.pos);
+                } else {
+                    synchronized (slaveRefs) {
+                        slaveRefs.remove(ref);
+                    }
+                }
+            } else {
+                synchronized (slaveRefs) {
+                    slaveRefs.remove(ref);
+                }
+            }
+        }
+    }
+
+    public record SlaveRef(ResourceKey<Level> dimension, BlockPos pos) {}
 
     public UUID getPlacerId() {
         return placerId;

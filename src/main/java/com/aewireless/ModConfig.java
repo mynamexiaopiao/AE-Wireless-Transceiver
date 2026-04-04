@@ -19,10 +19,6 @@ public class ModConfig {
         }
     }
 
-    @Configurable
-    @Configurable.Synchronized
-    @Configurable.Comment(value = {"Enable full cache mode for wireless direct connection?"}, localize = true)
-    public boolean isCacheLoad = true;
 
     @Configurable
     @Configurable.Synchronized
@@ -33,6 +29,11 @@ public class ModConfig {
     @Configurable.Synchronized
     @Configurable.Comment(value = {"Allow cross-dimensional connection"}, localize = true)
     public boolean crossDimensional = true;
+
+    @Configurable
+    @Configurable.Synchronized
+    @Configurable.Comment(value = {"Enable auto-connect when placing blocks while sneaking."}, localize = true)
+    public boolean shiftAutoConnect = true;
 
     @Configurable
     @Configurable.Synchronized

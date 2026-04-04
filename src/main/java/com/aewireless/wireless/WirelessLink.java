@@ -5,16 +5,18 @@ import appeng.api.networking.IGridConnection;
 import appeng.api.networking.IGridNode;
 import appeng.me.service.helpers.ConnectionWrapper;
 import com.aewireless.AeWireless;
+import com.aewireless.ModConfig;
+import net.minecraft.server.level.ServerLevel;
 
 import java.util.Objects;
 import java.util.UUID;
 
 public class WirelessLink {
     private final IWirelessEndpoint host;
-    private String frequency ;
+    private String frequency;
     private UUID uuid;
 
-    private ConnectionWrapper connection = new ConnectionWrapper( null);
+    private ConnectionWrapper connection = new ConnectionWrapper(null);
 
     public WirelessLink(IWirelessEndpoint host) {
         this.host = host;
@@ -24,16 +26,16 @@ public class WirelessLink {
         if (this.uuid == uuid) return;
         this.uuid = WirelessTeamUtil.getNetworkOwnerUUID(uuid);
 
-        if (!AeWireless.IS_FTB_TEAMS_LOADED){
-            this.uuid  = AeWireless.PUBLIC_NETWORK_UUID;
+        if (!AeWireless.IS_FTB_TEAMS_LOADED) {
+            this.uuid = AeWireless.PUBLIC_NETWORK_UUID;
         }
     }
 
     public void setFrequency(String frequency) {
-        if (frequency == null)return;
+        if (frequency == null) return;
         if (Objects.equals(this.frequency, frequency)) return;
         this.frequency = frequency;
-        //重连
+        // 重连
         update();
     }
 
@@ -47,14 +49,32 @@ public class WirelessLink {
             destroyConnection();
             return;
         }
+
         setUuid(uuid);
 
+        ServerLevel level = host.getServerLevel();
         IWirelessEndpoint master = WirelessData.getData(frequency, uuid);
-        if (master == null || master.isEndpointRemoved()) {
-            destroyConnection();
-            return;
-        }
+        boolean crossDimensional = ModConfig.INSTANCE.crossDimensional;
 
+        if (master != null && !master.isEndpointRemoved() && (crossDimensional || master.getServerLevel() == level)) {
+            double distance = Math.sqrt(master.getBlockPos().distSqr(host.getBlockPos()));
+            double maxRange = ModConfig.INSTANCE.maxDistance;
+
+            if (master.getServerLevel() == level) {
+                if (distance <= maxRange || maxRange == 0) {
+                    connect(master);
+                } else {
+                    destroyConnection();
+                }
+            } else if (crossDimensional) {
+                connect(master);
+            }
+        } else {
+            destroyConnection();
+        }
+    }
+
+    private void connect(IWirelessEndpoint master) {
         try {
             IGridConnection existingConnection = connection.getConnection();
             IGridNode hostNode = host.getGridNode();
@@ -70,20 +90,18 @@ public class WirelessLink {
                 IGridNode a = existingConnection.a();
                 IGridNode b = existingConnection.b();
                 if ((a == hostNode || b == hostNode) && (a == masterNode || b == masterNode)) {
-                    return; // 已经正确连接
+                    return;
                 }
-                // 连接不匹配，需要重新建立
                 existingConnection.destroy();
             }
 
             // 建立新连接
-            if (!hostNode.equals(masterNode)){
+            if (!hostNode.equals(masterNode)) {
                 IGridConnection newConnection = GridHelper.createConnection(hostNode, masterNode);
                 connection = new ConnectionWrapper(newConnection);
             }
 
         } catch (IllegalStateException e) {
-            // 记录错误日志
             destroyConnection();
         }
     }

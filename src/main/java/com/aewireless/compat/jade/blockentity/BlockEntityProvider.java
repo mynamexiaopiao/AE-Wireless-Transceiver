@@ -1,6 +1,9 @@
 package com.aewireless.compat.jade.blockentity;
 
 import com.aewireless.AeWireless;
+import com.aewireless.api.IWirelessBlockEntity;
+import com.aewireless.wireless.IWirelessEndpoint;
+import com.aewireless.wireless.WirelessData;
 import com.aewireless.wireless.WirelessTeamUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -42,6 +45,11 @@ public enum BlockEntityProvider implements IServerDataProvider<BlockAccessor> {
 
             compoundTag.putString("frequency", frequency);
             compoundTag.putInt("direction", persistentData.getInt("direction"));
+
+            boolean connected = ((IWirelessBlockEntity) blockEntity).getLink() != null
+                    && ((IWirelessBlockEntity) blockEntity).getLink().isConnected();
+
+            compoundTag.putBoolean("wirelessConnected", connected);
         }
     }
 }

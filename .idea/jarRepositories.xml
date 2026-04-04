@@ -121,5 +121,45 @@
       <option name="name" value="maven2" />
       <option name="url" value="https://maven.saps.dev/minecraft" />
     </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven4" />
+      <option name="name" value="maven4" />
+      <option name="url" value="https://maven.parchmentmc.org" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven6" />
+      <option name="name" value="maven6" />
+      <option name="url" value="https://maven.tterrag.com/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven7" />
+      <option name="name" value="maven7" />
+      <option name="url" value="https://maven.teamresourceful.com/repository/maven-public/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven8" />
+      <option name="name" value="maven8" />
+      <option name="url" value="https://maven.shadowsoffire.dev/releases" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="GeckoLib" />
+      <option name="name" value="GeckoLib" />
+      <option name="url" value="https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven9" />
+      <option name="name" value="maven9" />
+      <option name="url" value="https://maven.jt-dev.tech/releases/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven10" />
+      <option name="name" value="maven10" />
+      <option name="url" value="https://maven.bawnorton.com/releases" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven11" />
+      <option name="name" value="maven11" />
+      <option name="url" value="https://maven.enjarai.dev/mirrors" />
+    </remote-repository>
   </component>
 </project>

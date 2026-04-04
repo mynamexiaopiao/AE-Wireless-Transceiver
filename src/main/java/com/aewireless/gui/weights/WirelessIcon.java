@@ -5,7 +5,8 @@ import com.aewireless.AeWireless;
 import net.minecraft.resources.ResourceLocation;
 
 public enum WirelessIcon {
-    WIRELESS_BUTTON_BACKGROUND(0, 0,64,64);
+    WIRELESS_BUTTON_BACKGROUND(0, 0,64,64),
+    WIRELESS_LINK_RENDER(64,0 , 16,16);
 
     public final int x;
     public final int y;

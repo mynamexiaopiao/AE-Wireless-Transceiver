@@ -1,4 +1,4 @@
-{
+﻿{
   "block.aewireless.wireless_transceiver": "AE 无线收发器",
   "item.aewireless.wireless_connect": "无线连接器",
   "item.aewireless.wireless_destroy": "无线破坏器",
@@ -17,6 +17,7 @@
   "gui.wireless.mode.connect": "已连接",
   "gui.wireless.remaining_channels": "使用频道",
   "gui.wireless.energy.usage": "耗能",
+  "gui.wireless.links.toggle.tooltip": "切换连接方块显示",
   "gui.confirm_delete.message": "确认删除?",
   "gui.input_channel_name_screen.placeholder": "输入频道名称",
   "gui.wireless.input.placeholder": "搜索...",
@@ -42,6 +43,8 @@
   "aewireless.jade.tooltip.mode" : "从模式",
   "aewireless.jade.tooltip.deviceoff": "设备离线",
   "aewireless.jade.tooltip.deviceon": "设备在线",
+  "aewireless.jade.tooltip.wireless_connected": "无线已连接",
+  "aewireless.jade.tooltip.wireless_disconnected": "无线未连接",
 
 
   "config.aewireless.title": "AE Wireless 配置界面",
@@ -55,13 +58,16 @@
   "config.aewireless.option.batteryMultiplier": "无线收发器的能量乘数",
   "config.aewireless.option.maxDistance": "最大传输距离",
   "config.aewireless.option.crossDimensional": "是否允许跨纬度连接",
+  "config.aewireless.option.shiftAutoConnect": "潜行放置方块时自动连接",
   "config.aewireless.option.isCacheLoad": "是否开启无线直连的全缓存模式",
 
   "config.aewireless.option.isEnergy.comment.0": "如果启用，无线收发器将消耗能量以进行传输。",
   "config.aewireless.option.batteryMultiplier.comment.0": "从端耗能 = 主端和从端的距离 × 能量乘数。",
   "config.aewireless.option.maxDistance.comment.0": "无线收发器主端和从端之间的最大传输距离（0为无限制）。",
   "config.aewireless.option.crossDimensional.comment.0": "如果启用，无线收发器将允许跨维度连接（忽略距离限制）。",
+  "config.aewireless.option.shiftAutoConnect.comment.0": "如果启用，潜行放置方块时会尝试使用背包中的无线连接器自动连接。",
   "config.aewireless.option.isCacheLoad.comment.0": "如果开启，方块信息将全部缓存，但需要区块常加载，否则连接会丢失（性能好）\n如果关闭，方块信息时时tick获取，不会丢失连接（性能差）",
 
   "commands.aewireless.clear": "已清除所有无效连接"
 }
+

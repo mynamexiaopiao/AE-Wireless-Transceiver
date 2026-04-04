@@ -4,7 +4,7 @@ import appeng.api.AECapabilities;
 import appeng.api.networking.IInWorldGridNodeHost;
 import com.aewireless.network.NetworkHandler;
 import com.aewireless.register.ModRegister;
-import com.aewireless.register.RegisterHandler;
+import net.neoforged.api.distmarker.Dist;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
@@ -41,6 +41,8 @@ public class AeWireless {
 
         ModConfig.init();
 
+        modEventBus.addListener(this::clientSetup);
+        modEventBus.addListener(this::commonSetup);
 
         modEventBus.addListener(this::registerCapabilities);
     }
@@ -55,6 +57,22 @@ public class AeWireless {
                 ModRegister.WIRELESS_TRANSCEIVER_ENTITY.get(),
                 (blockEntity, side) -> blockEntity
         );
+    }
+
+    @SubscribeEvent
+    public void commonSetup(FMLCommonSetupEvent event) {
+        NetworkHandler.register();
+    }
+
+    @SubscribeEvent
+    public void clientSetup(FMLClientSetupEvent event) {
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            try {
+                new ModPack().load();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 

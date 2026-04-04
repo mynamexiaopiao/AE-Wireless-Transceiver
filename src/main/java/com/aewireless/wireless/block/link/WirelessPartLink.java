@@ -67,7 +67,7 @@ public class WirelessPartLink extends WirelessBlockLink{
             if (connectionWrapper1 == null){
                 ConnectionWrapper connectionWrapper = new ConnectionWrapper(null);
                 connectionWrappers.put(gridNode,connectionWrapper);
-                return;
+                connectionWrapper1 = connectionWrappers.get(gridNode);
             }
             connect(master , gridNode , connectionWrapper1);
         }
@@ -82,6 +82,7 @@ public class WirelessPartLink extends WirelessBlockLink{
             }
         }
         connectionWrappers.clear();
+        unregisterMaster();
     }
 
     public void getParts(){
@@ -94,6 +95,16 @@ public class WirelessPartLink extends WirelessBlockLink{
                 }
             }
         }
+    }
+
+    public boolean isConnected(){
+        for (Map.Entry<IGridNode, ConnectionWrapper> iGridNodeConnectionWrapperEntry : connectionWrappers.entrySet()) {
+            IGridConnection connection1 = iGridNodeConnectionWrapperEntry.getValue().getConnection();
+            if (connection1 != null){
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean isEmpty(){

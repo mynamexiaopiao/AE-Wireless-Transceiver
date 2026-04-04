@@ -9,15 +9,19 @@ import appeng.core.network.ServerboundPacket;
 import appeng.core.network.bidirectional.ConfigValuePacket;
 import com.aewireless.AeWireless;
 import com.aewireless.ModConfig;
+import com.aewireless.client.render.WirelessLinkRenderState;
 import com.aewireless.gui.weights.RenderButton;
+import com.aewireless.gui.weights.RenderLinkToggleButton;
 import com.aewireless.gui.weights.RenderSettingToggleButton;
-import com.aewireless.network.packet.MenuDataPacket;
 import com.aewireless.network.NetworkHandler;
+import com.aewireless.network.packet.MenuDataPacket;
+import com.aewireless.network.packet.RequestSlaveListPacket;
 import com.aewireless.network.packet.RequestWirelessDataPacket;
 import com.aewireless.wireless.WirelessTeamUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -63,6 +67,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     private final RenderButton modeButton;
     private final RenderButton disconnect;
     private final RenderSettingToggleButton renderSettingToggleButton;
+    private final RenderLinkToggleButton linkToggleButton;
 
     private boolean isAE = true;
 
@@ -136,6 +141,11 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         this.addToLeftToolbar(
                 renderSettingToggleButton = new RenderSettingToggleButton<>(Settings.POWER_UNITS, PowerUnit.AE , this::toggleServerSetting));
 
+        linkToggleButton = new RenderLinkToggleButton(0, 0, btn -> toggleLinkOverlay());
+        linkToggleButton.visible = this.getMenu().isMode();
+        linkToggleButton.setEnabled(WirelessLinkRenderState.isEnabled());
+        linkToggleButton.setTooltip(Tooltip.create(Component.translatable("gui.wireless.links.toggle.tooltip")));
+        this.addToLeftToolbar(linkToggleButton);
 
         refreshList();
     }
@@ -172,6 +182,20 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         this.addRenderableWidget(removeButton);
         this.addRenderableWidget(modeButton);
         this.addRenderableWidget(disconnect);
+
+        // Restore overlay toggle state when reopening GUI and refresh snapshot if needed.
+        syncLinkOverlayState();
+    }
+
+    @Override
+    public void containerTick() {
+        super.containerTick();
+        boolean isMaster = this.getMenu().isMode();
+        linkToggleButton.visible = isMaster;
+        if (!isMaster && WirelessLinkRenderState.isEnabled()) {
+            WirelessLinkRenderState.setEnabled(false);
+            linkToggleButton.setEnabled(false);
+        }
     }
 
     private void refreshList() {
@@ -573,6 +597,13 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
                 NetworkHandler.sendToServer(new MenuDataPacket(clickedItem, this.getMenu().isMode() , uuid));
                 this.getMenu().setFrequency(clickedItem);
 
+                if (this.getMenu().isMode() && linkToggleButton.isEnabled()) {
+                    NetworkHandler.sendToServer(new RequestSlaveListPacket(
+                            this.getMenu().blockEntity.getBlockPos(),
+                            this.getMenu().blockEntity.getDimension()
+                    ));
+                }
+
                 if (this.getMenu().blockEntity.getLevel() != null) {
                     this.getMenu().blockEntity.getLevel().playLocalSound(
                             this.getMenu().blockEntity.getBlockPos(),
@@ -658,6 +689,29 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         // 更新过滤后的列表和滚动条
         this.filterDataRows(this.input.getValue());
         this.resetScrollbar();
+    }
+
+    private void toggleLinkOverlay() {
+        boolean next = !linkToggleButton.isEnabled();
+        linkToggleButton.setEnabled(next);
+        WirelessLinkRenderState.setEnabled(next);
+        if (next) {
+            NetworkHandler.sendToServer(new RequestSlaveListPacket(
+                    this.getMenu().blockEntity.getBlockPos(),
+                    this.getMenu().blockEntity.getDimension()
+            ));
+        }
+    }
+
+    private void syncLinkOverlayState() {
+        boolean enabled = WirelessLinkRenderState.isEnabled();
+        linkToggleButton.setEnabled(enabled);
+        if (enabled && this.getMenu().isMode()) {
+            NetworkHandler.sendToServer(new RequestSlaveListPacket(
+                    this.getMenu().blockEntity.getBlockPos(),
+                    this.getMenu().blockEntity.getDimension()
+            ));
+        }
     }
 
     public void receiveServerData(java.util.List<String> keys) {
