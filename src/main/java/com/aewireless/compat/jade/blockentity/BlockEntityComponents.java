@@ -4,6 +4,7 @@ import com.aewireless.AeWireless;
 import com.aewireless.wireless.WirelessTeamUtil;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -30,11 +31,21 @@ public class BlockEntityComponents implements IBlockComponentProvider {
             Direction value = Direction.values()[direction];
             Level level = blockAccessor.getBlockEntity().getLevel();
 
-            iTooltip.add(Component.translatable("aewireless.tooltip.channel_name" , frequency));
+
+            if (serverData.contains("wirelessConnected")) {
+                boolean connected = serverData.getBoolean("wirelessConnected");
+                iTooltip.add(Component.translatable(
+                                connected ? "aewireless.jade.tooltip.wireless_connected" : "aewireless.jade.tooltip.wireless_disconnected")
+                        .withStyle(connected ? ChatFormatting.GREEN : ChatFormatting.RED));
+            }
+
+            iTooltip.add(Component.translatable("aewireless.tooltip.channel_name" , frequency).withStyle(ChatFormatting.AQUA));
 
             iTooltip.add(Component.translatable("aewireless.tooltip.owner" ,uuid));
 
             iTooltip.add(Component.translatable("aewireless.tooltip.direction" ,value.toString()));
+
+
 
         }
 

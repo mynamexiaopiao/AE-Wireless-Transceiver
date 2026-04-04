@@ -6,6 +6,8 @@ import appeng.api.parts.IPart;
 import appeng.api.parts.PartHelper;
 import appeng.blockentity.networking.CableBusBlockEntity;
 import appeng.capabilities.Capabilities;
+import com.aewireless.api.IWirelessBlockEntity;
+import com.aewireless.compat.gtceu.GTCeuPacketUtil;
 import com.aewireless.wireless.block.link.JoinWorldWireless;
 import com.aewireless.wireless.block.link.WirelessBlockLink;
 import com.aewireless.wireless.block.link.WirelessData;
@@ -29,81 +31,69 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import javax.annotation.Nullable;
 
 @Mixin(BlockEntity.class)
-public abstract class BlockEntityMixin extends CapabilityProvider<BlockEntity> implements IForgeBlockEntity {
+public abstract class BlockEntityMixin extends CapabilityProvider<BlockEntity>
+        implements IForgeBlockEntity, IWirelessBlockEntity {
 
     @Shadow private CompoundTag customPersistentData;
     @Shadow @Nullable protected Level level;
     @Shadow @Final protected BlockPos worldPosition;
 
-    @Unique
-    private WirelessBlockLink aewireless$link;
-
     private static final String KEY_FREQUENCY = "frequency";
     private static final String KEY_UUID = "uuid";
     private static final String KEY_DIRECTION = "direction";
+
+
+    @Unique
+    private WirelessBlockLink link;
 
     protected BlockEntityMixin(Class<BlockEntity> baseClass) {
         super(baseClass);
     }
 
+    /* ---------------- 生命周期 ---------------- */
+
     @Inject(method = "load", at = @At("TAIL"))
-    public void load(CompoundTag tag, CallbackInfo ci) {
-        if (level instanceof ServerLevel) {
-            aewireless$updateWireless();
+    public void onLoadNBT(CompoundTag tag, CallbackInfo ci) {
+        WirelessData data = readWirelessData();
+        if (level instanceof ServerLevel &&
+                (BlockEntity)(Object)this instanceof IInWorldGridNodeHost &&
+                data != null ) {
+            if (link != null && !link.isConnected()) {
+                updateWireless(data);
+            }
         }
     }
+
 
     @Override
     public void onLoad() {
         IForgeBlockEntity.super.onLoad();
 
-        if (!(level instanceof ServerLevel)) {
-            return;
-        }
+        if (!(level instanceof ServerLevel)) return;
+        if (!hasWirelessData()) return;
+        JoinWorldWireless.add(level, worldPosition);
+    }
 
-        if (hasWirelessData()) {
-            JoinWorldWireless.add(level, worldPosition);
-        }
+    /* ---------------- 对外更新接口 ---------------- */
+
+    @Override
+    public WirelessBlockLink getLink() {
+        return link;
     }
 
     @Unique
-    public void aewireless$updateWireless() {
+    public boolean updatePart() {
+        if (!((Object) this instanceof CableBusBlockEntity)) return true;
 
-        WirelessData data = readWirelessData();
-        if (data == null) {
-            return;
-        }
-
-        if (aewireless$link == null) {
-            aewireless$link = createLink(data);
-            if (aewireless$link == null) {
-                return;
-            }
-        } else if (aewireless$link.getHostNode() == null) {
-            IGridNode hostNode = resolveHostNode(data.direction());
-            if (hostNode != null) {
-                aewireless$link.setHostNode(hostNode);
-            }
-        }
-
-        aewireless$link.update();
-    }
-
-    @Unique
-    public boolean updatePart(){
-        if (!((BlockEntity) (Object) this instanceof CableBusBlockEntity)) return true;
-
-        if (aewireless$link == null){
-            aewireless$updateWireless();
+        if (link == null) {
+            updateWireless();
             return false;
         }
 
-        if (aewireless$link instanceof WirelessPartLink partLink){
-            aewireless$link.update();
-
+        if (link instanceof WirelessPartLink partLink) {
+            link.update();
             return partLink.isConnected();
         }
-
 
         return false;
     }
@@ -111,123 +101,136 @@ public abstract class BlockEntityMixin extends CapabilityProvider<BlockEntity> i
     @Unique
     public boolean updateHost() {
         WirelessData data = readWirelessData();
+        if (data == null) return true;
 
-//        if ((BlockEntity)(Object)this instanceof CableBusBlockEntity) return true;
-
-        if (data == null) {
-            return true;
-        }
-
-        if (aewireless$link == null) {
-            aewireless$updateWireless();
-            return aewireless$link != null && aewireless$link.getHostNode() != null;
-        }
-
-        if (aewireless$link.getHostNode() == null) {
-            IGridNode hostNode = resolveHostNode(data.direction());
-            if (hostNode == null) {
+        if (link == null) {
+            link = createLink(data);
+            if (link == null) {
                 return false;
             }
-
-            aewireless$link.setHostNode(hostNode);
         }
 
-        aewireless$link.update();
-        return aewireless$link.getHostNode() != null;
+        ensureHostNode(data);
+
+        link.update();
+        return link.isConnected();
     }
 
     @Unique
     public void clearLink() {
-        if (aewireless$link != null) {
-            aewireless$link.destroyConnection();
-            aewireless$link = null;
-        }
+        if (link == null) return;
+
+        link.destroyConnection();
+        link = null;
+    }
+
+    /* ---------------- 核心逻辑 ---------------- */
+
+    @Unique
+    public void updateWireless() {
+        WirelessData data = readWirelessData();
+        updateWireless(data);
     }
 
     @Unique
+    private void updateWireless(@Nullable WirelessData data) {
+        if (data == null) return;
+
+        if (link == null) {
+            link = createLink(data);
+            if (link == null) return;
+        }
+
+        ensureHostNode(data);
+        link.update();
+    }
+
+
+    @Unique
+    private void ensureHostNode(WirelessData data) {
+        if (link.getHostNode() != null) return;
+
+        IGridNode node = resolveHostNode(data.direction());
+        if (node != null) {
+            link.setHostNode(node);
+        }
+    }
+
+    /* ---------------- 数据处理 ---------------- */
+
+    @Unique
     private boolean hasWirelessData() {
-        return customPersistentData != null && customPersistentData.contains(KEY_FREQUENCY);
+        return customPersistentData != null
+                && customPersistentData.contains(KEY_FREQUENCY);
     }
 
     @Unique
     @Nullable
     private WirelessData readWirelessData() {
-        if (!hasWirelessData()) {
-            return null;
-        }
+        if (!hasWirelessData()) return null;
 
-        CompoundTag data = customPersistentData;
+        int dirIndex = customPersistentData.getInt(KEY_DIRECTION);
+        Direction[] dirs = Direction.values();
 
-        int dirIndex = data.getInt(KEY_DIRECTION);
-        Direction[] directions = Direction.values();
-        if (dirIndex < 0 || dirIndex >= directions.length) {
-            return null;
-        }
+        if (dirIndex < 0 || dirIndex >= dirs.length) return null;
 
         return new WirelessData(
-                data.getString(KEY_FREQUENCY),
-                data.getUUID(KEY_UUID),
-                directions[dirIndex]
+                customPersistentData.getString(KEY_FREQUENCY),
+                customPersistentData.getUUID(KEY_UUID),
+                dirs[dirIndex]
         );
     }
+
+    /* ---------------- Link 创建 ---------------- */
 
     @Unique
     @Nullable
     private WirelessBlockLink createLink(WirelessData data) {
-        if (!(level instanceof ServerLevel serverLevel)) {
-            return null;
-        }
+        if (!(level instanceof ServerLevel serverLevel)) return null;
 
         WirelessBlockLink newLink;
-        if (isPart(level, worldPosition)) {
+
+        if (isPart()) {
             newLink = new WirelessPartLink(serverLevel, worldPosition);
         } else {
-            IGridNode hostNode = resolveHostNode(data.direction());
-            if (hostNode == null) {
-                return null;
-            }
-            newLink = new WirelessBlockLink(hostNode, serverLevel, worldPosition);
+            IGridNode node = resolveHostNode(data.direction());
+            if (node == null) return null;
+
+            newLink = new WirelessBlockLink(node, serverLevel, worldPosition);
         }
 
         newLink.setUuid(data.uuid());
         newLink.setFrequency(data.frequency());
+
         return newLink;
     }
+
+    /* ---------------- AE2 相关 ---------------- */
 
     @Unique
     @Nullable
     private IGridNode resolveHostNode(Direction direction) {
-        IInWorldGridNodeHost nodeHost = getNodeHost((BlockEntity) (Object) this);
-        return nodeHost != null ? nodeHost.getGridNode(direction) : null;
+        IInWorldGridNodeHost host = getNodeHost((BlockEntity) (Object) this);
+        return host != null ? host.getGridNode(direction) : null;
     }
 
     @Unique
     @Nullable
-    private IInWorldGridNodeHost getNodeHost(BlockEntity blockEntity) {
-        if (blockEntity instanceof IInWorldGridNodeHost host) {
-            return host;
-        }
+    private IInWorldGridNodeHost getNodeHost(BlockEntity be) {
+        if (be instanceof IInWorldGridNodeHost host) return host;
 
-        return blockEntity == null
-                ? null
-                : blockEntity.getCapability(Capabilities.IN_WORLD_GRID_NODE_HOST).orElse(null);
+        return be.getCapability(Capabilities.IN_WORLD_GRID_NODE_HOST)
+                .orElse(null);
     }
 
     @Unique
-    private boolean isPart(Level level, BlockPos pos) {
-        if (level == null || pos == null) {
-            return false;
-        }
+    private boolean isPart() {
+        if (level == null || worldPosition == null) return false;
 
-        for (Direction direction : Direction.values()) {
-            IPart part = PartHelper.getPart(level, pos, direction);
-            if (part != null) {
-                return true;
-            }
+        if ((BlockEntity)(Object)this instanceof CableBusBlockEntity){
+            return true;
         }
 
         return false;
     }
-
-
 }

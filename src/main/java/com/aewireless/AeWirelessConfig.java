@@ -33,6 +33,11 @@ public class AeWirelessConfig {
 
     @Configurable
     @Configurable.Synchronized
+    @Configurable.Comment(value = {"Enable auto-connect when placing blocks while sneaking."}, localize = true)
+    public boolean shiftAutoConnect = true;
+
+    @Configurable
+    @Configurable.Synchronized
     @Configurable.DecimalRange(min = 0)
     public double baseEnergy = 100.0;
 

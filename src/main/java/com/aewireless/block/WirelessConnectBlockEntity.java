@@ -7,6 +7,7 @@ import com.aewireless.AeWirelessConfig;
 import com.aewireless.gui.wireless.WirelessMenu;
 import com.aewireless.register.ModRegister;
 import com.aewireless.wireless.*;
+import com.aewireless.wireless.block.link.JoinWorldWireless;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -16,6 +17,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -28,11 +30,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.EnumSet;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
-public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvider , IInWorldGridNodeHost , IWirelessEndpoint {
+public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvider , IInWorldGridNodeHost , IWirelessEndpoint, IWirelessMasterEndpoint {
     private final IManagedGridNode managedNode;
     protected final ContainerData data;
 
@@ -50,12 +50,13 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
     private boolean mode = false;
 
-    private boolean tickLoad = false;
+
+    private final Set<SlaveRef> slaveRefs = new LinkedHashSet<>();
 
     public WirelessConnectBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModRegister.WIRELESS_TRANSCEIVER_ENTITY.get(), pos, blockState);
 
-        tickLoad  = false;
+
         this.managedNode = GridHelper.createManagedNode(this, (nodeOwner, node) -> nodeOwner.setChanged())
                 .setFlags(GridFlags.DENSE_CAPACITY);
 
@@ -160,8 +161,8 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
 
     public void setFrequency(String frequency) {
+//        if (Objects.equals(frequency, this.frequency)) return;
         this.frequency = frequency;
-
 
         usedChannels = 0;
 
@@ -201,6 +202,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         } else {
             slaveLink.destroyConnection();
         }
+        notifySlavesResync();
         if (managedNode != null) {
             managedNode.destroy();
         }
@@ -211,6 +213,10 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 //
 //            tickLoad = true;
 //        }
+        if (!(level instanceof ServerLevel)) return;
+        if (((level.getGameTime() + pos.asLong()) % 20L) != 0L) return;
+
+        usedChannels = 0;
 
         WirelessConnectBlockEntity blockEntity = (WirelessConnectBlockEntity)level.getBlockEntity(pos);
         UUID id = placerId == null ? AeWireless.PUBLIC_NETWORK_UUID :WirelessTeamUtil.getNetworkOwnerUUID(placerId);
@@ -220,6 +226,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         }
 
         //修复无法删除
+        if (WirelessData.isDataReady()) {
         if (blockEntity != null && WirelessData.containsData(blockEntity.getFrequency(), id)) {
             blockEntity.setFrequency(blockEntity.getFrequency());
         }
@@ -229,9 +236,18 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
             if (!blockEntity.mode) {
                 blockEntity.slaveLink.destroyConnection();
                 blockEntity.slaveLink.realUnregister();
+                blockEntity.frequency = null;
+            } else if (blockEntity.frequency != null && !blockEntity.frequency.isEmpty()) {
+                blockEntity.masterLink.register();
             }
+        }
 
-            blockEntity.frequency = null;
+        if (blockEntity != null && blockEntity.mode && blockEntity.frequency != null && !blockEntity.frequency.isEmpty()) {
+            var master = WirelessData.getData(blockEntity.frequency, id);
+            if (master == null) {
+                blockEntity.masterLink.register();
+            }
+        }
         }
 
         if (managedNode.isOnline()){
@@ -243,9 +259,6 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         }
 
         updateChannelUsedAndMax();
-
-
-        if (!(level instanceof ServerLevel)) return;
 
         if (blockEntity != null && !blockEntity.mode) {
             blockEntity.slaveLink.update();
@@ -408,6 +421,59 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     public IManagedGridNode getManagedNode() {
         return managedNode;
     }
+
+    public java.util.List<SlaveRef> getSlaveRefsSnapshot() {
+        synchronized (slaveRefs) {
+            return new java.util.ArrayList<>(slaveRefs);
+        }
+    }
+
+    @Override
+    public void registerSlave(ServerLevel level, BlockPos pos) {
+        if (level == null || pos == null) return;
+        synchronized (slaveRefs) {
+            slaveRefs.add(new SlaveRef(level.dimension(), pos.immutable()));
+        }
+    }
+
+    @Override
+    public void unregisterSlave(ServerLevel level, BlockPos pos) {
+        if (level == null || pos == null) return;
+        synchronized (slaveRefs) {
+            slaveRefs.remove(new SlaveRef(level.dimension(), pos.immutable()));
+        }
+    }
+
+    @Override
+    public void notifySlavesResync() {
+        var server = ServerLifecycleHooks.getCurrentServer();
+        if (server == null) return;
+        java.util.List<SlaveRef> snapshot;
+        synchronized (slaveRefs) {
+            if (slaveRefs.isEmpty()) return;
+            snapshot = new java.util.ArrayList<>(slaveRefs);
+        }
+        for (SlaveRef ref : snapshot) {
+            ServerLevel level = server.getLevel(ref.dimension);
+            if (level != null) {
+                if (level.getBlockEntity(ref.pos) != null) {
+                    JoinWorldWireless.add(level, ref.pos);
+                } else {
+                    synchronized (slaveRefs) {
+                        slaveRefs.remove(ref);
+                    }
+                }
+            } else {
+                synchronized (slaveRefs) {
+                    slaveRefs.remove(ref);
+                }
+            }
+        }
+
+
+    }
+
+    public record SlaveRef(ResourceKey<Level> dimension, BlockPos pos) {}
 
 
 }

@@ -40,8 +40,7 @@ public class WirelessMasterLink {
             uuid  = AeWireless.PUBLIC_NETWORK_UUID;
         }
 
-        if (!frequency.isEmpty() && !host.isEndpointRemoved() &&
-                WirelessData.containsData(frequency , uuid) ) {
+        if (!frequency.isEmpty() && !host.isEndpointRemoved()) {
             register();
         }
 
@@ -49,12 +48,9 @@ public class WirelessMasterLink {
 
     public boolean register() {
         if (frequency.isEmpty()) return false;
-        if (WirelessData.containsData(frequency , uuid)){
-            boolean is = WirelessData.addData(frequency, uuid,  host);
-            this.registered = is;
-            return is;
-        }
-        return false;
+        boolean is = WirelessData.addData(frequency, uuid,  host);
+        this.registered = is;
+        return is;
     }
 
 
@@ -64,5 +60,8 @@ public class WirelessMasterLink {
             WirelessData.addData(frequency, uuid , null);
         }
         registered = false;
+        if (host instanceof IWirelessMasterEndpoint master) {
+            master.notifySlavesResync();
+        }
     }
 }

@@ -1,7 +1,12 @@
 package com.aewireless.network;
 
 import com.aewireless.AeWireless;
-import com.aewireless.network.packet.*;
+import com.aewireless.network.packet.MenuDataPacket;
+import com.aewireless.network.packet.RequestSlaveListPacket;
+import com.aewireless.network.packet.RequestWirelessDataPacket;
+import com.aewireless.network.packet.SyncSlaveListPacket;
+import com.aewireless.network.packet.SyncWirelessDataPacket;
+import com.aewireless.network.packet.WirelessDataUpdatePacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
@@ -58,6 +63,18 @@ public class NetworkHandler {
                 .consumerMainThread(WirelessDataUpdatePacket::handle)
                 .add();
 
+        getChannel().messageBuilder(RequestSlaveListPacket.class, id++)
+                .encoder(RequestSlaveListPacket::encode)
+                .decoder(RequestSlaveListPacket::decode)
+                .consumerMainThread(RequestSlaveListPacket::handle)
+                .add();
+
+        getChannel().messageBuilder(SyncSlaveListPacket.class, id++)
+                .encoder(SyncSlaveListPacket::encode)
+                .decoder(SyncSlaveListPacket::decode)
+                .consumerMainThread(SyncSlaveListPacket::handle)
+                .add();
+
         registered = true;
     }
     public static void sendToServer(Object msg) {
@@ -72,4 +89,3 @@ public class NetworkHandler {
         getChannel().send(PacketDistributor.PLAYER.with(() -> player), msg);
     }
 }
-

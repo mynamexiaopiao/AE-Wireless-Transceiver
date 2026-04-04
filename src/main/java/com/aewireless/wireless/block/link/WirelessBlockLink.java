@@ -12,6 +12,7 @@ import com.aewireless.wireless.WirelessTeamUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -23,6 +24,7 @@ public class WirelessBlockLink {
     protected UUID uuid;
 
     protected ConnectionWrapper connection = new ConnectionWrapper( null);
+    protected IWirelessEndpoint lastMaster;
 
     public WirelessBlockLink(IGridNode host , ServerLevel level , BlockPos pos) {
         this.level = level;
@@ -103,11 +105,15 @@ public class WirelessBlockLink {
                 return;
             }
 
+            // Even if AE already has a link and createConnection throws, keep slave registered for overlay.
+            registerMaster(master);
+
             // 检查是否已经连接
             if (existingConnection != null) {
                 IGridNode a = existingConnection.a();
                 IGridNode b = existingConnection.b();
                 if ((a == hostNode || b == hostNode) && (a == masterNode || b == masterNode)) {
+                    registerMaster(master);
                     return;
                 }
                 // 连接不匹配，需要重新建立
@@ -121,8 +127,17 @@ public class WirelessBlockLink {
             }
 
         } catch (IllegalStateException e) {
-            destroyConnection();
+            // Usually means AE link already exists; keep master-slave registry instead of dropping it.
+            registerMaster(master);
         }
+    }
+
+    public boolean isConnected(){
+        IGridConnection connection1 = connection.getConnection();
+        if (connection1 != null) {
+            return true;
+        }
+        return false;
     }
 
     public IGridNode getHostNode() {
@@ -140,5 +155,23 @@ public class WirelessBlockLink {
             connection.setConnection(null);
         }
         connection = new ConnectionWrapper(null);
+        unregisterMaster();
+    }
+
+    protected void registerMaster(IWirelessEndpoint master) {
+        if (master == null) return;
+        if (master == lastMaster) return;
+        unregisterMaster();
+        if (master instanceof com.aewireless.wireless.IWirelessMasterEndpoint masterEndpoint) {
+            masterEndpoint.registerSlave(level, pos);
+        }
+        lastMaster = master;
+    }
+
+    protected void unregisterMaster() {
+        if (lastMaster instanceof com.aewireless.wireless.IWirelessMasterEndpoint masterEndpoint) {
+            masterEndpoint.unregisterSlave(level, pos);
+        }
+        lastMaster = null;
     }
 }

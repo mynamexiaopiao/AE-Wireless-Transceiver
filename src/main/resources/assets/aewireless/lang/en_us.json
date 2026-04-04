@@ -17,6 +17,7 @@
   "gui.wireless.mode.disconnect": "disconnect",
   "gui.wireless.mode.connect": "connected",
   "gui.wireless.remaining_channels": "Used channels",
+  "gui.wireless.links.toggle.tooltip": "Toggle connected blocks overlay",
   "gui.confirm_delete.message": "Confirm the deletion?",
   "aewireless.tooltip.channel_name": "Channel Name: %d",
   "gui.wireless.energy.usage": "Energy",
@@ -40,6 +41,8 @@
   "aewireless.jade.tooltip.mode": "Slave Mode",
   "aewireless.jade.tooltip.deviceoff": "Device Offline",
   "aewireless.jade.tooltip.deviceon": "Device Online",
+  "aewireless.jade.tooltip.wireless_connected": "Wireless Connected",
+  "aewireless.jade.tooltip.wireless_disconnected": "Wireless Not Connected",
 
 
   "config.aewireless.title": "AE Wireless Config",
@@ -54,6 +57,7 @@
   "config.aewireless.option.batteryMultiplier": "Energy multiplier for wireless transceiver",
   "config.aewireless.option.maxDistance": "Maximum transmission distance",
   "config.aewireless.option.crossDimensional": "Allow cross-dimensional connection",
+  "config.aewireless.option.shiftAutoConnect": "Enable auto-connect when placing blocks while sneaking",
   "config.aewireless.option.isCacheLoad": "Enable full cache mode for wireless direct connection?",
 
 
@@ -61,6 +65,7 @@
   "config.aewireless.option.batteryMultiplier.comment.0": "Sub energy consumption = Distance between Main and Sub × Energy multiplier.",
   "config.aewireless.option.maxDistance.comment.0": "Maximum transmission distance between Sub and Main wireless transceivers(0 for unlimited).",
   "config.aewireless.option.crossDimensional.comment.0": "If enabled, the wireless transceiver will allow cross-dimensional connections (ignoring distance limits).",
+  "config.aewireless.option.shiftAutoConnect.comment.0": "If enabled, placing blocks while sneaking will attempt to auto-connect using a wireless connector in your inventory.",
   "config.aewireless.option.isCacheLoad.comment.0": "If enabled, all block information will be cached, but the chunk needs to stay loaded; otherwise, the connection will be lost (better performance).  \nIf disabled, block information will be retrieved via real-time ticks, and the connection will not be lost (worse performance).",
 
 

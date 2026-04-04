@@ -21,7 +21,7 @@ public class WorldSaveEvent {
         if (!event.getLevel().isClientSide()) {
             WirelessWorldData worldData = WirelessWorldData.get(Objects.requireNonNull(event.getLevel().getServer()).getLevel(Level.OVERWORLD));
 
-            if (worldData != null && !worldData.data.isEmpty()){
+            if (worldData != null){
                 WirelessData.setDATAMap(worldData.data);
             }
         }

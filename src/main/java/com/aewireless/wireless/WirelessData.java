@@ -17,9 +17,11 @@ public class WirelessData {
     public WirelessData() {}
 
     private static Map<Key , IWirelessEndpoint> DATA = new HashMap<>();
+    private static volatile boolean DATA_READY = false;
 
     public static synchronized void setDATAMap(Map<Key , IWirelessEndpoint> map){
         DATA = map;
+        DATA_READY = true;
     }
 
     public static synchronized Map<Key , IWirelessEndpoint> getDATAMap(){
@@ -46,6 +48,11 @@ public class WirelessData {
 
     public static synchronized void clearData(){
         DATA.clear();
+        DATA_READY = false;
+    }
+
+    public static boolean isDataReady() {
+        return DATA_READY;
     }
 
     public static synchronized boolean containsData(String s , UUID uuid){

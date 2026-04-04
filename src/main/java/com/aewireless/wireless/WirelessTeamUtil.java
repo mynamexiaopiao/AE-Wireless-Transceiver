@@ -13,6 +13,42 @@ import java.util.UUID;
  */
 public class WirelessTeamUtil {
 
+    private static final Object REFLECTION_LOCK = new Object();
+    private static volatile boolean reflectionInitialized = false;
+    private static volatile boolean reflectionAvailable = false;
+
+    private static Class<?> apiClass;
+    private static java.lang.reflect.Method apiMethod;
+    private static java.lang.reflect.Method isManagerLoadedMethod;
+    private static java.lang.reflect.Method getManagerMethod;
+
+    private static Class<?> managerClassCache;
+    private static java.lang.reflect.Method getTeamForPlayerMethod;
+
+    private static Class<?> teamClassCache;
+    private static java.lang.reflect.Method getTeamIdMethod;
+    private static java.lang.reflect.Method getTeamNameMethod;
+
+    private static void initReflection() {
+        if (reflectionInitialized) return;
+        synchronized (REFLECTION_LOCK) {
+            if (reflectionInitialized) return;
+            try {
+                apiClass = Class.forName("dev.ftb.mods.ftbteams.api.FTBTeamsAPI");
+                apiMethod = apiClass.getMethod("api");
+                Object api = apiMethod.invoke(null);
+                if (api != null) {
+                    isManagerLoadedMethod = api.getClass().getMethod("isManagerLoaded");
+                    getManagerMethod = api.getClass().getMethod("getManager");
+                    reflectionAvailable = true;
+                }
+            } catch (Exception ignored) {
+                reflectionAvailable = false;
+            } finally {
+                reflectionInitialized = true;
+            }
+        }
+    }
 
     /**
      * 获取用于无线网络隔离的UUID
@@ -40,36 +76,45 @@ public class WirelessTeamUtil {
     }
 
     private static UUID getTeamUUID(UUID playerUUID) {
+        initReflection();
+        if (!reflectionAvailable) return playerUUID;
         try {
             // 使用FTBTeams API
-            var apiClass = Class.forName("dev.ftb.mods.ftbteams.api.FTBTeamsAPI");
-            var api = apiClass.getMethod("api").invoke(null);  // 静态方法，返回API实例
+            var api = apiMethod.invoke(null);  // 静态方法，返回API实例
 
             // 检查Manager是否已加载（在api实例上调用）
-            Boolean isLoaded = (Boolean) api.getClass().getMethod("isManagerLoaded").invoke(api);
+            Boolean isLoaded = (Boolean) isManagerLoadedMethod.invoke(api);
 
             if (!isLoaded) {
                 return playerUUID;
             }
 
-            var getManager = api.getClass().getMethod("getManager").invoke(api);
+            var getManager = getManagerMethod.invoke(api);
 
             if (getManager == null) {
                 return playerUUID;
             }
 
             var managerClass = getManager.getClass();
-            var getTeamForPlayer = managerClass.getMethod("getTeamForPlayerID", UUID.class);
-            var teamOptional = getTeamForPlayer.invoke(getManager, playerUUID);
+            if (managerClassCache != managerClass || getTeamForPlayerMethod == null) {
+                getTeamForPlayerMethod = managerClass.getMethod("getTeamForPlayerID", UUID.class);
+                managerClassCache = managerClass;
+            }
+            var teamOptional = getTeamForPlayerMethod.invoke(getManager, playerUUID);
 
             if (teamOptional != null) {
-                var optionalClass = teamOptional.getClass();
-                var isPresent = (boolean) optionalClass.getMethod("isPresent").invoke(teamOptional);
-
-                if (isPresent) {
-                    var team = optionalClass.getMethod("get").invoke(teamOptional);
-                    var teamClass = team.getClass();
-                    return (UUID) teamClass.getMethod("getTeamId").invoke(team);
+                if (teamOptional instanceof java.util.Optional<?> optional) {
+                    if (optional.isPresent()) {
+                        Object team = optional.get();
+                        if (team != null) {
+                            var teamClass = team.getClass();
+                            if (teamClassCache != teamClass || getTeamIdMethod == null) {
+                                getTeamIdMethod = teamClass.getMethod("getTeamId");
+                                teamClassCache = teamClass;
+                            }
+                            return (UUID) getTeamIdMethod.invoke(team);
+                        }
+                    }
                 }
             }
         } catch (Exception e) {
@@ -80,12 +125,17 @@ public class WirelessTeamUtil {
     }
 
     private static Component getTeamName(ServerLevel level, UUID playerUUID) {
+        initReflection();
+        if (!reflectionAvailable) {
+            ServerPlayer player = level.getServer().getPlayerList().getPlayer(playerUUID);
+            if (player != null) return player.getName();
+            return Component.literal(playerUUID.toString());
+        }
         try {
-            var apiClass = Class.forName("dev.ftb.mods.ftbteams.api.FTBTeamsAPI");
-            var api = apiClass.getMethod("api").invoke(null);
+            var api = apiMethod.invoke(null);
 
             // 检查Manager是否已加载
-            Boolean isLoaded = (Boolean) api.getClass().getMethod("isManagerLoaded").invoke(api);
+            Boolean isLoaded = (Boolean) isManagerLoadedMethod.invoke(api);
             if (!isLoaded) {
                 // Manager未加载，回退到玩家名称
                 ServerPlayer player = level.getServer().getPlayerList().getPlayer(playerUUID);
@@ -95,24 +145,32 @@ public class WirelessTeamUtil {
                 return Component.literal(playerUUID.toString());
             }
 
-            var getManager = api.getClass().getMethod("getManager").invoke(api);
+            var getManager = getManagerMethod.invoke(api);
 
             if (getManager == null) {
                 return Component.literal(playerUUID.toString());
             }
 
             var managerClass = getManager.getClass();
-            var getTeamForPlayer = managerClass.getMethod("getTeamForPlayerID", UUID.class);
-            var teamOptional = getTeamForPlayer.invoke(getManager, playerUUID);
+            if (managerClassCache != managerClass || getTeamForPlayerMethod == null) {
+                getTeamForPlayerMethod = managerClass.getMethod("getTeamForPlayerID", UUID.class);
+                managerClassCache = managerClass;
+            }
+            var teamOptional = getTeamForPlayerMethod.invoke(getManager, playerUUID);
 
             if (teamOptional != null) {
-                var optionalClass = teamOptional.getClass();
-                var isPresent = (boolean) optionalClass.getMethod("isPresent").invoke(teamOptional);
-
-                if (isPresent) {
-                    var team = optionalClass.getMethod("get").invoke(teamOptional);
-                    var teamClass = team.getClass();
-                    return (Component) teamClass.getMethod("getName").invoke(team);
+                if (teamOptional instanceof java.util.Optional<?> optional) {
+                    if (optional.isPresent()) {
+                        Object team = optional.get();
+                        if (team != null) {
+                            var teamClass = team.getClass();
+                            if (teamClassCache != teamClass || getTeamNameMethod == null) {
+                                getTeamNameMethod = teamClass.getMethod("getName");
+                                teamClassCache = teamClass;
+                            }
+                            return (Component) getTeamNameMethod.invoke(team);
+                        }
+                    }
                 }
             }
         } catch (Exception e) {
@@ -130,29 +188,36 @@ public class WirelessTeamUtil {
 
 
     private static boolean hasTeamOwner(ServerLevel level, UUID playerUUID) {
+        initReflection();
+        if (!reflectionAvailable) {
+            return level.getServer().getPlayerList().getPlayer(playerUUID) != null;
+        }
         try {
-            var apiClass = Class.forName("dev.ftb.mods.ftbteams.api.FTBTeamsAPI");
-            var api = apiClass.getMethod("api").invoke(null);
+            var api = apiMethod.invoke(null);
 
             // 检查Manager是否已加载
-            Boolean isLoaded = (Boolean) api.getClass().getMethod("isManagerLoaded").invoke(api);
+            Boolean isLoaded = (Boolean) isManagerLoadedMethod.invoke(api);
             if (!isLoaded) {
                 return level.getServer().getPlayerList().getPlayer(playerUUID) != null;
             }
 
-            var getManager = api.getClass().getMethod("getManager").invoke(api);
+            var getManager = getManagerMethod.invoke(api);
 
             if (getManager == null) {
                 return level.getServer().getPlayerList().getPlayer(playerUUID) != null;
             }
 
             var managerClass = getManager.getClass();
-            var getTeamForPlayer = managerClass.getMethod("getTeamForPlayerID", UUID.class);
-            var teamOptional = getTeamForPlayer.invoke(getManager, playerUUID);
+            if (managerClassCache != managerClass || getTeamForPlayerMethod == null) {
+                getTeamForPlayerMethod = managerClass.getMethod("getTeamForPlayerID", UUID.class);
+                managerClassCache = managerClass;
+            }
+            var teamOptional = getTeamForPlayerMethod.invoke(getManager, playerUUID);
 
             if (teamOptional != null) {
-                var optionalClass = teamOptional.getClass();
-                return (boolean) optionalClass.getMethod("isPresent").invoke(teamOptional);
+                if (teamOptional instanceof java.util.Optional<?> optional) {
+                    return optional.isPresent();
+                }
             }
         } catch (Exception e) {
             // 反射调用失败，回退
