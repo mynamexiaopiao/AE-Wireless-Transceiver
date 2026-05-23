@@ -10,18 +10,6 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 
 public class WirelessMenu extends AEBaseMenu {
-//    public static final MenuType<WirelessMenu> TYPE = MenuTypeBuilder.create((WirelessMenu::new), WirelessConnectBlockEntity.class).withInitialData(
-//            (host, buffer)->{
-//                buffer.writeBoolean(host.data.get(0) == 1);
-//
-//            },
-//            (host1, buffer1 , buffer2)->{
-//                buffer1.isOnline = buffer2.readBoolean();
-//
-//            }
-//
-//    ).build("wireless_menu");
-
 
 
     WirelessConnectBlockEntity blockEntity;

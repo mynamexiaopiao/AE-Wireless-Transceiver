@@ -12,11 +12,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-
-@EventBusSubscriber
+@EventBusSubscriber(value = Dist.CLIENT)
 public class WirelessLinkRenderer {
     @SubscribeEvent
     public static void onRenderLevel(RenderLevelStageEvent event) {
