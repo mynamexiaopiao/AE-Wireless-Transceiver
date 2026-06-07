@@ -6,6 +6,7 @@ import com.aewireless.network.packet.RequestSlaveListPacket;
 import com.aewireless.network.packet.RequestWirelessDataPacket;
 import com.aewireless.network.packet.SyncSlaveListPacket;
 import com.aewireless.network.packet.SyncWirelessDataPacket;
+import com.aewireless.network.packet.SetConnectorChannelPacket;
 import com.aewireless.network.packet.WirelessDataUpdatePacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
@@ -73,6 +74,12 @@ public class NetworkHandler {
                 .encoder(SyncSlaveListPacket::encode)
                 .decoder(SyncSlaveListPacket::decode)
                 .consumerMainThread(SyncSlaveListPacket::handle)
+                .add();
+
+        getChannel().messageBuilder(SetConnectorChannelPacket.class, id++)
+                .encoder(SetConnectorChannelPacket::encode)
+                .decoder(SetConnectorChannelPacket::decode)
+                .consumerMainThread(SetConnectorChannelPacket::handle)
                 .add();
 
         registered = true;

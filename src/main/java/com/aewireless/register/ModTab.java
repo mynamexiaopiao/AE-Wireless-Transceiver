@@ -12,7 +12,6 @@ public class ModTab {
         if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
             event.accept(ModRegister.WIRELESS_TRANSCEIVER.get().asItem());
             event.accept(ModRegister.WIRELESS_CORER.get());
-            event.accept(ModRegister.WIRELESS_DESTROY.get());
         }
     }
 }

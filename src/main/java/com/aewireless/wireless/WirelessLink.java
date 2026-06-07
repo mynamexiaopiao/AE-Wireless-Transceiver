@@ -6,7 +6,6 @@ import appeng.api.networking.IGridNode;
 import appeng.me.service.helpers.ConnectionWrapper;
 import com.aewireless.AeWireless;
 import com.aewireless.AeWirelessConfig;
-import com.mojang.datafixers.kinds.IdF;
 import net.minecraft.server.level.ServerLevel;
 
 import java.util.Objects;
@@ -24,12 +23,12 @@ public class WirelessLink {
     }
 
     public void setUuid(UUID uuid) {
-        if (this.uuid == uuid)return;
-        this.uuid = WirelessTeamUtil.getNetworkOwnerUUID(uuid);
-
-        if (!AeWireless.IS_FTB_TEAMS_LOADED){
-            this.uuid  = AeWireless.PUBLIC_NETWORK_UUID;
+        UUID ownerId = WirelessTeamUtil.getNetworkOwnerUUID(uuid);
+        if (ownerId == null || !AeWireless.IS_FTB_TEAMS_LOADED){
+            ownerId  = AeWireless.PUBLIC_NETWORK_UUID;
         }
+        if (Objects.equals(this.uuid, ownerId)) return;
+        this.uuid = ownerId;
     }
 
     public void setFrequency(String frequency) {
@@ -51,24 +50,17 @@ public class WirelessLink {
             return;
         }
 
-        setUuid(uuid);
-
         ServerLevel level = host.getServerLevel();
-        Double distance = 0.0D;
-
         IWirelessEndpoint master = WirelessData.getData(frequency, uuid);
 
         boolean crossDimensional = AeWirelessConfig.INSTANCE.crossDimensional;
+        ServerLevel masterLevel = master == null ? null : master.getServerLevel();
 
-        if (master != null && !master.isEndpointRemoved() && (crossDimensional || master.getServerLevel() == level)) {
-
-            distance = Math.sqrt(master.getBlockPos().distSqr(host.getBlockPos()));
-
-
+        if (master != null && !master.isEndpointRemoved() && (crossDimensional || masterLevel == level)) {
             double maxRange = AeWirelessConfig.INSTANCE.maxDistance;
 
-            if (master.getServerLevel() == level){
-                if ( distance <= maxRange || maxRange == 0) {
+            if (masterLevel == level){
+                if (maxRange == 0 || master.getBlockPos().distSqr(host.getBlockPos()) <= maxRange * maxRange) {
                     connect(master);
                 }
             }else if (crossDimensional){

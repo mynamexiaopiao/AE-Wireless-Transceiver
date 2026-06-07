@@ -2,6 +2,7 @@ package com.aewireless.wireless;
 
 import com.aewireless.AeWireless;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class WirelessMasterLink {
@@ -17,7 +18,7 @@ public class WirelessMasterLink {
     public void setUuid(UUID uuid) {
         this.uuid = WirelessTeamUtil.getNetworkOwnerUUID(uuid);
 
-        if (!AeWireless.IS_FTB_TEAMS_LOADED){
+        if (this.uuid == null || !AeWireless.IS_FTB_TEAMS_LOADED){
             this.uuid  = AeWireless.PUBLIC_NETWORK_UUID;
         }
     }
@@ -29,16 +30,17 @@ public class WirelessMasterLink {
     public void setFrequency(String frequency , UUID uuid) {
         if (frequency == null)return;
 
-        if (registered) {
+        UUID ownerId = WirelessTeamUtil.getNetworkOwnerUUID(uuid);
+
+        if (ownerId == null || !AeWireless.IS_FTB_TEAMS_LOADED){
+            ownerId  = AeWireless.PUBLIC_NETWORK_UUID;
+        }
+
+        if (registered && (!frequency.equals(this.frequency) || !Objects.equals(ownerId, this.uuid))) {
             unregister();
         }
         this.frequency = frequency;
-
-        uuid = WirelessTeamUtil.getNetworkOwnerUUID(uuid) ;
-
-        if (!AeWireless.IS_FTB_TEAMS_LOADED){
-            uuid  = AeWireless.PUBLIC_NETWORK_UUID;
-        }
+        this.uuid = ownerId;
 
         if (!frequency.isEmpty() && !host.isEndpointRemoved()) {
             register();
@@ -47,7 +49,7 @@ public class WirelessMasterLink {
     }
 
     public boolean register() {
-        if (frequency.isEmpty()) return false;
+        if (frequency == null || frequency.isEmpty()) return false;
         boolean is = WirelessData.addData(frequency, uuid,  host);
         this.registered = is;
         return is;

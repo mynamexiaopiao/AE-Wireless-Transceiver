@@ -39,6 +39,7 @@ public class JoinWorldWireless {
         List<WirelessContext> list1 = new ArrayList<>();
         for (WirelessContext posAndLevel : snapshot) {
             Level level = posAndLevel.level;
+            if (level != level1) continue;
             BlockPos pos = posAndLevel.pos;
             BlockEntity be = level.getBlockEntity(pos);
             if (be == null ){
@@ -46,17 +47,17 @@ public class JoinWorldWireless {
                 continue;
             }
 
+            boolean invoke;
             if (be instanceof CableBusBlockEntity){
-                    boolean invoke = ((IWirelessBlockEntity) be).updatePart();
-                    if (invoke) {list1.add(posAndLevel);}
+                invoke = ((IWirelessBlockEntity) be).updatePart();
             }else {
-                boolean invoke = ((IWirelessBlockEntity) be).updateHost();
-                if (invoke) {list1.add(posAndLevel);}
+                invoke = ((IWirelessBlockEntity) be).updateHost();
             }
+            if (invoke) {list1.add(posAndLevel);}
 
         }
         synchronized (list) {
-            list.removeAll(list1);
+            list1.forEach(list::remove);
         }
     }
 

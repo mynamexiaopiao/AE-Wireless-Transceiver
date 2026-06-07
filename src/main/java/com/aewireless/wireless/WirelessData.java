@@ -28,12 +28,18 @@ public class WirelessData {
         return DATA;
     }
 
-    public static synchronized boolean addData(String s , UUID uuid ,  IWirelessEndpoint endpoint){
-        if (s.isEmpty())return false;
+    public static boolean addData(String s , UUID uuid ,  IWirelessEndpoint endpoint){
+        if (s == null || s.isEmpty())return false;
         if (endpoint != null){
             if (endpoint.isEndpointRemoved())return false;
         }
-        DATA.put(new Key(s, uuid), endpoint);
+        Key key = new Key(s, uuid);
+        synchronized (WirelessData.class) {
+            if (DATA.containsKey(key) && DATA.get(key) == endpoint) {
+                return true;
+            }
+            DATA.put(key, endpoint);
+        }
 
         // 通知所有相关客户端
         //判断是否为客户端环境，避免在服务端调用客户端代码
@@ -56,12 +62,15 @@ public class WirelessData {
     }
 
     public static synchronized boolean containsData(String s , UUID uuid){
+        if (s == null || s.isEmpty())return false;
         return DATA.containsKey(new Key(s, uuid));
     }
 
-    public static synchronized void removeData(String s , UUID uuid){
-        if (s.isEmpty())return;
-        DATA.remove(new Key(s, uuid));
+    public static void removeData(String s , UUID uuid){
+        if (s == null || s.isEmpty())return;
+        synchronized (WirelessData.class) {
+            DATA.remove(new Key(s, uuid));
+        }
 
             // 通知所有相关客户端
             notifyClients(uuid, s, false);
@@ -70,7 +79,7 @@ public class WirelessData {
 
 
     public static synchronized IWirelessEndpoint getData(String s , UUID uuid){
-        if (s.isEmpty())return null;
+        if (s == null || s.isEmpty())return null;
         return DATA.get(new Key(s, uuid));
     }
 

@@ -12,7 +12,6 @@ import com.aewireless.wireless.WirelessTeamUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -38,15 +37,12 @@ public class WirelessBlockLink {
     }
 
     public void setUuid(UUID uuid) {
-//        if (!WirelessCommand.TEAM_UPDATE){
-//            if (this.uuid == uuid)return;
-//        }
-
-        this.uuid = WirelessTeamUtil.getNetworkOwnerUUID(uuid);
-
-        if (!AeWireless.IS_FTB_TEAMS_LOADED){
-            this.uuid  = AeWireless.PUBLIC_NETWORK_UUID;
+        UUID ownerId = WirelessTeamUtil.getNetworkOwnerUUID(uuid);
+        if (ownerId == null || !AeWireless.IS_FTB_TEAMS_LOADED){
+            ownerId  = AeWireless.PUBLIC_NETWORK_UUID;
         }
+        if (Objects.equals(this.uuid, ownerId)) return;
+        this.uuid = ownerId;
     }
 
 
@@ -64,25 +60,16 @@ public class WirelessBlockLink {
             return;
         }
 
-        setUuid(uuid);
-
-        Double distance = 0.0D;
-
         IWirelessEndpoint master = WirelessData.getData(frequency, uuid);
 
         boolean crossDimensional = AeWirelessConfig.INSTANCE.crossDimensional;
+        ServerLevel masterLevel = master == null ? null : master.getServerLevel();
 
-        if (master != null && !master.isEndpointRemoved() && (crossDimensional || master.getServerLevel() == level)) {
-
-            distance = master.getBlockPos().distSqr(pos);
-
-
+        if (master != null && !master.isEndpointRemoved() && (crossDimensional || masterLevel == level)) {
             double maxRange = AeWirelessConfig.INSTANCE.maxDistance;
 
-
-
-            if (master.getServerLevel() == level){
-                if ( distance <= maxRange*maxRange || maxRange == 0) {
+            if (masterLevel == level){
+                if (maxRange == 0 || master.getBlockPos().distSqr(pos) <= maxRange * maxRange) {
                     connect(master , hostNode ,connection);
                 }
             }else if (crossDimensional){

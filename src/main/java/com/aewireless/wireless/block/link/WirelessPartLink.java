@@ -33,24 +33,18 @@ public class WirelessPartLink extends WirelessBlockLink{
             return;
         }
 
-        setUuid(uuid);
         getParts();
-
-        Double distance = 0.0D;
 
         IWirelessEndpoint master = WirelessData.getData(frequency, uuid);
 
         boolean crossDimensional = AeWirelessConfig.INSTANCE.crossDimensional;
+        ServerLevel masterLevel = master == null ? null : master.getServerLevel();
 
-        if (master != null && !master.isEndpointRemoved() && (crossDimensional || master.getServerLevel() == level)) {
-
-            distance = master.getBlockPos().distSqr(pos);
-
-
+        if (master != null && !master.isEndpointRemoved() && (crossDimensional || masterLevel == level)) {
             double maxRange = AeWirelessConfig.INSTANCE.maxDistance;
 
-            if (master.getServerLevel() == level){
-                if ( distance <= maxRange*maxRange || maxRange == 0) {
+            if (masterLevel == level){
+                if (maxRange == 0 || master.getBlockPos().distSqr(pos) <= maxRange * maxRange) {
                     connectParts(master);
                 }
             }else if (crossDimensional){
@@ -63,12 +57,7 @@ public class WirelessPartLink extends WirelessBlockLink{
 
     private void connectParts(IWirelessEndpoint master){
         for (IGridNode gridNode : gridNodes) {
-            ConnectionWrapper connectionWrapper1 = connectionWrappers.get(gridNode);
-            if (connectionWrapper1 == null ){
-                ConnectionWrapper connectionWrapper = new ConnectionWrapper(null);
-                connectionWrappers.put(gridNode,connectionWrapper);
-                connectionWrapper1 = connectionWrappers.get(gridNode);
-            }
+            ConnectionWrapper connectionWrapper1 = connectionWrappers.computeIfAbsent(gridNode, ignored -> new ConnectionWrapper(null));
             connect(master , gridNode , connectionWrapper1);
         }
     }
@@ -82,9 +71,11 @@ public class WirelessPartLink extends WirelessBlockLink{
             }
         }
         connectionWrappers.clear();
+        unregisterMaster();
     }
 
     public void getParts(){
+        gridNodes.clear();
         for (Direction value : Direction.values()) {
             IPart part = PartHelper.getPart(level, pos, value);
             if (part != null ) {
@@ -94,6 +85,16 @@ public class WirelessPartLink extends WirelessBlockLink{
                 }
             }
         }
+        connectionWrappers.entrySet().removeIf(entry -> {
+            if (gridNodes.contains(entry.getKey())) {
+                return false;
+            }
+            IGridConnection connection = entry.getValue().getConnection();
+            if (connection != null) {
+                connection.destroy();
+            }
+            return true;
+        });
     }
 
     public boolean isConnected(){

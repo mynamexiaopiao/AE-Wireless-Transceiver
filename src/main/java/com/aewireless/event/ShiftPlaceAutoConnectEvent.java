@@ -5,6 +5,7 @@ import appeng.capabilities.Capabilities;
 import com.aewireless.AeWireless;
 import com.aewireless.AeWirelessConfig;
 import com.aewireless.api.IWirelessBlockEntity;
+import com.aewireless.block.WirelessConnectBlockEntity;
 import com.aewireless.register.ModRegister;
 import com.aewireless.wireless.block.link.JoinWorldWireless;
 import net.minecraft.core.BlockPos;
@@ -48,6 +49,7 @@ public class ShiftPlaceAutoConnectEvent {
         BlockPos pos = event.getPos();
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity == null) return;
+        if (blockEntity instanceof WirelessConnectBlockEntity) return;
 
         IInWorldGridNodeHost host = getNodeHost(blockEntity);
         if (host == null) return;

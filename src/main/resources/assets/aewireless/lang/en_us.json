@@ -1,10 +1,13 @@
 {
   "block.aewireless.wireless_transceiver": "AE Wireless Transceiver",
   "item.aewireless.wireless_connect": "Wireless Connector",
-  "item.aewireless.wireless_destroy": "Wireless Destroyer",
 
   "tooltip.aewireless_connect.1":  "The mode of wireless transceiver is wrong!",
   "tooltip.aewireless_connect.2" : "shift + Right Click ： Connect to wireless transceiver",
+  "tooltip.aewireless_connect.mode_connect": "Mode: Connect",
+  "tooltip.aewireless_connect.mode_destroy": "Mode: Destroy",
+  "tooltip.aewireless_connect.channel_list": "Channels",
+  "tooltip.aewireless_connect.channel_list_empty": "No channels",
 
   "gui.aewireless.wireless": "AE Wireless Transceiver",
   "gui.wireless.mode": "is the sender",
@@ -28,6 +31,7 @@
   "aewireless.tooltip.owner.unset": "Owner: Unset",
   "aewireless.tooltip.owner.public": "Owner: Public",
   "aewireless.tooltip.direction": "Direction: %s",
+  "aewireless.tooltip.bind_channel_success": "Bound channel: %s successfully",
 
   "aewireless.tooltip.failopen": "This is %s's wireless transceiver, you don't have permission to open it.",
 

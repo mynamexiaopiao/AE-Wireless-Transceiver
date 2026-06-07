@@ -161,7 +161,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
 
     public void setFrequency(String frequency) {
-//        if (Objects.equals(frequency, this.frequency)) return;
+        if (Objects.equals(frequency, this.frequency)) return;
         this.frequency = frequency;
 
         usedChannels = 0;
@@ -216,9 +216,6 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         if (!(level instanceof ServerLevel)) return;
         if (((level.getGameTime() + pos.asLong()) % 20L) != 0L) return;
 
-        usedChannels = 0;
-
-        WirelessConnectBlockEntity blockEntity = (WirelessConnectBlockEntity)level.getBlockEntity(pos);
         UUID id = placerId == null ? AeWireless.PUBLIC_NETWORK_UUID :WirelessTeamUtil.getNetworkOwnerUUID(placerId);
 
         if (!AeWireless.IS_FTB_TEAMS_LOADED){
@@ -227,46 +224,40 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
         //修复无法删除
         if (WirelessData.isDataReady()) {
-        if (blockEntity != null && WirelessData.containsData(blockEntity.getFrequency(), id)) {
-            blockEntity.setFrequency(blockEntity.getFrequency());
-        }
+        if (frequency != null && !frequency.isEmpty()) {
 
         //修复频道删除但保存问题
-        if (blockEntity != null && !WirelessData.containsData(blockEntity.getFrequency(), id)) {
-            if (!blockEntity.mode) {
-                blockEntity.slaveLink.destroyConnection();
-                blockEntity.slaveLink.realUnregister();
-                blockEntity.frequency = null;
-            } else if (blockEntity.frequency != null && !blockEntity.frequency.isEmpty()) {
-                blockEntity.masterLink.register();
-            }
-        }
-
-        if (blockEntity != null && blockEntity.mode && blockEntity.frequency != null && !blockEntity.frequency.isEmpty()) {
-            var master = WirelessData.getData(blockEntity.frequency, id);
-            if (master == null) {
-                blockEntity.masterLink.register();
+            if (mode) {
+                IWirelessEndpoint master = WirelessData.getData(frequency, id);
+                if (master != this) {
+                    masterLink.register();
+                }
+            } else if (!WirelessData.containsData(frequency, id)) {
+                slaveLink.destroyConnection();
+                slaveLink.realUnregister();
+                frequency = null;
             }
         }
         }
 
-        if (managedNode.isOnline()){
-            BlockState blockState = state.setValue(WirelessConnectBlock.CONNECTED, true);
-            level.setBlock(pos, blockState, Block.UPDATE_ALL );
-        }else {
-            BlockState blockState = state.setValue(WirelessConnectBlock.CONNECTED, false);
-            level.setBlock(pos, blockState, Block.UPDATE_ALL );
+        boolean connected = managedNode.isOnline();
+        if (state.getValue(WirelessConnectBlock.CONNECTED) != connected) {
+            BlockState blockState = state.setValue(WirelessConnectBlock.CONNECTED, connected);
+            level.setBlock(pos, blockState, Block.UPDATE_ALL);
         }
 
         updateChannelUsedAndMax();
 
-        if (blockEntity != null && !blockEntity.mode) {
-            blockEntity.slaveLink.update();
+        if (!mode) {
+            slaveLink.update();
         }
     }
 
 
     private void updateChannelUsedAndMax(){
+        usedChannels = 0;
+        maxChannels = 0;
+
         IGridNode node = getGridNode();
         IGrid grid = node == null ? null : node.getGrid();
 
@@ -276,8 +267,6 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
                     for (var connection : node.getConnections()) {
                         usedChannels = Math.max(connection.getUsedChannels(), usedChannels);
                     }
-                }else {
-                    usedChannels = 0;
                 }
 
                 // 获取节点的最大频道容量（致密线缆为32）
@@ -315,7 +304,6 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         return getGridNode();
     }
 
-
     @Override
     public IGridNode getGridNode() {
         return managedNode == null ? null : managedNode.getNode();
@@ -326,7 +314,6 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         return super.isRemoved();
     }
 
-
     @Override
     public void onLoad() {
         super.onLoad();
@@ -335,8 +322,6 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
 
         GridHelper.onFirstTick(this, be -> be.managedNode.create(be.getLevel(), be.getBlockPos()));
     }
-
-
 
     @Override
     protected void saveAdditional(@NotNull CompoundTag tag) {
@@ -353,7 +338,6 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
             managedNode.saveToNBT(tag);
         }
     }
-
 
     @Override
     public void load(@NotNull CompoundTag tag) {
@@ -393,7 +377,6 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         return Level.OVERWORLD;
     }
 
-
     public UUID getPlacerId() {
         return placerId;
     }
@@ -401,8 +384,6 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     public boolean isMode() {
         return mode;
     }
-
-
 
     @Override
     public ServerLevel getServerLevel() {

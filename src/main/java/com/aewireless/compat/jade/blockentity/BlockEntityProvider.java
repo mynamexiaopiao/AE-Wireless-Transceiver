@@ -32,6 +32,8 @@ public enum BlockEntityProvider implements IServerDataProvider<BlockAccessor> {
     @Override
     public void appendServerData(CompoundTag compoundTag, BlockAccessor blockAccessor) {
         BlockEntity blockEntity = blockAccessor.getBlockEntity();
+        if (blockEntity == null || !(blockEntity instanceof IWirelessBlockEntity wirelessBlockEntity)) return;
+
         CompoundTag persistentData = blockEntity.getPersistentData();
         if (persistentData.contains("uuid" ) && persistentData.contains("frequency") && persistentData.contains("direction")){
             String frequency = persistentData.getString("frequency");
@@ -45,7 +47,7 @@ public enum BlockEntityProvider implements IServerDataProvider<BlockAccessor> {
             compoundTag.putString("frequency", frequency);
             compoundTag.putInt("direction", persistentData.getInt("direction"));
 
-            boolean connected = ((IWirelessBlockEntity) blockEntity).getLink() != null && ((IWirelessBlockEntity) blockEntity).getLink().isConnected();
+            boolean connected = wirelessBlockEntity.getLink() != null && wirelessBlockEntity.getLink().isConnected();
             compoundTag.putBoolean("wirelessConnected", connected);
         }
     }

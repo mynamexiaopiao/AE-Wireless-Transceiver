@@ -4,6 +4,7 @@ package com.aewireless.network.packet;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraft.client.Minecraft;
+import com.aewireless.client.WirelessConnectorChannelState;
 import java.util.function.Supplier;
 
 public class WirelessDataUpdatePacket {
@@ -26,6 +27,7 @@ public class WirelessDataUpdatePacket {
 
     public static void handle(WirelessDataUpdatePacket msg, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> Minecraft.getInstance().execute(() -> {
+            WirelessConnectorChannelState.updateChannel(msg.data, msg.isAdd);
             if (Minecraft.getInstance().screen instanceof com.aewireless.gui.wireless.WirelessScreen screen) {
                 screen.receiveServerDataIncremental(msg.data, msg.isAdd);
             }

@@ -3,6 +3,7 @@ package com.aewireless.network.packet;
 
 
 import com.aewireless.gui.wireless.WirelessScreen;
+import com.aewireless.client.WirelessConnectorChannelState;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraft.client.Minecraft;
@@ -34,6 +35,7 @@ public class SyncWirelessDataPacket {
         ctx.get().enqueueWork(() -> {
             // 在客户端线程中处理：如果当前打开的是 WirelessScreen，则直接更新它的列表
             Minecraft.getInstance().execute(() -> {
+                WirelessConnectorChannelState.setChannels(msg.keys);
                 if (Minecraft.getInstance().screen instanceof WirelessScreen ws) {
                     ws.receiveServerData(msg.keys);
                 }

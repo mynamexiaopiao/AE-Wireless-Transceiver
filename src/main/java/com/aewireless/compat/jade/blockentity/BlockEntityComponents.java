@@ -29,7 +29,6 @@ public class BlockEntityComponents implements IBlockComponentProvider {
             String uuid = serverData.getString("uuid");
             int direction = serverData.getInt("direction");
             Direction value = Direction.values()[direction];
-            Level level = blockAccessor.getBlockEntity().getLevel();
 
 
             if (serverData.contains("wirelessConnected")) {

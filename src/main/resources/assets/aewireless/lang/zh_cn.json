@@ -1,10 +1,13 @@
 {
   "block.aewireless.wireless_transceiver": "AE 无线收发器",
   "item.aewireless.wireless_connect": "无线连接器",
-  "item.aewireless.wireless_destroy": "无线破坏器",
 
   "tooltip.aewireless_connect.1":  "无线收发器模式错误！",
   "tooltip.aewireless_connect.2" : "shift + 右键: 连接无线收发器",
+  "tooltip.aewireless_connect.mode_connect": "模式：连接",
+  "tooltip.aewireless_connect.mode_destroy": "模式：破坏",
+  "tooltip.aewireless_connect.channel_list": "频道列表",
+  "tooltip.aewireless_connect.channel_list_empty": "无频道",
 
 
   "gui.aewireless.wireless": "AE 无线收发器",
@@ -25,6 +28,7 @@
 
   "aewireless.tooltip.failopen": "这是属于 %s 的无线收发器，您无权打开。",
   "aewireless.tooltip.direction": "方向: %s",
+  "aewireless.tooltip.bind_channel_success": "绑定频道：%s成功",
 
   "aewireless.tooltip.channel_name": "频道名称: %d",
   "aewireless.tooltip.master": "模式: %s",

@@ -2,12 +2,10 @@ package com.aewireless.mixin;
 
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.IInWorldGridNodeHost;
-import appeng.api.parts.IPart;
-import appeng.api.parts.PartHelper;
 import appeng.blockentity.networking.CableBusBlockEntity;
 import appeng.capabilities.Capabilities;
 import com.aewireless.api.IWirelessBlockEntity;
-import com.aewireless.compat.gtceu.GTCeuPacketUtil;
+import com.aewireless.block.WirelessConnectBlockEntity;
 import com.aewireless.wireless.block.link.JoinWorldWireless;
 import com.aewireless.wireless.block.link.WirelessBlockLink;
 import com.aewireless.wireless.block.link.WirelessData;
@@ -29,6 +27,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
+import java.util.UUID;
 
 @Mixin(BlockEntity.class)
 public abstract class BlockEntityMixin extends CapabilityProvider<BlockEntity>
@@ -45,6 +45,14 @@ public abstract class BlockEntityMixin extends CapabilityProvider<BlockEntity>
 
     @Unique
     private WirelessBlockLink link;
+    @Unique
+    private WirelessData cachedWirelessData;
+    @Unique
+    private String cachedFrequency;
+    @Unique
+    private UUID cachedUuid;
+    @Unique
+    private int cachedDirection = Integer.MIN_VALUE;
 
     protected BlockEntityMixin(Class<BlockEntity> baseClass) {
         super(baseClass);
@@ -54,13 +62,13 @@ public abstract class BlockEntityMixin extends CapabilityProvider<BlockEntity>
 
     @Inject(method = "load", at = @At("TAIL"))
     public void onLoadNBT(CompoundTag tag, CallbackInfo ci) {
+        if (!(level instanceof ServerLevel)) return;
+        if (link == null || link.isConnected()) return;
+        if (!((BlockEntity)(Object)this instanceof IInWorldGridNodeHost)) return;
+
         WirelessData data = readWirelessData();
-        if (level instanceof ServerLevel &&
-                (BlockEntity)(Object)this instanceof IInWorldGridNodeHost &&
-                data != null ) {
-            if (link != null && !link.isConnected()) {
-                updateWireless(data);
-            }
+        if (data != null ) {
+            updateWireless(data);
         }
     }
 
@@ -70,6 +78,7 @@ public abstract class BlockEntityMixin extends CapabilityProvider<BlockEntity>
         IForgeBlockEntity.super.onLoad();
 
         if (!(level instanceof ServerLevel)) return;
+        if ((Object) this instanceof WirelessConnectBlockEntity) return;
         if (!hasWirelessData()) return;
         JoinWorldWireless.add(level, worldPosition);
     }
@@ -118,6 +127,7 @@ public abstract class BlockEntityMixin extends CapabilityProvider<BlockEntity>
 
     @Unique
     public void clearLink() {
+        clearWirelessDataCache();
         if (link == null) return;
 
         link.destroyConnection();
@@ -161,12 +171,16 @@ public abstract class BlockEntityMixin extends CapabilityProvider<BlockEntity>
     @Unique
     private boolean hasWirelessData() {
         return customPersistentData != null
-                && customPersistentData.contains(KEY_FREQUENCY);
+                && customPersistentData.contains(KEY_FREQUENCY)
+                && customPersistentData.contains(KEY_UUID)
+                && customPersistentData.contains(KEY_DIRECTION)
+                && !customPersistentData.getString(KEY_FREQUENCY).isEmpty();
     }
 
     @Unique
     @Nullable
     private WirelessData readWirelessData() {
+        if ((Object) this instanceof WirelessConnectBlockEntity) return null;
         if (!hasWirelessData()) return null;
 
         int dirIndex = customPersistentData.getInt(KEY_DIRECTION);
@@ -174,11 +188,29 @@ public abstract class BlockEntityMixin extends CapabilityProvider<BlockEntity>
 
         if (dirIndex < 0 || dirIndex >= dirs.length) return null;
 
-        return new WirelessData(
-                customPersistentData.getString(KEY_FREQUENCY),
-                customPersistentData.getUUID(KEY_UUID),
-                dirs[dirIndex]
-        );
+        String frequency = customPersistentData.getString(KEY_FREQUENCY);
+        UUID uuid = customPersistentData.getUUID(KEY_UUID);
+
+        if (cachedWirelessData != null
+                && cachedDirection == dirIndex
+                && Objects.equals(cachedFrequency, frequency)
+                && Objects.equals(cachedUuid, uuid)) {
+            return cachedWirelessData;
+        }
+
+        cachedFrequency = frequency;
+        cachedUuid = uuid;
+        cachedDirection = dirIndex;
+        cachedWirelessData = new WirelessData(frequency, uuid, dirs[dirIndex]);
+        return cachedWirelessData;
+    }
+
+    @Unique
+    private void clearWirelessDataCache() {
+        cachedWirelessData = null;
+        cachedFrequency = null;
+        cachedUuid = null;
+        cachedDirection = Integer.MIN_VALUE;
     }
 
     /* ---------------- Link 创建 ---------------- */
@@ -187,6 +219,7 @@ public abstract class BlockEntityMixin extends CapabilityProvider<BlockEntity>
     @Nullable
     private WirelessBlockLink createLink(WirelessData data) {
         if (!(level instanceof ServerLevel serverLevel)) return null;
+        if ((Object) this instanceof WirelessConnectBlockEntity) return null;
 
         WirelessBlockLink newLink;
 

@@ -167,7 +167,7 @@ dependencies {
 
     modCompileOnly "curse.maven:applied-energistics-2-wireless-terminals-459929:${wireless_terminals_version}"
     modCompileOnly "mezz.jei:jei-${minecraft_version}-forge:${jei_version}"
-    modCompileOnly "curse.maven:jade-324717:${jade_version}"
+    modImplementation "curse.maven:jade-324717:${jade_version}"
 
     // REI
     modCompileOnly "me.shedaniel.cloth:basic-math:${basic_math_version}"

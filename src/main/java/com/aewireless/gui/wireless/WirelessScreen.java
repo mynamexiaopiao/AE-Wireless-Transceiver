@@ -217,7 +217,6 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         updateData();
-        refreshList();
         updateHoveredRow(mouseX, mouseY);
 
         renderListBackground(guiGraphics);
@@ -297,22 +296,8 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
     }
 
     private void updateData(){
-        List<String> keys = new ArrayList<>(allDataRows);
-        if (highlightedRowIndex != -1) {
-            if (highlightedRowIndex >= keys.size()) {
-                clearHighlight();
-            } else {
-                String highlightedKey = allDataRows.size() > highlightedRowIndex ?
-                        allDataRows.get(highlightedRowIndex) : null;
-                if (highlightedKey != null && !keys.contains(highlightedKey)) {
-                    clearHighlight();
-                }
-            }
-        }
-
-        filterDataRows(input.getValue());
-
-        this.highlightedRowIndex =  keys.indexOf(this.getMenu().getFrequency());
+        String frequency = this.getMenu().getFrequency();
+        this.highlightedRowIndex = frequency == null ? -1 : allDataRows.indexOf(frequency);
 
     }
 
