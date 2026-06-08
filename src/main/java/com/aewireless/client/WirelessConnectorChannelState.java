@@ -33,6 +33,12 @@ public final class WirelessConnectorChannelState {
         }
     }
 
+    public static void clearChannels() {
+        CHANNELS.clear();
+        overlayUntilMillis = 0L;
+        lastRequestMillis = 0L;
+    }
+
     public static void updateChannel(String channel, boolean add) {
         if (channel == null || channel.isEmpty()) return;
         if (add) {

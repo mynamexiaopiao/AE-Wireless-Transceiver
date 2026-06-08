@@ -17,9 +17,18 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
+import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.SlotResult;
+import top.theillusivec4.curios.api.type.ISlotType;
+import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
+
+import java.util.List;
+import java.util.Map;
 
 @Mod.EventBusSubscriber(modid = AeWireless.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ShiftPlaceAutoConnectEvent {
@@ -37,7 +46,24 @@ public class ShiftPlaceAutoConnectEvent {
         Level level = event.getLevel() instanceof Level l ? l : null;
         if (level == null || level.isClientSide) return;
 
-        ItemStack connector = findWirelessConnector(player);
+        ItemStack connector = ItemStack.EMPTY;
+
+        if (ModList.get().isLoaded("curios")){
+            ICuriosItemHandler iCuriosItemHandler = CuriosApi.getCuriosInventory(player).resolve().orElse(null);
+            if (iCuriosItemHandler != null) {
+                int slotsCount = iCuriosItemHandler.getSlots();
+
+                for (int i = 0; i < slotsCount; i++) {
+                    ItemStack stackInSlot = iCuriosItemHandler.getEquippedCurios().getStackInSlot(i);
+                    if (!stackInSlot.isEmpty() &&  stackInSlot.is(ModRegister.WIRELESS_CORER.get())) {
+                        connector = stackInSlot;
+                    }
+                }
+            }
+        }else {
+            connector = findWirelessConnector(player);
+        }
+
         if (connector.isEmpty()) return;
 
         CompoundTag tag = connector.getTag();
@@ -57,7 +83,6 @@ public class ShiftPlaceAutoConnectEvent {
         Direction direction = getPlacementDirection( player).getOpposite();
 
         CompoundTag persistent = blockEntity.getPersistentData();
-        // Clear any existing wireless data to avoid stale links after re-placement
         persistent.remove(KEY_FREQUENCY);
         persistent.remove(KEY_UUID);
         persistent.remove(KEY_DIRECTION);

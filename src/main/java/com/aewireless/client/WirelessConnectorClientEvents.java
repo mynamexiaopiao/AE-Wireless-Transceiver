@@ -8,9 +8,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -25,6 +27,29 @@ public final class WirelessConnectorClientEvents {
     private static final int GRAY = 0xFFC7C8D2;
 
     private WirelessConnectorClientEvents() {
+    }
+
+    @SubscribeEvent
+    public static void onClientLogin(ClientPlayerNetworkEvent.LoggingIn event) {
+        WirelessConnectorChannelState.clearChannels();
+        WirelessConnectorChannelState.requestChannels();
+    }
+
+    @SubscribeEvent
+    public static void onClientLogout(ClientPlayerNetworkEvent.LoggingOut event) {
+        WirelessConnectorChannelState.clearChannels();
+    }
+
+    @SubscribeEvent
+    public static void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
+
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player == null || minecraft.level == null) return;
+        if (WirelessConnectorChannelState.getHeldConnector(minecraft) == null) return;
+        if (!WirelessConnectorChannelState.getChannels().isEmpty()) return;
+
+        WirelessConnectorChannelState.requestChannels();
     }
 
     @SubscribeEvent

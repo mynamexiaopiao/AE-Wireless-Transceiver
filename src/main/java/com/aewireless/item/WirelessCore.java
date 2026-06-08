@@ -9,8 +9,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.SlotContext;
+import top.theillusivec4.curios.api.type.capability.ICurio;
 
 import java.util.List;
 
@@ -56,7 +60,6 @@ public class WirelessCore extends Item {
         }
     }
 
-
     @Override
     public void appendHoverText(ItemStack arg, @Nullable Level arg2, List<Component> list, TooltipFlag arg3) {
         super.appendHoverText(arg, arg2, list, arg3);
@@ -72,4 +75,6 @@ public class WirelessCore extends Item {
             list.add(Component.translatable("aewireless.tooltip.channel_name" , frequency));
         }
     }
+
+
 }

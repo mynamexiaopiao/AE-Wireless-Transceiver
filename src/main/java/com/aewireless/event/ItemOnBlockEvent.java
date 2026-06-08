@@ -140,8 +140,10 @@ public class ItemOnBlockEvent {
 
             blockEntity.setChanged();
 
-            ((IWirelessBlockEntity) blockEntity).updateWireless();
-
+            if (blockEntity instanceof IWirelessBlockEntity wireless) {
+                wireless.clearLink();
+                wireless.updateWireless();
+            }
 
             return InteractionResult.SUCCESS;
         }

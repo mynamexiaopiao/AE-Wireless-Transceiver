@@ -13,9 +13,6 @@ base {
 loom {
     silentMojangMappingsLicense()
 
-
-
-
     forge {
         mixinConfig 'aewireless.mixins.json'
     }
@@ -26,6 +23,8 @@ loom {
             name "Client"
             runDir "run/client"
             programArgs "--username", "Player1"
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
         }
     }
 }
@@ -149,6 +148,13 @@ repositories {
     maven { url "https://repo.spongepowered.org/maven" }
     maven { url = "https://api.modrinth.com/maven" }
 
+    repositories {
+        maven {
+            name = "Illusive Soulworks maven"
+            url = "https://maven.theillusivec4.top/"
+        }
+    }
+
 }
 
 dependencies {
@@ -194,6 +200,13 @@ dependencies {
     modRuntimeOnly "curse.maven:ftb-teams-forge-404468:6130786"
     modRuntimeOnly "curse.maven:ftb-library-forge-404465:6807424"
 
+//    // Compile against only the API artifact
+//    compileOnly "top.theillusivec4.curios:curios-forge:${curios_version}:api"
+//    // Use the full Curios API jar at runtime
+//    runtimeOnly "top.theillusivec4.curios:curios-forge:${curios_version}"
+
+
+    modImplementation "curse.maven:curios-309927:6418456"
 }
 
 processResources {
