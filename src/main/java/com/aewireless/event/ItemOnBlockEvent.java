@@ -2,12 +2,12 @@ package com.aewireless.event;
 
 import appeng.api.networking.IInWorldGridNodeHost;
 import com.aewireless.AeWireless;
-import com.aewireless.api.IWirelessBlockEntity;
 import com.aewireless.block.WirelessConnectBlockEntity;
 import com.aewireless.compat.gtceu.GTCeuPacketUtil;
 import com.aewireless.item.WirelessCore;
 import com.aewireless.register.ModRegister;
 import com.aewireless.wireless.WirelessTeamUtil;
+import com.aewireless.wireless.block.link.WirelessBlockLinkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -91,6 +91,9 @@ public class ItemOnBlockEvent {
                     }
                 }
 
+                else if (blockEntity instanceof appeng.blockentity.networking.CableBusBlockEntity cableBus && isBareCable(cableBus)){
+                    arg.setCancellationResult(InteractionResult.SUCCESS);
+                }
                 else if (blockEntity instanceof IInWorldGridNodeHost){
                     arg.setCancellationResult(getInteractionResult(itemInHand, blockEntity , clickedFace));
                 }
@@ -111,10 +114,7 @@ public class ItemOnBlockEvent {
                 persistentData.remove("uuid");
                 persistentData.remove("frequency");
                 persistentData.remove("direction");
-
-                if (blockEntity instanceof IWirelessBlockEntity wireless) {
-                    wireless.clearLink();
-                }
+                WirelessBlockLinkManager.clear(blockEntity);
 
                 return InteractionResult.SUCCESS;
             }
@@ -139,14 +139,19 @@ public class ItemOnBlockEvent {
             updateTag.putInt("direction" , direction.ordinal());
 
             blockEntity.setChanged();
-
-            if (blockEntity instanceof IWirelessBlockEntity wireless) {
-                wireless.clearLink();
-                wireless.updateWireless();
-            }
+            WirelessBlockLinkManager.clear(blockEntity);
+            WirelessBlockLinkManager.updateWireless(blockEntity);
 
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.SUCCESS;
     }
+
+    private static boolean isBareCable(appeng.blockentity.networking.CableBusBlockEntity cableBus) {
+        for (var dir : Direction.values()) {
+            if (cableBus.getPart(dir) != null) return false;
+        }
+        return true;
+    }
+
 }

@@ -9,6 +9,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,22 +34,34 @@ public class WirelessCore extends Item {
         return tag != null && tag.getBoolean(KEY_DESTROY_MODE);
     }
 
+
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (!player.isShiftKeyDown()) {
-            return super.use(level, player, hand);
+
+        // 判断是否对空气右键
+        BlockHitResult hitResult = (BlockHitResult) player.pick(5.0, 0.0F, false);
+        boolean isAir = hitResult.getType() == HitResult.Type.MISS;
+
+        if (isAir) {
+            // 对空气右键时执行你的逻辑
+            if (!player.isShiftKeyDown()) {
+                return super.use(level, player, hand);
+            }
+
+            if (!level.isClientSide) {
+                boolean destroyMode = !isDestroyMode(stack);
+                setDestroyMode(stack, destroyMode);
+                player.displayClientMessage(Component.translatable(
+                        destroyMode ? "tooltip.aewireless_connect.mode_destroy" : "tooltip.aewireless_connect.mode_connect"
+                ), true);
+            }
+
+            return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
         }
 
-        if (!level.isClientSide) {
-            boolean destroyMode = !isDestroyMode(stack);
-            setDestroyMode(stack, destroyMode);
-            player.displayClientMessage(Component.translatable(
-                    destroyMode ? "tooltip.aewireless_connect.mode_destroy" : "tooltip.aewireless_connect.mode_connect"
-            ), true);
-        }
-
-        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
+        // 对方块/实体右键时走默认逻辑
+        return super.use(level, player, hand);
     }
 
     private static void setDestroyMode(ItemStack stack, boolean destroyMode) {

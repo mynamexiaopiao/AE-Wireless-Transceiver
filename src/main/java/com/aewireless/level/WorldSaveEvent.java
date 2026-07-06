@@ -3,6 +3,11 @@ package com.aewireless.level;
 
 import com.aewireless.AeWireless;
 import com.aewireless.wireless.WirelessData;
+import com.aewireless.wireless.block.link.JoinWorldWireless;
+import com.aewireless.wireless.block.link.WirelessBlockLinkManager;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraftforge.event.level.ChunkEvent;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
@@ -27,8 +32,27 @@ public class WorldSaveEvent {
         }
     }
 
+    @SubscribeEvent
+    public static void onChunkLoad(ChunkEvent.Load event) {
+        if (!(event.getLevel() instanceof Level level) || level.isClientSide()) return;
+        if (!(event.getChunk() instanceof LevelChunk chunk)) return;
 
+        for (BlockEntity blockEntity : chunk.getBlockEntities().values()) {
+            if (WirelessBlockLinkManager.hasWirelessData(blockEntity)) {
+                JoinWorldWireless.add(level, blockEntity.getBlockPos());
+            }
+        }
+    }
 
+    @SubscribeEvent
+    public static void onChunkUnload(ChunkEvent.Unload event) {
+        if (!(event.getLevel() instanceof Level level) || level.isClientSide()) return;
+        if (!(event.getChunk() instanceof LevelChunk chunk)) return;
+
+        for (BlockEntity blockEntity : chunk.getBlockEntities().values()) {
+            WirelessBlockLinkManager.clear(blockEntity);
+        }
+    }
 
 
     @SubscribeEvent

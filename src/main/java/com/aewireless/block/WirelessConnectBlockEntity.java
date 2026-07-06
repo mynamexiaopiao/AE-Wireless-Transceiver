@@ -105,12 +105,20 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
             BlockPos pos1 = master.getBlockPos();
             BlockPos pos2 = this.getBlockPos();
             if ( pos1 != null && pos2 != null){
-                double dx = pos1.getX() - pos2.getX();
-                double dy = pos1.getY() - pos2.getY();
-                double dz = pos1.getZ() - pos2.getZ();
-                double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                // 修正：距离应乘以能量系数，而不是直接返回距离
-                return (distance * AeWirelessConfig.INSTANCE.batteryMultiplier);
+                double distance;
+                if (master.getDimension() == this.getDimension()) {
+                    // 同维度：主从端之间的欧氏距离
+                    double dx = pos1.getX() - pos2.getX();
+                    double dy = pos1.getY() - pos2.getY();
+                    double dz = pos1.getZ() - pos2.getZ();
+                    distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                } else {
+                    // 跨维度：以从端所在维度的原点(0,0)为中心，算XZ平面距离
+                    double dx = pos2.getX();
+                    double dz = pos2.getZ();
+                    distance = Math.sqrt(dx * dx + dz * dz);
+                }
+                return distance * AeWirelessConfig.INSTANCE.batteryMultiplier;
             }
             return 0;
         }
@@ -156,6 +164,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         }
 
         this.frequency = null;
+        if (this.managedNode != null) this.managedNode.setIdlePowerUsage(getEnergy());
         setChanged();
     }
 
@@ -171,6 +180,26 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
         } else {
             slaveLink.setFrequency(frequency);
         }
+
+        if (this.managedNode != null) {
+            this.managedNode.setIdlePowerUsage(getEnergy());
+        }
+        setChanged();
+    }
+
+    public void clearDeletedChannel(String channel) {
+        if (!Objects.equals(this.frequency, channel)) return;
+
+        if (this.mode) {
+            masterLink.unregister(false);
+            notifySlavesResync();
+        } else {
+            slaveLink.destroyConnection();
+            slaveLink.realUnregister();
+        }
+
+        this.frequency = null;
+        usedChannels = 0;
 
         if (this.managedNode != null) {
             this.managedNode.setIdlePowerUsage(getEnergy());

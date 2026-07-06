@@ -57,8 +57,12 @@ public class WirelessMasterLink {
 
 
     public void unregister() {
+        unregister(true);
+    }
+
+    public void unregister(boolean keepChannel) {
         if (frequency != null && (!registered || frequency.isEmpty())) return;
-        if (WirelessData.containsData(frequency , uuid)){
+        if (keepChannel && WirelessData.containsData(frequency , uuid)){
             WirelessData.addData(frequency, uuid , null);
         }
         registered = false;

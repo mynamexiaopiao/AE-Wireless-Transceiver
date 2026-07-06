@@ -1,12 +1,9 @@
 package com.aewireless.compat.jade.blockentity;
 
-import appeng.api.networking.IGridNode;
-import appeng.api.networking.IInWorldGridNodeHost;
 import com.aewireless.AeWireless;
-import com.aewireless.api.IWirelessBlockEntity;
-import com.aewireless.wireless.IWirelessEndpoint;
-import com.aewireless.wireless.WirelessData;
 import com.aewireless.wireless.WirelessTeamUtil;
+import com.aewireless.wireless.block.link.WirelessBlockLink;
+import com.aewireless.wireless.block.link.WirelessBlockLinkManager;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -32,7 +29,7 @@ public enum BlockEntityProvider implements IServerDataProvider<BlockAccessor> {
     @Override
     public void appendServerData(CompoundTag compoundTag, BlockAccessor blockAccessor) {
         BlockEntity blockEntity = blockAccessor.getBlockEntity();
-        if (blockEntity == null || !(blockEntity instanceof IWirelessBlockEntity wirelessBlockEntity)) return;
+        if (blockEntity == null || !WirelessBlockLinkManager.hasWirelessData(blockEntity)) return;
 
         CompoundTag persistentData = blockEntity.getPersistentData();
         if (persistentData.contains("uuid" ) && persistentData.contains("frequency") && persistentData.contains("direction")){
@@ -47,7 +44,8 @@ public enum BlockEntityProvider implements IServerDataProvider<BlockAccessor> {
             compoundTag.putString("frequency", frequency);
             compoundTag.putInt("direction", persistentData.getInt("direction"));
 
-            boolean connected = wirelessBlockEntity.getLink() != null && wirelessBlockEntity.getLink().isConnected();
+            WirelessBlockLink link = WirelessBlockLinkManager.getLink(blockEntity);
+            boolean connected = link != null && link.isConnected();
             compoundTag.putBoolean("wirelessConnected", connected);
         }
     }

@@ -99,6 +99,7 @@ public class WirelessLink {
             if (!hostNode.equals(masterNode)){
                 IGridConnection newConnection = GridHelper.createConnection(hostNode, masterNode);
                 connection = new ConnectionWrapper(newConnection);
+                updateEnergy();
             }
 
         } catch (IllegalStateException e) {
@@ -116,7 +117,14 @@ public class WirelessLink {
         if (current != null) {
             current.destroy();
             connection.setConnection(null);
+            updateEnergy();
         }
         connection = new ConnectionWrapper(null);
+    }
+
+    private void updateEnergy() {
+        if (host instanceof com.aewireless.block.WirelessConnectBlockEntity be) {
+            be.getManagedNode().setIdlePowerUsage(be.getEnergy());
+        }
     }
 }

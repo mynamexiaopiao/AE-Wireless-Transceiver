@@ -3,7 +3,7 @@ package com.aewireless.mixin;
 import appeng.api.parts.IPart;
 import appeng.api.parts.IPartItem;
 import appeng.parts.PartPlacement;
-import com.aewireless.api.IWirelessBlockEntity;
+import com.aewireless.wireless.block.link.WirelessBlockLinkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -22,9 +22,7 @@ public class PartPlacementMixin {
     private static <T extends IPart> void s(@Nullable Player player, Level level, IPartItem<T> partItem, @Nullable CompoundTag configTag, BlockPos pos, Direction side, CallbackInfoReturnable<T> cir){
         if (!level.isClientSide){
             BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof IWirelessBlockEntity entity){
-                entity.updateWireless();
-            }
+            WirelessBlockLinkManager.updateWireless(blockEntity);
         }
     }
 }
