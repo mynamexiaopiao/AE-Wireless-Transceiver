@@ -1,7 +1,6 @@
 package com.aewireless.wireless.block.link;
 
 import appeng.blockentity.networking.CableBusBlockEntity;
-import com.aewireless.api.IWirelessBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
@@ -44,13 +43,13 @@ public class JoinWorldWireless {
                 continue;
             }
 
-            if (be instanceof CableBusBlockEntity){
-                    boolean invoke = ((IWirelessBlockEntity) be).updatePart();
-                    if (invoke) {list1.add(posAndLevel);}
+            boolean invoke;
+            if (be instanceof CableBusBlockEntity cableBus){
+                invoke = WirelessBlockLinkManager.updatePart(cableBus);
             }else {
-                boolean invoke = ((IWirelessBlockEntity) be).updateHost();
-                if (invoke) {list1.add(posAndLevel);}
+                invoke = WirelessBlockLinkManager.updateHost(be);
             }
+            if (invoke) {list1.add(posAndLevel);}
 
         }
         synchronized (list) {

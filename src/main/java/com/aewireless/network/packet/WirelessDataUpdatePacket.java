@@ -1,6 +1,7 @@
 // WirelessDataUpdatePacket.java
 package com.aewireless.network.packet;
 
+import com.aewireless.client.WirelessConnectorChannelState;
 import com.aewireless.gui.wireless.WirelessScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
@@ -24,6 +25,7 @@ public record WirelessDataUpdatePacket(String data, boolean isAdd) implements Cu
             if (Minecraft.getInstance().screen instanceof WirelessScreen screen) {
                 screen.receiveServerDataIncremental(msg.data, msg.isAdd);
             }
+            WirelessConnectorChannelState.updateChannel(msg.data, msg.isAdd);
         });
     }
 

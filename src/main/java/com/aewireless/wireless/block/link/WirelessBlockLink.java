@@ -39,7 +39,7 @@ public class WirelessBlockLink {
     public void setUuid(UUID uuid) {
         this.uuid = WirelessTeamUtil.getNetworkOwnerUUID(uuid);
 
-        if (!AeWireless.IS_FTB_TEAMS_LOADED) {
+        if (this.uuid == null || !AeWireless.IS_FTB_TEAMS_LOADED) {
             this.uuid = AeWireless.PUBLIC_NETWORK_UUID;
         }
     }

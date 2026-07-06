@@ -1,10 +1,13 @@
 ﻿{
   "block.aewireless.wireless_transceiver": "AE Wireless Transceiver",
   "item.aewireless.wireless_connect": "Wireless Connector",
-  "item.aewireless.wireless_destroy": "Wireless Destroyer",
 
   "tooltip.aewireless_connect.1":  "The mode of wireless transceiver is wrong!",
   "tooltip.aewireless_connect.2" : "shift + Right Click ： Connect to wireless transceiver",
+  "tooltip.aewireless_connect.mode_connect": "Mode: Connect",
+  "tooltip.aewireless_connect.mode_destroy": "Mode: Destroy",
+  "tooltip.aewireless_connect.channel_list": "Channel List",
+  "tooltip.aewireless_connect.channel_list_empty": "No Channels",
 
   "gui.aewireless.wireless": "AE Wireless Transceiver",
   "gui.wireless.mode": "is the sender",
@@ -19,7 +22,7 @@
   "gui.wireless.remaining_channels": "Used channels",
   "gui.wireless.links.toggle.tooltip": "Toggle connected blocks overlay",
   "gui.confirm_delete.message": "Confirm the deletion?",
-  "aewireless.tooltip.channel_name": "Channel Name: %d",
+  "aewireless.tooltip.channel_name": "Channel Name: %s",
   "gui.wireless.energy.usage": "Energy",
   "aewireless.tooltip.master": "Mode: %s",
   "aewireless.tooltip.channels": "Channel: %s",
@@ -28,6 +31,7 @@
   "aewireless.tooltip.owner.unset": "Owner: Unset",
   "aewireless.tooltip.owner.public": "Owner: Public",
   "aewireless.tooltip.direction": "Direction: %s",
+  "aewireless.tooltip.bind_channel_success": "Bound channel %s successfully",
 
   "aewireless.tooltip.failopen": "This is %s's wireless transceiver, you don't have permission to open it.",
 
@@ -58,6 +62,7 @@
   "config.aewireless.option.maxDistance": "Maximum transmission distance",
   "config.aewireless.option.crossDimensional": "Allow cross-dimensional connection",
   "config.aewireless.option.shiftAutoConnect": "Enable auto-connect when placing blocks while sneaking",
+  "config.aewireless.option.shiftScrollChannelSwitch": "Enable sneak + mouse wheel channel switching",
   "config.aewireless.option.isCacheLoad": "Enable full cache mode for wireless direct connection?",
 
 
@@ -66,6 +71,7 @@
   "config.aewireless.option.maxDistance.comment.0": "Maximum transmission distance between Sub and Main wireless transceivers(0 for unlimited).",
   "config.aewireless.option.crossDimensional.comment.0": "If enabled, the wireless transceiver will allow cross-dimensional connections (ignoring distance limits).",
   "config.aewireless.option.shiftAutoConnect.comment.0": "If enabled, placing blocks while sneaking will attempt to auto-connect using a wireless connector in your inventory.",
+  "config.aewireless.option.shiftScrollChannelSwitch.comment.0": "If enabled, sneak and scroll while holding a wireless connector to switch its bound channel.",
   "config.aewireless.option.isCacheLoad.comment.0": "If enabled, all block information will be cached, but the chunk needs to stay loaded; otherwise, the connection will be lost (better performance).  \nIf disabled, block information will be retrieved via real-time ticks, and the connection will not be lost (worse performance).",
 
 

@@ -1,13 +1,14 @@
 package com.aewireless.event;
 
 import appeng.api.networking.IInWorldGridNodeHost;
+import appeng.blockentity.networking.CableBusBlockEntity;
 import com.aewireless.AeWireless;
-import com.aewireless.api.IWirelessBlockEntity;
 import com.aewireless.block.WirelessConnectBlockEntity;
 import com.aewireless.compat.gtceu.GTCeuPacketUtil;
+import com.aewireless.item.WirelessCore;
 import com.aewireless.register.ModRegister;
 import com.aewireless.wireless.WirelessTeamUtil;
-import com.aewireless.wireless.block.link.JoinWorldWireless;
+import com.aewireless.wireless.block.link.WirelessBlockLinkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -31,134 +32,150 @@ import java.util.UUID;
 
 @EventBusSubscriber
 public class ItemOnBlockEvent {
+    private static final String KEY_FREQUENCY = "frequency";
+    private static final String KEY_UUID = "uuid";
+    private static final String KEY_DIRECTION = "direction";
+
     @SubscribeEvent
-    public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock arg) {
+    public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
+        if (event.getLevel().isClientSide) return;
 
-        if (arg.getLevel().isClientSide) return;
-
-        ItemStack itemStack = arg.getItemStack();
-        if (itemStack.is(ModRegister.WIRELESS_CORER.get())){
-            BlockPos clickedPos = arg.getPos();
-            Player player = arg.getEntity();
-            InteractionHand hand = arg.getHand();
-            Level level = arg.getLevel();
-            BlockEntity blockEntity = level.getBlockEntity(clickedPos);
-            ItemStack itemInHand = player.getItemInHand(hand);
-            Direction clickedFace = arg.getFace();
-            arg.setCanceled(true);
-            if (player.isShiftKeyDown() && blockEntity instanceof WirelessConnectBlockEntity entity){
-                if (entity.getPlacerId() != null){
-                    if (AeWireless.IS_FTB_TEAMS_LOADED){
-                        if (!WirelessTeamUtil.getNetworkOwnerUUID(
-                                player.getUUID()).equals(WirelessTeamUtil.getNetworkOwnerUUID(entity.getPlacerId()))){
-                            player.displayClientMessage(Component.translatable("aewireless.tooltip.failopen" ,
-                                    WirelessTeamUtil.getNetworkOwnerName(entity.getServerLevel() ,entity.getPlacerId())), true);
-                            arg.setCancellationResult(InteractionResult.SUCCESS);
-                        }
-                    }
-                }
-
-                if (entity.isMode()){
-                    String frequency = entity.getFrequency();
-
-                    // 使用数据组件保存频率和UUID
-                    CustomData customData = itemInHand.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
-                    CompoundTag tag = customData.copyTag();
-                    tag.putString("frequency", frequency);
-                    tag.putUUID("uuid", player.getUUID());
-                    itemInHand.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-
-                    arg.setCancellationResult(InteractionResult.SUCCESS);
-                }else {
-                    player.displayClientMessage(Component.translatable("tooltip.aewireless_connect.1") , true);
-                    arg.setCancellationResult(InteractionResult.SUCCESS);
-
-                }
-            }else if (GTCeuPacketUtil.castIfInstance(blockEntity , GTCeuPacketUtil.MetaMachineBlockEntity) != null){
-                Object o = GTCeuPacketUtil.castIfInstance(blockEntity, GTCeuPacketUtil.MetaMachineBlockEntity);
-
-                Class<?> aClass = o.getClass();
-                try {
-                    Object invoke = aClass.getMethod("getMetaMachine").invoke(o);
-                    if (invoke instanceof IInWorldGridNodeHost){
-
-                        arg.setCancellationResult(getInteractionResult(itemInHand, blockEntity , clickedFace));
-                    }
-                } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-            else if (blockEntity instanceof IInWorldGridNodeHost){
-                arg.setCancellationResult(getInteractionResult(itemInHand, blockEntity , clickedFace));
-            }
-
-
-
-        }else if (itemStack.is(ModRegister.WIRELESS_DESTROY.get())){
-            BlockPos clickedPos = arg.getPos();
-            Player player = arg.getEntity();
-            InteractionHand hand = arg.getHand();
-            Level level = arg.getLevel();
-            BlockEntity blockEntity = level.getBlockEntity(clickedPos);
-            arg.setCanceled(true);
-
-            // BlockEntity 的持久化数据仍然使用 getPersistentData()，但建议改为使用数据组件
-            CompoundTag persistentData = blockEntity.getPersistentData();
-            if (persistentData.contains("uuid") || persistentData.contains("frequency") || persistentData.contains("direction")){
-                String frequency = persistentData.getString("frequency");
-                UUID uuid = persistentData.getUUID("uuid");
-
-                if (!WirelessTeamUtil.getNetworkOwnerUUID(
-                        player.getUUID()).equals(WirelessTeamUtil.getNetworkOwnerUUID(uuid))){
-                    player.displayClientMessage(Component.translatable("aewireless.tooltip.failopen" ,
-                            WirelessTeamUtil.getNetworkOwnerName((ServerLevel) level ,uuid)), true);
-                    arg.setCancellationResult(InteractionResult.SUCCESS);
-
-                }else {
-                    persistentData.remove("uuid");
-                    persistentData.remove("frequency");
-                    persistentData.remove("direction");
-
-                    if (blockEntity instanceof IWirelessBlockEntity wireless) {
-                        wireless.clearLink();
-                    }
-
-                    arg.setCancellationResult(InteractionResult.SUCCESS);
-
-                }
-
-
-            }
-
-            arg.setCancellationResult(InteractionResult.SUCCESS);
+        ItemStack itemStack = event.getItemStack();
+        if (itemStack.is(ModRegister.WIRELESS_CORER.get())) {
+            handleConnector(event);
         }
     }
 
-    private static @NotNull InteractionResult getInteractionResult(ItemStack itemInHand, BlockEntity blockEntity , Direction direction) {
-        // 从物品的数据组件中读取数据
+    private static void handleConnector(PlayerInteractEvent.RightClickBlock event) {
+        BlockPos clickedPos = event.getPos();
+        Player player = event.getEntity();
+        InteractionHand hand = event.getHand();
+        Level level = event.getLevel();
+        BlockEntity blockEntity = level.getBlockEntity(clickedPos);
+        if (blockEntity == null) {
+            return;
+        }
+        ItemStack itemInHand = player.getItemInHand(hand);
+        Direction clickedFace = event.getFace();
+
+        event.setCanceled(true);
+
+        if (WirelessCore.isDestroyMode(itemInHand)) {
+            event.setCancellationResult(clearWirelessData(player, level, blockEntity));
+            return;
+        }
+
+        if (player.isShiftKeyDown() && blockEntity instanceof WirelessConnectBlockEntity entity) {
+            if (entity.getPlacerId() != null) {
+                if (AeWireless.IS_FTB_TEAMS_LOADED) {
+                    if (!WirelessTeamUtil.getNetworkOwnerUUID(
+                            player.getUUID()).equals(WirelessTeamUtil.getNetworkOwnerUUID(entity.getPlacerId()))) {
+                        player.displayClientMessage(Component.translatable("aewireless.tooltip.failopen",
+                                WirelessTeamUtil.getNetworkOwnerName(entity.getServerLevel(), entity.getPlacerId())), true);
+                        event.setCancellationResult(InteractionResult.SUCCESS);
+                    }
+                }
+            }
+
+            if (entity.isMode()) {
+                String frequency = entity.getFrequency();
+                CustomData customData = itemInHand.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+                CompoundTag tag = customData.copyTag();
+                tag.putString(KEY_FREQUENCY, frequency);
+                tag.putUUID(KEY_UUID, player.getUUID());
+                itemInHand.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+                player.displayClientMessage(Component.translatable("aewireless.tooltip.bind_channel_success", frequency), true);
+            } else {
+                player.displayClientMessage(Component.translatable("tooltip.aewireless_connect.1"), true);
+            }
+            event.setCancellationResult(InteractionResult.SUCCESS);
+            return;
+        }
+
+        if (blockEntity instanceof WirelessConnectBlockEntity) {
+            event.setCancellationResult(InteractionResult.SUCCESS);
+            return;
+        }
+
+        if (handleGtceuHost(event, itemInHand, blockEntity, clickedFace)) {
+            return;
+        }
+
+        if (blockEntity instanceof CableBusBlockEntity cableBus && isBareCable(cableBus)) {
+            event.setCancellationResult(InteractionResult.SUCCESS);
+        } else
+        if (blockEntity instanceof IInWorldGridNodeHost) {
+            event.setCancellationResult(getInteractionResult(itemInHand, blockEntity, clickedFace));
+        }
+    }
+
+    private static InteractionResult clearWirelessData(Player player, Level level, BlockEntity blockEntity) {
+        CompoundTag persistentData = blockEntity.getPersistentData();
+        if (persistentData.contains(KEY_UUID) || persistentData.contains(KEY_FREQUENCY) || persistentData.contains(KEY_DIRECTION)) {
+            UUID uuid = persistentData.getUUID(KEY_UUID);
+
+            if (!WirelessTeamUtil.getNetworkOwnerUUID(player.getUUID()).equals(WirelessTeamUtil.getNetworkOwnerUUID(uuid))) {
+                player.displayClientMessage(Component.translatable("aewireless.tooltip.failopen",
+                        WirelessTeamUtil.getNetworkOwnerName((ServerLevel) level, uuid)), true);
+            } else {
+                persistentData.remove(KEY_UUID);
+                persistentData.remove(KEY_FREQUENCY);
+                persistentData.remove(KEY_DIRECTION);
+
+                WirelessBlockLinkManager.clear(blockEntity);
+            }
+        }
+
+        return InteractionResult.SUCCESS;
+    }
+
+    private static boolean handleGtceuHost(PlayerInteractEvent.RightClickBlock event, ItemStack itemInHand, BlockEntity blockEntity, Direction clickedFace) {
+        Object gtceuBlockEntity = GTCeuPacketUtil.castIfInstance(blockEntity, GTCeuPacketUtil.MetaMachineBlockEntity);
+        if (gtceuBlockEntity == null) {
+            return false;
+        }
+
+        Class<?> clazz = gtceuBlockEntity.getClass();
+        try {
+            Object invoke = clazz.getMethod("getMetaMachine").invoke(gtceuBlockEntity);
+            if (invoke instanceof IInWorldGridNodeHost) {
+                event.setCancellationResult(getInteractionResult(itemInHand, blockEntity, clickedFace));
+            }
+            return true;
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static @NotNull InteractionResult getInteractionResult(ItemStack itemInHand, BlockEntity blockEntity, Direction direction) {
+        if (blockEntity instanceof WirelessConnectBlockEntity) {
+            return InteractionResult.SUCCESS;
+        }
+
         CustomData customData = itemInHand.get(DataComponents.CUSTOM_DATA);
         if (customData != null) {
             CompoundTag tag = customData.copyTag();
-            if (tag.contains("frequency") && tag.contains("uuid")) {
-
-                // BlockEntity 的持久化数据暂时仍使用 getPersistentData()
-                // 如果可能，建议改为使用 BlockEntity 的数据组件
+            if (tag.contains(KEY_FREQUENCY) && tag.contains(KEY_UUID)) {
                 CompoundTag updateTag = blockEntity.getPersistentData();
 
-                updateTag.putString("frequency", tag.getString("frequency"));
-                updateTag.putUUID("uuid", tag.getUUID("uuid"));
-                updateTag.putInt("direction", direction.ordinal());
+                updateTag.putString(KEY_FREQUENCY, tag.getString(KEY_FREQUENCY));
+                updateTag.putUUID(KEY_UUID, tag.getUUID(KEY_UUID));
+                updateTag.putInt(KEY_DIRECTION, direction.ordinal());
 
-
-                // 标记 BlockEntity 为已修改
                 blockEntity.setChanged();
-
-                JoinWorldWireless.add(blockEntity.getLevel(), blockEntity.getBlockPos());
+                WirelessBlockLinkManager.clear(blockEntity);
+                WirelessBlockLinkManager.updateWireless(blockEntity);
 
                 return InteractionResult.SUCCESS;
             }
         }
         return InteractionResult.SUCCESS;
+    }
+
+    private static boolean isBareCable(CableBusBlockEntity cableBus) {
+        for (var dir : Direction.values()) {
+            if (cableBus.getPart(dir) != null) return false;
+        }
+        return true;
     }
 }

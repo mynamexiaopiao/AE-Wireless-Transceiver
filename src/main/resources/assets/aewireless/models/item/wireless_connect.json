@@ -2,5 +2,13 @@
   "parent": "item/generated",
   "textures": {
     "layer0": "aewireless:item/wireless_connect"
-  }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "aewireless:item/wireless_connect_destroy"
+    }
+  ]
 }

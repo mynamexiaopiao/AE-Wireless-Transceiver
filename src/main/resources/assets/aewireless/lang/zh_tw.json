@@ -1,5 +1,12 @@
 ﻿{
   "block.aewireless.wireless_transceiver": "AE 無線收發器",
+  "item.aewireless.wireless_connect": "無線連接器",
+  "tooltip.aewireless_connect.1": "無線收發器模式錯誤！",
+  "tooltip.aewireless_connect.2": "shift + 右鍵: 連接無線收發器",
+  "tooltip.aewireless_connect.mode_connect": "模式：連接",
+  "tooltip.aewireless_connect.mode_destroy": "模式：破壞",
+  "tooltip.aewireless_connect.channel_list": "頻道列表",
+  "tooltip.aewireless_connect.channel_list_empty": "無頻道",
   "gui.aewireless.wireless": "AE 無線收發器",
   "gui.wireless.mode": "是否為傳送端",
   "gui.wireless.add": "新增",
@@ -15,7 +22,9 @@
   "gui.input_channel_name_screen.placeholder": "輸入頻道名稱",
   "gui.wireless.input.placeholder": "搜尋...",
   "aewireless.tooltip.failopen": "這是屬於 %s 的無線收發器，您無權開啟。",
-  "aewireless.tooltip.channel_name": "頻道名稱: %d",
+  "aewireless.tooltip.direction": "方向: %s",
+  "aewireless.tooltip.bind_channel_success": "綁定頻道 %s 成功",
+  "aewireless.tooltip.channel_name": "頻道名稱: %s",
   "aewireless.tooltip.master": "模式: %s",
   "aewireless.tooltip.channels": "頻道: %s",
   "aewireless.tooltip.channels_of": "頻道: %d / %d",
@@ -43,10 +52,12 @@
   "config.aewireless.option.maxDistance": "最大傳輸距離",
   "config.aewireless.option.crossDimensional": "是否允許跨緯度連線",
   "config.aewireless.option.shiftAutoConnect": "潛行放置方塊時自動連線",
+  "config.aewireless.option.shiftScrollChannelSwitch": "潛行滾輪切換連接器頻道",
   "config.aewireless.option.isEnergy.comment.0": "如果啟用，無線收發器將消耗能量以進行傳輸。",
   "config.aewireless.option.batteryMultiplier.comment.0": "從端耗能 = 主端和從端的距離 × 能量乘數。",
   "config.aewireless.option.maxDistance.comment.0": "無線收發器主端和從端之間的最大傳輸距離（0為無限制）。",
   "config.aewireless.option.crossDimensional.comment.0": "如果啟用，無線收發器將允許跨維度連線（忽略距離限制）。",
-  "config.aewireless.option.shiftAutoConnect.comment.0": "如果啟用，潛行放置方塊時會嘗試使用背包中的無線連接器自動連線。"
+  "config.aewireless.option.shiftAutoConnect.comment.0": "如果啟用，潛行放置方塊時會嘗試使用背包中的無線連接器自動連線。",
+  "config.aewireless.option.shiftScrollChannelSwitch.comment.0": "如果啟用，手持無線連接器潛行滾輪時會切換綁定頻道。"
 }
 

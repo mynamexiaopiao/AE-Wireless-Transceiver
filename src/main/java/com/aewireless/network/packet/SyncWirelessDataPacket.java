@@ -1,6 +1,7 @@
 // src/main/java/com/aewireless/network/packet/SyncWirelessDataPacket.java
 package com.aewireless.network.packet;
 
+import com.aewireless.client.WirelessConnectorChannelState;
 import com.aewireless.gui.wireless.WirelessScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
@@ -37,6 +38,7 @@ public record SyncWirelessDataPacket(List<String> keys) implements CustomPacketP
             if (Minecraft.getInstance().screen instanceof WirelessScreen ws) {
                 ws.receiveServerData(msg.keys);
             }
+            WirelessConnectorChannelState.setChannels(msg.keys);
         });
     }
 

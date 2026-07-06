@@ -3,6 +3,7 @@ package com.aewireless.network;
 import com.aewireless.network.packet.MenuDataPacket;
 import com.aewireless.network.packet.RequestSlaveListPacket;
 import com.aewireless.network.packet.RequestWirelessDataPacket;
+import com.aewireless.network.packet.SetConnectorChannelPacket;
 import com.aewireless.network.packet.SyncSlaveListPacket;
 import com.aewireless.network.packet.SyncWirelessDataPacket;
 import com.aewireless.network.packet.WirelessDataUpdatePacket;
@@ -45,6 +46,12 @@ public class NetworkHandler {
                 RequestSlaveListPacket.TYPE,
                 RequestSlaveListPacket.STREAM_CODEC,
                 RequestSlaveListPacket::handle
+        );
+
+        registrar.playToServer(
+                SetConnectorChannelPacket.TYPE,
+                SetConnectorChannelPacket.STREAM_CODEC,
+                SetConnectorChannelPacket::handle
         );
 
         registrar.playToClient(

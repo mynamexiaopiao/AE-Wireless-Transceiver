@@ -2,11 +2,13 @@ package com.aewireless.event;
 
 import appeng.api.networking.GridHelper;
 import appeng.api.networking.IInWorldGridNodeHost;
+import appeng.blockentity.networking.CableBusBlockEntity;
 import com.aewireless.AeWireless;
 import com.aewireless.ModConfig;
-import com.aewireless.api.IWirelessBlockEntity;
+import com.aewireless.block.WirelessConnectBlockEntity;
 import com.aewireless.register.ModRegister;
 import com.aewireless.wireless.block.link.JoinWorldWireless;
+import com.aewireless.wireless.block.link.WirelessBlockLinkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -51,6 +53,8 @@ public class ShiftPlaceAutoConnectEvent {
         BlockPos pos = event.getPos();
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity == null) return;
+        if (blockEntity instanceof WirelessConnectBlockEntity) return;
+        if (blockEntity instanceof CableBusBlockEntity cableBus && isBareCable(cableBus)) return;
 
         IInWorldGridNodeHost host = getNodeHost(blockEntity);
         if (host == null) return;
@@ -58,13 +62,10 @@ public class ShiftPlaceAutoConnectEvent {
         Direction direction = getPlacementDirection( player).getOpposite();
 
         CompoundTag persistent = blockEntity.getPersistentData();
-        // Clear any existing wireless data to avoid stale links after re-placement
         persistent.remove(KEY_FREQUENCY);
         persistent.remove(KEY_UUID);
         persistent.remove(KEY_DIRECTION);
-        if (blockEntity instanceof IWirelessBlockEntity wireless) {
-            wireless.clearLink();
-        }
+        WirelessBlockLinkManager.clear(blockEntity);
 
         persistent.putString(KEY_FREQUENCY, frequency);
         persistent.putUUID(KEY_UUID, tag.getUUID(KEY_UUID));
@@ -89,6 +90,13 @@ public class ShiftPlaceAutoConnectEvent {
             }
         }
         return ItemStack.EMPTY;
+    }
+
+    private static boolean isBareCable(CableBusBlockEntity cableBus) {
+        for (var dir : Direction.values()) {
+            if (cableBus.getPart(dir) != null) return false;
+        }
+        return true;
     }
 
     private static IInWorldGridNodeHost getNodeHost(BlockEntity blockEntity) {

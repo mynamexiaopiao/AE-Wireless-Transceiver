@@ -37,6 +37,11 @@ public class ModConfig {
 
     @Configurable
     @Configurable.Synchronized
+    @Configurable.Comment(value = {"Enable switching Wireless Connector channels with sneak + mouse wheel."}, localize = true)
+    public boolean shiftScrollChannelSwitch = false;
+
+    @Configurable
+    @Configurable.Synchronized
     @Configurable.DecimalRange(min = 0)
     public double baseEnergy = 100.0;
 

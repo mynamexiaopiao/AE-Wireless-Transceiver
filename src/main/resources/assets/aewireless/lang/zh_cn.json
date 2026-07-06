@@ -1,10 +1,13 @@
 ﻿{
   "block.aewireless.wireless_transceiver": "AE 无线收发器",
   "item.aewireless.wireless_connect": "无线连接器",
-  "item.aewireless.wireless_destroy": "无线破坏器",
 
   "tooltip.aewireless_connect.1":  "无线收发器模式错误！",
   "tooltip.aewireless_connect.2" : "shift + 右键: 连接无线收发器",
+  "tooltip.aewireless_connect.mode_connect": "模式：连接",
+  "tooltip.aewireless_connect.mode_destroy": "模式：破坏",
+  "tooltip.aewireless_connect.channel_list": "频道列表",
+  "tooltip.aewireless_connect.channel_list_empty": "无频道",
 
 
   "gui.aewireless.wireless": "AE 无线收发器",
@@ -25,8 +28,9 @@
 
   "aewireless.tooltip.failopen": "这是属于 %s 的无线收发器，您无权打开。",
   "aewireless.tooltip.direction": "方向: %s",
+  "aewireless.tooltip.bind_channel_success": "绑定频道 %s 成功",
 
-  "aewireless.tooltip.channel_name": "频道名称: %d",
+  "aewireless.tooltip.channel_name": "频道名称: %s",
   "aewireless.tooltip.master": "模式: %s",
   "aewireless.tooltip.channels": "频道: %s",
   "aewireless.tooltip.channels_of": "频道: %d / %d",
@@ -59,6 +63,7 @@
   "config.aewireless.option.maxDistance": "最大传输距离",
   "config.aewireless.option.crossDimensional": "是否允许跨纬度连接",
   "config.aewireless.option.shiftAutoConnect": "潜行放置方块时自动连接",
+  "config.aewireless.option.shiftScrollChannelSwitch": "潜行滚轮切换连接器频道",
   "config.aewireless.option.isCacheLoad": "是否开启无线直连的全缓存模式",
 
   "config.aewireless.option.isEnergy.comment.0": "如果启用，无线收发器将消耗能量以进行传输。",
@@ -66,6 +71,7 @@
   "config.aewireless.option.maxDistance.comment.0": "无线收发器主端和从端之间的最大传输距离（0为无限制）。",
   "config.aewireless.option.crossDimensional.comment.0": "如果启用，无线收发器将允许跨维度连接（忽略距离限制）。",
   "config.aewireless.option.shiftAutoConnect.comment.0": "如果启用，潜行放置方块时会尝试使用背包中的无线连接器自动连接。",
+  "config.aewireless.option.shiftScrollChannelSwitch.comment.0": "如果启用，手持无线连接器潜行滚轮时会切换绑定频道。",
   "config.aewireless.option.isCacheLoad.comment.0": "如果开启，方块信息将全部缓存，但需要区块常加载，否则连接会丢失（性能好）\n如果关闭，方块信息时时tick获取，不会丢失连接（性能差）",
 
   "commands.aewireless.clear": "已清除所有无效连接"

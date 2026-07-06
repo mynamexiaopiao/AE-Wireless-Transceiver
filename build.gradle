@@ -151,10 +151,11 @@ configurations {
 
 dependencies {
 
-    implementation "org.appliedenergistics:appliedenergistics2:19.2.13"
-    implementation "org.appliedenergistics:guideme:2.5.1"
+//    implementation "org.appliedenergistics:appliedenergistics2:19.2.17"
+//    implementation "org.appliedenergistics:guideme:2.5.1"
+    implementation "curse.maven:applied-energistics-2-223794:7027323"
 
-
+    implementation "curse.maven:guideme-1173950:8129788"
     // compileOnly 供代码编译
 
     jarJar(implementation "curse.maven:configuration-444699:6779573")
