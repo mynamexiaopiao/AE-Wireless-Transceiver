@@ -75,8 +75,9 @@
   "config.aewireless.option.isCacheLoad.comment.0": "If enabled, all block information will be cached, but the chunk needs to stay loaded; otherwise, the connection will be lost (better performance).  \nIf disabled, block information will be retrieved via real-time ticks, and the connection will not be lost (worse performance).",
 
 
-  "commands.aewireless.clear": "All invalid connections cleared"
+  "commands.aewireless.clear": "All invalid connections cleared",
 
-
+  "curios.identifier.wireless_connect": "Wireless Connector",
+  "curios.modifiers.wireless_connect": "When Wireless Connector is equipped:"
 }
 

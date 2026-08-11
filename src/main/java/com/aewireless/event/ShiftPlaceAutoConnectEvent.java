@@ -21,8 +21,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.BlockEvent;
+import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 
 @EventBusSubscriber
 public class ShiftPlaceAutoConnectEvent {
@@ -34,13 +37,31 @@ public class ShiftPlaceAutoConnectEvent {
     public static void onBlockPlaced(BlockEvent.EntityPlaceEvent event) {
         Entity entity = event.getEntity();
         if (!(entity instanceof Player player)) return;
-        if (!ModConfig.INSTANCE.shiftAutoConnect) return;
+        if (!ModConfig.shiftAutoConnect()) return;
         if (!player.isShiftKeyDown()) return;
 
         Level level = event.getLevel() instanceof Level l ? l : null;
         if (level == null || level.isClientSide) return;
 
-        ItemStack connector = findWirelessConnector(player);
+        ItemStack connector = ItemStack.EMPTY;
+
+        if (ModList.get().isLoaded("curios")) {
+            ICuriosItemHandler curiosItemHandler = CuriosApi.getCuriosInventory(player).orElse(null);
+            if (curiosItemHandler != null) {
+                int slotsCount = curiosItemHandler.getSlots();
+
+                for (int i = 0; i < slotsCount; i++) {
+                    ItemStack stackInSlot = curiosItemHandler.getEquippedCurios().getStackInSlot(i);
+                    if (!stackInSlot.isEmpty() && stackInSlot.is(ModRegister.WIRELESS_CORER.get())) {
+                        connector = stackInSlot;
+                    }
+                }
+            }
+        }
+        if (connector.isEmpty()) {
+            connector = findWirelessConnector(player);
+        }
+
         if (connector.isEmpty()) return;
 
         CustomData customData = connector.get(DataComponents.CUSTOM_DATA);

@@ -195,8 +195,8 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
     }
 
     public double getEnergy() {
-        if (!ModConfig.INSTANCE.isEnergy || frequency == null) return 0;
-        if (this.mode) return ModConfig.INSTANCE.baseEnergy;
+        if (!ModConfig.isEnergy() || frequency == null) return 0;
+        if (this.mode) return ModConfig.baseEnergy();
 
         UUID ownerId = !AeWireless.IS_FTB_TEAMS_LOADED ? AeWireless.PUBLIC_NETWORK_UUID : WirelessTeamUtil.getNetworkOwnerUUID(placerId);
         IWirelessEndpoint master = WirelessData.getData(frequency, ownerId);
@@ -216,7 +216,7 @@ public class WirelessConnectBlockEntity extends BlockEntity implements MenuProvi
                     double dz = thisPos.getZ();
                     distance = Math.sqrt(dx * dx + dz * dz);
                 }
-                return distance * ModConfig.INSTANCE.batteryMultiplier;
+                return distance * ModConfig.batteryMultiplier();
             }
         }
         return 0;

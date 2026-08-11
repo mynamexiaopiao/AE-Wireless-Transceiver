@@ -51,7 +51,7 @@ public final class WirelessConnectorClientEvents {
 
     @SubscribeEvent
     public static void onMouseScroll(InputEvent.MouseScrollingEvent event) {
-        if (ModConfig.INSTANCE == null || !ModConfig.INSTANCE.shiftScrollChannelSwitch) return;
+        if (!ModConfig.shiftScrollChannelSwitch()) return;
 
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null || minecraft.screen != null || !minecraft.player.isShiftKeyDown()) return;

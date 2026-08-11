@@ -222,7 +222,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
         renderHoveredRow(guiGraphics);
         renderListContent(guiGraphics);
         renderScrollbarBackground(guiGraphics);
-        if (ModConfig.INSTANCE.isEnergy){
+        if (ModConfig.isEnergy()){
             renderEnergyMode( guiGraphics);
         }else {
             renderMode(guiGraphics);
@@ -496,7 +496,7 @@ public class WirelessScreen extends AEBaseScreen<WirelessMenu> {
 
     // 计算能量使用量的辅助方法
     private String calculateEnergyUsage() {
-        if (!ModConfig.INSTANCE.isEnergy) {
+        if (!ModConfig.isEnergy()) {
             return "0";
         }
 

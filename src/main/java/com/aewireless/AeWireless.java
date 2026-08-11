@@ -1,17 +1,17 @@
 package com.aewireless;
 
 import appeng.api.AECapabilities;
-import appeng.api.networking.IInWorldGridNodeHost;
+import com.aewireless.client.ConfigScreenRegistration;
 import com.aewireless.network.NetworkHandler;
 import com.aewireless.register.ModRegister;
 import net.neoforged.api.distmarker.Dist;
-import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig.Type;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -39,7 +39,10 @@ public class AeWireless {
 
         ModRegister.MENU_TYPES.register(modEventBus);
 
-        ModConfig.init();
+        modContainer.registerConfig(Type.COMMON, ModConfig.SPEC);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            ConfigScreenRegistration.register(modContainer);
+        }
 
         modEventBus.addListener(this::clientSetup);
         modEventBus.addListener(this::commonSetup);

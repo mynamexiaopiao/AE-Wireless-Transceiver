@@ -61,11 +61,11 @@ public class WirelessBlockLink {
         setUuid(uuid);
 
         IWirelessEndpoint master = WirelessData.getData(frequency, uuid);
-        boolean crossDimensional = ModConfig.INSTANCE.crossDimensional;
+        boolean crossDimensional = ModConfig.crossDimensional();
 
         if (master != null && !master.isEndpointRemoved() && (crossDimensional || master.getServerLevel() == level)) {
             double distance = master.getBlockPos().distSqr(pos);
-            double maxRange = ModConfig.INSTANCE.maxDistance;
+            double maxRange = ModConfig.maxDistance();
 
             if (master.getServerLevel() == level) {
                 if (distance <= maxRange * maxRange || maxRange == 0) {

@@ -54,11 +54,11 @@ public class WirelessLink {
 
         ServerLevel level = host.getServerLevel();
         IWirelessEndpoint master = WirelessData.getData(frequency, uuid);
-        boolean crossDimensional = ModConfig.INSTANCE.crossDimensional;
+        boolean crossDimensional = ModConfig.crossDimensional();
 
         if (master != null && !master.isEndpointRemoved() && (crossDimensional || master.getServerLevel() == level)) {
             double distance = Math.sqrt(master.getBlockPos().distSqr(host.getBlockPos()));
-            double maxRange = ModConfig.INSTANCE.maxDistance;
+            double maxRange = ModConfig.maxDistance();
 
             if (master.getServerLevel() == level) {
                 if (distance <= maxRange || maxRange == 0) {

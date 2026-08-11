@@ -74,6 +74,9 @@
   "config.aewireless.option.shiftScrollChannelSwitch.comment.0": "如果启用，手持无线连接器潜行滚轮时会切换绑定频道。",
   "config.aewireless.option.isCacheLoad.comment.0": "如果开启，方块信息将全部缓存，但需要区块常加载，否则连接会丢失（性能好）\n如果关闭，方块信息时时tick获取，不会丢失连接（性能差）",
 
-  "commands.aewireless.clear": "已清除所有无效连接"
+  "commands.aewireless.clear": "已清除所有无效连接",
+
+  "curios.identifier.wireless_connect": "无线连接器",
+  "curios.modifiers.wireless_connect": "佩戴无线连接器时："
 }
 
